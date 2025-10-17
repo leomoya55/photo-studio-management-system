@@ -1,3 +1,6 @@
+<?php
+require_once 'session_manager.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -423,6 +426,27 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+        
+        /* User welcome styling */
+        .user-welcome {
+            color: #ff6600 !important;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255, 102, 0, 0.1);
+            border: 1px solid #ff6600;
+        }
+        
+        .dropdown-menu {
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #ff6600;
+            color: white;
+        }
     </style>
 </head>
 
@@ -457,13 +481,31 @@
                     </li>
                 </ul>
                 
+                <!-- User Navigation -->
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link btn-outline-primary" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Registrarse</a>
-                    </li>
+                    <?php if ($isLoggedIn): ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle user-welcome" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-2"></i>Bienvenido, <?php echo htmlspecialchars($userName); ?>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <?php if ($userRole === 'admin'): ?>
+                                    <li><a class="dropdown-item" href="admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
+                                <?php else: ?>
+                                    <li><a class="dropdown-item" href="dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Mi Dashboard</a></li>
+                                <?php endif; ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                            </ul>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link btn-outline-primary px-3 me-2" href="register.php">Registrarse</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn-primary text-white px-3" href="login.php">Iniciar Sesión</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>

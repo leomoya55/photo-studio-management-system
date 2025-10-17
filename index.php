@@ -1,3 +1,6 @@
+<?php
+require_once 'session_manager.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -107,46 +110,84 @@
             background-color: #e55a00 !important;
             color: white !important;
         }
+        
+        /* User welcome styling */
+        .user-welcome {
+            color: #ff6600 !important;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255, 102, 0, 0.1);
+            border: 1px solid #ff6600;
+        }
+        
+        .dropdown-menu {
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: none;
+        }
     </style>
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+    
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
         <div class="container">
-            <a class="navbar-brand" href="#inicio">
+            <a class="navbar-brand" href="index.php#inicio">
                 <span class="brand-text">Legend</span>
             </a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#inicio">Inicio</a>
+                        <a class="nav-link" href="index.php#inicio">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="clases.html">Clases</a>
+                        <a class="nav-link" href="clases.php">Clases</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="catalogo.html">Catálogo</a>
+                        <a class="nav-link" href="catalogo.php">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="redes-sociales.html">Redes Sociales</a>
+                        <a class="nav-link" href="redes-sociales.php">Redes Sociales</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="ubicacion.html">Ubicación</a>
+                        <a class="nav-link" href="ubicacion.php">Ubicación</a>
                     </li>
                 </ul>
+                
+                <!-- User Navigation -->
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link btn-outline-primary px-3 me-2" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Registrarse</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn-primary text-white px-3" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
-                    </li>
+                    <?php if ($isLoggedIn): ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle user-welcome" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-2"></i>Bienvenido, <?php echo htmlspecialchars($userName); ?>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <?php if ($userRole === 'admin'): ?>
+                                    <li><a class="dropdown-item" href="admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
+                                <?php else: ?>
+                                    <li><a class="dropdown-item" href="dashboard.php"><i class="fas fa-tachometer-alt me-2"></i>Mi Dashboard</a></li>
+                                <?php endif; ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                            </ul>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link btn-outline-primary px-3 me-2" href="register.php">Registrarse</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn-primary text-white px-3" href="login.php">Iniciar Sesión</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -162,8 +203,8 @@
                         <p class="hero-subtitle">Donde cada movimiento cuenta una historia</p>
                         <p class="hero-description">Descubre tu pasión por la danza en nuestra academia. Ofrecemos clases para todos los niveles y edades en un ambiente profesional y acogedor.</p>
                         <div class="hero-buttons">
-                            <a href="clases.html" class="btn btn-primary btn-lg me-3">Ver Clases</a>
-                            <a href="#" class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">Únete Ahora</a>
+                            <a href="clases.php" class="btn btn-primary btn-lg me-3">Ver Clases</a>
+                            <a href="register.php" class="btn btn-outline-primary btn-lg">Únete Ahora</a>
                         </div>
                     </div>
                     <div class="col-lg-6">
@@ -247,199 +288,64 @@
             </div>
         </div>
     </section>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Catálogo Section -->
-    <!-- Catalog Preview Section -->
-    <section id="catalogo" class="py-5">
+    <!-- About Section -->
+    <section id="nosotros" class="py-5">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="section-title">Catálogo Legend</h2>
-                <p class="section-subtitle">Ropa de danza, calzado y accesorios exclusivos</p>
-            </div>
-            <div class="row">
-                <div class="col-lg-4 mb-4">
-                    <div class="service-card text-center p-4">
-                        <i class="fas fa-tshirt fa-3x text-primary mb-3"></i>
-                        <h4>Ropa de Danza</h4>
-                        <p>Camisetas, leggings, tutús y más ropa especializada para cada estilo de danza.</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 mb-4">
-                    <div class="service-card text-center p-4">
-                        <i class="fas fa-shoe-prints fa-3x text-primary mb-3"></i>
-                        <h4>Calzado Especializado</h4>
-                        <p>Zapatillas de ballet, sneakers para hip hop y calzado para cada disciplina.</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 mb-4">
-                    <div class="service-card text-center p-4">
-                        <i class="fas fa-shopping-bag fa-3x text-primary mb-3"></i>
-                        <h4>Accesorios</h4>
-                        <p>Bolsas de danza, botellas de agua, accesorios para el cabello y más.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="text-center mt-4">
-                <a href="catalogo.html" class="btn btn-primary btn-lg">
-                    <i class="fas fa-store me-2"></i>Ver Catálogo Completo
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Ubicación Section -->
-    <!-- Location Preview Section -->
-    <section id="ubicacion" class="py-5">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="section-title">Visítanos</h2>
-                <p class="section-subtitle">Estamos ubicados en el corazón de la ciudad</p>
+                <h2 class="section-title">Acerca de Legend</h2>
+                <p class="section-subtitle">Más que una academia, una familia</p>
             </div>
             <div class="row">
                 <div class="col-lg-6 mb-4">
-                    <div class="map-placeholder" onclick="window.location.href='ubicacion.html'" style="cursor: pointer; position: relative; overflow: hidden;">
-                        <iframe 
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1964.5!2d-84.054269!3d9.918461!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOcKwNTUnMDYuNSJOIDg0wrAwMycxNS40Ilc!5e0!3m2!1ses!2scr!4v1696532400000!5m2!1ses!2scr"
-                            width="100%" 
-                            height="100%" 
-                            style="border:0; pointer-events: none;" 
-                            allowfullscreen="" 
-                            loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade">
-                        </iframe>
-                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center;">
-                            <i class="fas fa-map-marker-alt fa-3x mb-3"></i>
-                            <h5>Zapote, San José</h5>
-                            <p>Costa Rica</p>
-                            <small>Haz clic para ver mapa detallado</small>
-                        </div>
-                    </div>
+                    <h3>Nuestra Misión</h3>
+                    <p>
+                        En Legend Dance Academy, nos dedicamos a cultivar el amor por la danza en cada uno de nuestros estudiantes. 
+                        Creemos que la danza es una forma de expresión que trasciende barreras y une corazones.
+                    </p>
+                    <h3>Nuestra Visión</h3>
+                    <p>
+                        Ser la academia de danza líder en Costa Rica, reconocida por la excelencia en la enseñanza, 
+                        la innovación en nuestros programas y el desarrollo integral de nuestros estudiantes.
+                    </p>
                 </div>
                 <div class="col-lg-6">
-                    <div class="contact-info">
-                        <h4 class="mb-4">Información Rápida</h4>
-                        <div class="contact-item mb-3">
-                            <i class="fas fa-map-marker-alt text-primary me-3"></i>
-                            <span>75 metros norte de correos, Zapote, San José</span>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number">10+</span>
+                            <p>Años de Experiencia</p>
                         </div>
-                        <div class="contact-item mb-3">
-                            <i class="fas fa-phone text-primary me-3"></i>
-                            <span>+506 8411-8339</span>
+                        <div class="stat-item">
+                            <span class="stat-number">200+</span>
+                            <p>Estudiantes Activos</p>
                         </div>
-                        <div class="contact-item mb-3">
-                            <i class="fas fa-clock text-primary me-3"></i>
-                            <span>Lun - Vie: 8:00 AM - 10:00 PM</span>
+                        <div class="stat-item">
+                            <span class="stat-number">9</span>
+                            <p>Disciplinas de Danza</p>
                         </div>
-                        <div class="contact-item mb-4">
-                            <i class="fas fa-subway text-primary me-3"></i>
-                            <span>Autobús - Parada Zapote Centro</span>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <a href="ubicacion.html" class="btn btn-primary">
-                                <i class="fas fa-map me-1"></i>Ver Detalles
-                            </a>
-                            <a href="https://wa.me/50684118339" class="btn btn-success" target="_blank">
-                                <i class="fab fa-whatsapp me-1"></i>WhatsApp
-                            </a>
+                        <div class="stat-item">
+                            <span class="stat-number">95%</span>
+                            <p>Satisfacción</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-
-    <!-- Register Modal -->
-    <div class="modal fade" id="registerModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Registrarse en Legend</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="registerForm">
-                        <div class="mb-3">
-                            <label for="registerName" class="form-label">Nombre Completo</label>
-                            <input type="text" class="form-control" id="registerName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="registerEmail" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="registerEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="registerPhone" class="form-label">Teléfono</label>
-                            <input type="tel" class="form-control" id="registerPhone">
-                        </div>
-                        <div class="mb-3">
-                            <label for="registerClass" class="form-label">Clase de Interés</label>
-                            <select class="form-control" id="registerClass" required>
-                                <option value="">Selecciona una clase</option>
-                                <option value="ballet">Ballet Clásico</option>
-                                <option value="hip-hop">Hip Hop</option>
-                                <option value="salsa">Salsa</option>
-                                <option value="jazz">Jazz</option>
-                                <option value="contemporaneo">Contemporáneo</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Registrarse</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Login Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Iniciar Sesión</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="loginForm">
-                        <div class="mb-3">
-                            <label for="loginEmail" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="loginEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="loginPassword" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="loginPassword" required>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="rememberMe">
-                            <label class="form-check-label" for="rememberMe">Recordarme</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
-                        <div class="text-center mt-3">
-                            <a href="#" class="text-muted">¿Olvidaste tu contraseña?</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>Legend</h5>
+                    <h5 class="brand-text">Legend</h5>
                     <p>Academia de danza donde cada movimiento cuenta una historia.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="social-links">
                         <a href="https://www.facebook.com/profile.php?id=100068508182444" class="text-white me-3" target="_blank"><i class="fab fa-facebook-f"></i></a>
                         <a href="https://www.instagram.com/legendvm.cr/" class="text-white me-3" target="_blank"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-youtube"></i></a>
-                        <a href="#" class="text-white"><i class="fab fa-tiktok"></i></a>
+                        <a href="https://wa.me/50684118339" class="text-white"><i class="fab fa-whatsapp"></i></a>
                     </div>
                     <p class="mt-2">&copy; 2025 Legend. Todos los derechos reservados.</p>
                 </div>
@@ -462,7 +368,6 @@
         // Load featured classes from JSON
         async function loadFeaturedClasses() {
             try {
-                // Add cache-busting parameter to force refresh
                 const cacheBuster = new Date().getTime();
                 const response = await fetch(`data/classes.json?v=${cacheBuster}`);
                 const allClasses = await response.json();
@@ -490,13 +395,7 @@
             
             grid.innerHTML = classes.slice(0, 6).map(classItem => `
                 <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <div class="position-relative">
-                            <div class="placeholder-class"></div>
-                            <span class="badge position-absolute top-0 end-0 m-3" style="background: var(--gradient-primary);">
-                                ${classItem.category}
-                            </span>
-                        </div>
+                    <div class="card h-100 shadow-sm card-hover">
                         <div class="card-body d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h5 class="card-title mb-0">${classItem.name}</h5>
@@ -541,6 +440,7 @@
                 </div>
             `;
         }
+
     </script>
 </body>
 </html>

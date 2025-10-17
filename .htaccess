@@ -1,0 +1,7 @@
+# Redirect any requests to index.html to index.php
+RewriteEngine On
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+ProyectoVanessa/index\.html[\s?] [NC]
+RewriteRule ^index\.html$ index.php [R=301,L]
+
+# Set index.php as the default directory index
+DirectoryIndex index.php index.html
