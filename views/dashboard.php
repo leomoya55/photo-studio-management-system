@@ -11,13 +11,14 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // Redirect admin to admin dashboard
-if ($_SESSION['role'] === 'admin') {
-    header('Location: admin.php');
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+    header('Location: ' . VIEWS_URL . '/admin.php');
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
-$first_name = $_SESSION['first_name'];
+$first_name = $_SESSION['first_name'] ?? '';
+$last_name = $_SESSION['last_name'] ?? '';
 // Clean, safe queries block
 $user_profile = [];
 if ($stmt = $conn->prepare("SELECT * FROM users WHERE id = ?")) {

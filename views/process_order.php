@@ -8,7 +8,6 @@
 ob_start();
 
 session_start();
-session_start();
 require_once '../config/db_connect.php';
 require_once '../config/paths.php';
 require_once '../config/cloudinary_config.php';
@@ -475,7 +474,7 @@ function sendOrderNotifications($order_number, $customer_name, $customer_email, 
                     <div class='order-details'>
                         <h3>Información de Entrega</h3>
                         <p><strong>Dirección:</strong> $shipping_address</p>
-                        <p><strong>Teléfono:</strong> $customer_email</p>
+                        <p><strong>Teléfono:</strong> $customer_phone</p>
                         <p><strong>Método de Pago:</strong> $payment_display</p>
                         " . (!empty($notes) ? "<p><strong>Notas:</strong> $notes</p>" : "") . "
                     </div>
