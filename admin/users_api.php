@@ -213,6 +213,51 @@ try {
                             $log->close();
                         }
 
+                        // Notify customer via email (best-effort) and log
+                        try {
+                            // Fetch order with customer info
+                            $cust = null;
+                            if ($s1 = $conn->prepare('SELECT o.order_number, o.status, o.total_amount, o.delivery_cost, u.first_name, u.last_name, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = ?')) {
+                                $s1->bind_param('i', $orderId);
+                                $s1->execute();
+                                $r1 = $s1->get_result();
+                                $cust = $r1 ? $r1->fetch_assoc() : null;
+                                $s1->close();
+                            }
+                            if ($cust && !empty($cust['email'])) {
+                                $to = $cust['email'];
+                                $name = trim(($cust['first_name'] ?? '') . ' ' . ($cust['last_name'] ?? ''));
+                                $orderNo = $cust['order_number'] ?? (string)$orderId;
+                                $total = (float)($cust['total_amount'] ?? 0) + (float)($cust['delivery_cost'] ?? 0);
+                                $statusLabel = ucfirst($newStatus);
+                                $subject = "Actualización de tu orden #{$orderNo} - {$statusLabel}";
+                                $bodyMsg = '';
+                                if ($newStatus === 'approved') {
+                                    $bodyMsg = "<p>Hola {$name},</p><p>Tu orden <strong>#{$orderNo}</strong> ha sido <strong>aprobada</strong>. Estamos preparando tu pedido.</p>";
+                                } elseif ($newStatus === 'completed') {
+                                    $bodyMsg = "<p>Hola {$name},</p><p>¡Buenas noticias! Tu orden <strong>#{$orderNo}</strong> ha sido <strong>completada</strong>. Gracias por tu compra.</p>";
+                                } elseif ($newStatus === 'canceled') {
+                                    $bodyMsg = "<p>Hola {$name},</p><p>Tu orden <strong>#{$orderNo}</strong> ha sido <strong>cancelada</strong>. Si no reconoces esta acción o tienes dudas, contáctanos.</p>";
+                                } else {
+                                    $bodyMsg = "<p>Hola {$name},</p><p>Tu orden <strong>#{$orderNo}</strong> se actualizó al estado: <strong>{$statusLabel}</strong>.</p>";
+                                }
+                                $full = "<div style='font-family: Arial, sans-serif; max-width:600px;margin:0 auto'>"
+                                      ."<div style='background:linear-gradient(135deg,#ff6600,#ff8533);color:#fff;padding:16px;border-radius:6px 6px 0 0'><h2 style=\"margin:0\">Academia Legend</h2><small>Actualización de orden</small></div>"
+                                      ."<div style='background:#f9f9f9;padding:16px'>"
+                                      .$bodyMsg
+                                      ."<p><strong>Total:</strong> ₡".number_format($total,0,'.',',')."</p>"
+                                      ."</div><div style='text-align:center;color:#666;font-size:12px;padding:12px'>Gracias por confiar en nosotros.</div></div>";
+                                @mail($to, $subject, $full, implode("\r\n", [
+                                    'MIME-Version: 1.0',
+                                    'Content-type: text/html; charset=UTF-8',
+                                    'From: Academia Legend <info@academialegend.com>'
+                                ]));
+                                // Log to file
+                                $line = sprintf("%s - Email to: %s (%s) - Subject: '%s' - Type: order-%s - Sender: %s\n", date('Y-m-d H:i:s'), $to, $name, $subject, $newStatus, 'Admin');
+                                @file_put_contents(__DIR__ . '/student_emails_log.txt', $line, FILE_APPEND);
+                            }
+                        } catch (Throwable $t) { /* ignore email/log errors */ }
+
                         echo json_encode(['success' => true, 'message' => 'Orden actualizada']);
                         break;
                     case 'delete':

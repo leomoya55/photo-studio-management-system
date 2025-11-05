@@ -137,7 +137,7 @@ if ($conn) {
             <div class="card card-stat p-3 h-100">
               <h5 class="mb-3"><i class="fas fa-clipboard-list me-2 text-success"></i>Atajos</h5>
               <div class="d-grid gap-2">
-                <a href="<?php echo ADMIN_URL; ?>/classes_management.php" class="btn btn-outline-secondary"><i class="fas fa-dumbbell me-2"></i>Gestionar Clases</a>
+                <a href="#pane-clases" class="btn btn-outline-secondary" onclick="document.getElementById('tab-clases')?.click(); return false;"><i class="fas fa-dumbbell me-2"></i>Gestionar Clases</a>
                 <a href="<?php echo ADMIN_URL; ?>/admin_products.php" class="btn btn-outline-secondary"><i class="fas fa-bag-shopping me-2"></i>Gestionar Productos</a>
                 <a href="<?php echo ADMIN_URL; ?>/admin_social.php" class="btn btn-outline-secondary"><i class="fas fa-share-alt me-2"></i>Gestionar Redes Sociales</a>
               </div>
@@ -1223,6 +1223,33 @@ if ($conn) {
         cleanupModalArtifacts();
       });
 
+      // Activate tab if hash or ?tab= is provided
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        const hash = (window.location.hash||'').toLowerCase();
+        const tabMap = {
+          '#pane-dashboard': 'tab-dashboard',
+          '#pane-clientes': 'tab-clientes',
+          '#pane-inscripciones': 'tab-inscripciones',
+          '#pane-clases': 'tab-clases',
+          '#pane-productos': 'tab-productos',
+          '#pane-redes': 'tab-redes',
+          '#pane-sesiones': 'tab-sesiones',
+          '#pane-asistencia': 'tab-asistencia',
+          '#pane-feedback': 'tab-feedback',
+          '#pane-ordenes': 'tab-ordenes',
+          '#pane-pagos': 'tab-pagos',
+          '#pane-progreso': 'tab-progreso',
+          '#pane-reportes': 'tab-reportes'
+        };
+        if (tabParam) {
+          document.getElementById(`tab-${tabParam.toLowerCase()}`)?.click();
+        } else if (hash && tabMap[hash]) {
+          document.getElementById(tabMap[hash])?.click();
+        }
+      } catch(_e) {}
+
       reloadRecent();
       await Promise.all([
         loadUsers(),
@@ -1236,6 +1263,21 @@ if ($conn) {
         loadOrders(),
         populateUsersAndEnrollmentsForForms(),
       ]);
+
+      // Client-side stats fallback to avoid zeros when server prefetch fails
+      try {
+        const toDate = (s)=> s? new Date(s) : null;
+        const cut = Date.now() - 7*24*60*60*1000;
+        const totalUsers = Array.isArray(usersCache)? usersCache.length : 0;
+        const totalEnrs = Array.isArray(enrollmentsCache)? enrollmentsCache.length : 0;
+        const newUsers7 = (usersCache||[]).filter(u=>{ const d=toDate(u.created_at); return d && d.getTime()>=cut; }).length;
+        const newEnrs7 = (enrollmentsCache||[]).filter(e=>{ const d=toDate(e.enrollment_date); return d && d.getTime()>=cut; }).length;
+        const setText = (id,val)=>{ const elx=document.getElementById(id); if(elx){ elx.textContent = new Intl.NumberFormat('es-CR').format(val||0); }};
+        setText('statTotalUsers', totalUsers);
+        setText('statTotalEnrollments', totalEnrs);
+        setText('statNewUsers7d', newUsers7);
+        setText('statNewEnrollments7d', newEnrs7);
+      } catch(_e) {}
 
       // Hook up class change in "Nueva sesión" modal to prefill times
       const sessionClassSel = document.getElementById('newSessionClass');

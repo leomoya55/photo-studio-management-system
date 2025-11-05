@@ -144,14 +144,14 @@ try {
                 break;
         }
         
-        // Send notification email
+        // Send notification email (best-effort) and log
         if ($notification_sent && $email_body) {
             $headers = [
                 'MIME-Version: 1.0',
                 'Content-type: text/html; charset=UTF-8',
                 'From: Academia Legend <info@academialegend.com>',
             ];
-            
+
             $full_email = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
                 <div style='background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); color: white; padding: 20px; text-align: center;'>
@@ -166,9 +166,23 @@ try {
                     Transformando vidas a través de la danza desde 2008</p>
                 </div>
             </div>";
-            
-            // Send email (uncomment when ready)
-            // mail($user_email, $email_subject, $full_email, implode("\r\n", $headers));
+
+            // Try to send email (may be disabled in local env)
+            @mail($user_email, $email_subject, $full_email, implode("\r\n", $headers));
+
+            // Always log to file for audit
+            try {
+                $logLine = sprintf(
+                    "%s - Email to: %s (%s) - Subject: '%s' - Type: enrollment-%s - Sender: %s\n",
+                    date('Y-m-d H:i:s'),
+                    $user_email,
+                    $user_name,
+                    $email_subject,
+                    $new_status,
+                    'Admin'
+                );
+                @file_put_contents(__DIR__ . '/student_emails_log.txt', $logLine, FILE_APPEND);
+            } catch (Throwable $t) { /* ignore */ }
         }
         
         echo json_encode([

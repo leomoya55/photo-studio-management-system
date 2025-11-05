@@ -191,6 +191,11 @@ $stmt->close();
                     </div>
                 </div>
                 <div class="col-md-4 text-md-end">
+                    <a href="#notifications" class="btn btn-light btn-lg me-2" title="Notificaciones">
+                        <i class="fas fa-bell me-2"></i>
+                        <span>Notificaciones</span>
+                        <span id="notifCount" class="badge bg-danger ms-2" style="display:none;">0</span>
+                    </a>
                     <a href="<?php echo VIEWS_URL; ?>/index.php" class="btn btn-outline-light btn-lg me-2">
                         <i class="fas fa-home me-2"></i>Inicio
                     </a>
@@ -225,6 +230,7 @@ $stmt->close();
             </div>
         </div>
 
+        <a id="notifications"></a>
         <?php
         // Get and display user notifications
         $notifications = getUserNotifications($user_id, $conn);
@@ -745,6 +751,18 @@ $stmt->close();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Fetch alert count and show badge
+        (function(){
+            fetch('<?php echo BASE_URL; ?>/api/get_user_alerts.php')
+              .then(r=>r.json())
+              .then(data=>{
+                  const cnt = (data && Array.isArray(data.alerts)) ? data.alerts.length : 0;
+                  const el = document.getElementById('notifCount');
+                  if (el && cnt > 0) { el.textContent = cnt; el.style.display = 'inline-block'; }
+              })
+              .catch(()=>{});
+        })();
+
         // Modal functions for different profile sections
         function editPersonalInfo() {
             const modal = new bootstrap.Modal(document.getElementById('personalInfoModal'));
