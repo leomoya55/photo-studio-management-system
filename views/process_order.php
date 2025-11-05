@@ -160,6 +160,10 @@ try {
         $proofUrl = '';
         $okProof = false;
         try {
+            // Audit log: start upload attempt
+            $logMeta = sprintf("mime=%s; size=%d; cloud=%s; user_id=%d", 
+                $sinpe_proof_mime ?: 'n/a', (int)($sinpe_proof_data['size'] ?? 0), getCloudName(), (int)$user_id);
+            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | START | %s\n", date('Y-m-d H:i:s'), $order_number, $logMeta), FILE_APPEND);
             $publicId = 'order_' . preg_replace('/[^A-Za-z0-9_-]/','', $order_number);
             $uploader = new UploadApi();
             $uploadRes = $uploader->upload($sinpe_proof_tmp, [
@@ -170,12 +174,14 @@ try {
             ]);
             $proofUrl = isset($uploadRes['secure_url']) ? $uploadRes['secure_url'] : ($uploadRes['url'] ?? '');
             // Audit log: successful Cloudinary upload
-            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | OK | %s\n", date('Y-m-d H:i:s'), $order_number, $proofUrl), FILE_APPEND);
+            $okMeta = sprintf("public_id=%s; resource_type=%s", $uploadRes['public_id'] ?? 'n/a', $uploadRes['resource_type'] ?? 'n/a');
+            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | OK | %s | %s\n", date('Y-m-d H:i:s'), $order_number, $proofUrl, $okMeta), FILE_APPEND);
         } catch (Exception $upErr) {
             error_log('Cloudinary upload error (SINPE proof): ' . $upErr->getMessage());
             $proofUrl = '';
             // Audit log: failed Cloudinary upload
-            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | FAIL | %s\n", date('Y-m-d H:i:s'), $order_number, $upErr->getMessage()), FILE_APPEND);
+            $failMeta = sprintf("msg=%s; mime=%s; size=%d; cloud=%s", $upErr->getMessage(), $sinpe_proof_mime ?: 'n/a', (int)($sinpe_proof_data['size'] ?? 0), getCloudName());
+            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | FAIL | %s\n", date('Y-m-d H:i:s'), $order_number, $failMeta), FILE_APPEND);
         }
 
         if (!empty($proofUrl)) {

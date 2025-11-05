@@ -643,7 +643,8 @@ if ($conn) {
                                                         <img src="<?php echo htmlspecialchars($post['image_url']); ?>" 
                                                              class="img-fluid rounded" 
                                                              style="width: 100%; height: 120px; object-fit: cover;"
-                                                             alt="Instagram post">
+                                                             alt="Instagram post"
+                                                             onerror="this.onerror=null; this.src='https://via.placeholder.com/300x120?text=No+Image';">
                                                     <?php else: ?>
                                                         <div class="d-flex align-items-center justify-content-center bg-light rounded" style="height: 120px;">
                                                             <div class="text-center">
@@ -762,7 +763,8 @@ if ($conn) {
                                                             <img src="<?php echo htmlspecialchars($post['image_url']); ?>" 
                                                                  class="img-fluid rounded mt-2" 
                                                                  style="max-height: 200px; width: 100%; object-fit: cover;"
-                                                                 alt="Facebook post image">
+                                                                 alt="Facebook post image"
+                                                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=No+Image';">
                                                         <?php endif; ?>
                                                     </div>
                                                 </div>
