@@ -36,6 +36,39 @@ if ($conn && !$conn->connect_error) {
         $res->free();
     }
 }
+
+// Fallback: if no products loaded from DB, try API (same origin) to ensure visibility
+if (empty($products)) {
+    try {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $base = BASE_URL; // may be '' or '/subpath' or full URL
+        if (preg_match('#^https?://#i', $base)) {
+            $origin = rtrim($base, '/');
+        } else {
+            $origin = $scheme . '://' . $host . rtrim($base, '/');
+        }
+        $apiUrl = $origin . '/admin/products_api.php';
+        $ctx = stream_context_create(['http' => ['method' => 'GET', 'timeout' => 5]]);
+        $json = @file_get_contents($apiUrl, false, $ctx);
+        if ($json !== false) {
+            $list = json_decode($json, true);
+            if (is_array($list)) {
+                foreach ($list as $row) {
+                    $row['price'] = isset($row['price']) ? (float)$row['price'] : 0;
+                    $row['featured'] = !empty($row['featured']);
+                    $row['stock'] = isset($row['stock']) ? (int)$row['stock'] : null;
+                    $products[] = $row;
+                    if (!empty($row['category']) && !in_array($row['category'], $categories)) {
+                        $categories[] = $row['category'];
+                    }
+                }
+            }
+        }
+    } catch (Throwable $e) {
+        // ignore fallback errors silently
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
