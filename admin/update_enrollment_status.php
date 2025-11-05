@@ -7,6 +7,7 @@
 session_start();
 require_once('../config/db_connect.php');
 require_once('../config/session_manager.php');
+require_once('../includes/email_helper.php');
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -109,8 +110,8 @@ try {
         $log_stmt->bind_param("issi", $enrollment_id, $old_status, $new_status, $admin_id);
         $log_stmt->execute();
         
-        // Send notification email to user based on status
-        $notification_sent = false;
+    // Prepare and send notification email to user based on status
+    $notification_sent = false;
         $user_email = $enrollment['email'];
         $user_name = $enrollment['first_name'] . ' ' . $enrollment['last_name'];
         $class_name = $enrollment['class_name'];
@@ -132,7 +133,6 @@ try {
                 </ul>
                 <p>¡Esperamos verte pronto en nuestro estudio!</p>
                 ";
-                $notification_sent = true;
                 break;
                 
             case 'rejected':
@@ -149,22 +149,14 @@ try {
                 <p>Te invitamos a contactarnos para explorar otras opciones de clases que puedan interesarte.</p>
                 <p>Teléfono: +1 (555) 123-4567</p>
                 ";
-                $notification_sent = true;
                 break;
             case 'pending':
                 // No email on revert to pending
-                $notification_sent = false;
                 break;
         }
         
         // Send notification email (best-effort) and log
-        if ($notification_sent && $email_body) {
-            $headers = [
-                'MIME-Version: 1.0',
-                'Content-type: text/html; charset=UTF-8',
-                'From: Academia Legend <info@academialegend.com>',
-            ];
-
+        if ($email_body) {
             $full_email = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
                 <div style='background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); color: white; padding: 20px; text-align: center;'>
@@ -180,18 +172,19 @@ try {
                 </div>
             </div>";
 
-            // Try to send email (may be disabled in local env)
-            @mail($user_email, $email_subject, $full_email, implode("\r\n", $headers));
+            // Try SendGrid first (if configured), fallback to PHP mail()
+            $notification_sent = send_best_effort_email($user_email, $email_subject, $full_email, 'Academia Legend', 'info@legenddanceacademy.com');
 
             // Always log to file for audit
             try {
                 $logLine = sprintf(
-                    "%s - Email to: %s (%s) - Subject: '%s' - Type: enrollment-%s - Sender: %s\n",
+                    "%s - Email to: %s (%s) - Subject: '%s' - Type: enrollment-%s - Result: %s - Sender: %s\n",
                     date('Y-m-d H:i:s'),
                     $user_email,
                     $user_name,
                     $email_subject,
                     $new_status,
+                    $notification_sent ? 'SENT' : 'NOT_SENT',
                     'Admin'
                 );
                 @file_put_contents(__DIR__ . '/student_emails_log.txt', $logLine, FILE_APPEND);

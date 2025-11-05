@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once '../config/paths.php';
 require_once '../config/db_connect.php';
 require_once '../config/image_helpers.php';
 
@@ -444,7 +445,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                                 <?php if ($userRole === 'admin'): ?>
                                     <li><a class="dropdown-item" href="../admin/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
                                 <?php else: ?>
-                                    <li><a class="dropdown-item" href="dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>

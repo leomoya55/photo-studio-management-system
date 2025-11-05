@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once '../config/paths.php';
 require_once '../config/db_connect.php';
 
 // Set up user session variables
@@ -568,9 +569,9 @@ if ($conn) {
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <?php if ($userRole === 'admin'): ?>
-                                    <li><a class="dropdown-item" href="/ProyectoVanessa/admin/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo ADMIN_URL; ?>/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
                                 <?php else: ?>
-                                    <li><a class="dropdown-item" href="dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
@@ -595,7 +596,7 @@ if ($conn) {
         <div class="container">
             <i class="fas fa-eye me-2"></i>
             <strong>Vista de Administrador</strong> - Vanessa, estás viendo el sitio web sin opciones de inscripción
-            <a href="/ProyectoVanessa/admin/admin.php" class="btn btn-light btn-sm ms-3">
+            <a href="<?php echo ADMIN_URL; ?>/admin.php" class="btn btn-light btn-sm ms-3">
                 <i class="fas fa-arrow-left me-1"></i>Volver al Panel Admin
             </a>
         </div>
