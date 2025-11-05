@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $colors = isset($_POST['colors']) ? json_encode(array_filter(array_map('trim', explode(',', $_POST['colors'])))) : '[]';
                 
                 // Insert into database
-                $stmt = $conn->prepare("INSERT INTO products (name, description, price, category, image_url, sizes, colors, stock, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $conn->prepare("INSERT INTO products (name, description, price, category, image_url, sizes, colors, stock, featured, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())");
                 $stmt->bind_param("ssdssssii", $name, $description, $price, $category, $image_path, $sizes, $colors, $stock, $featured);
                 
                 if ($stmt->execute()) {
@@ -115,7 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
             case 'delete_product':
                 $product_id = intval($_POST['product_id']);
-                $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
+                // Soft delete to keep history consistent with API behavior
+                $stmt = $conn->prepare("UPDATE products SET is_active = 0, updated_at = NOW() WHERE id = ?");
                 $stmt->bind_param("i", $product_id);
                 
                 if ($stmt->execute()) {
@@ -138,6 +139,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $messageType = 'success';
                 } else {
                     $message = 'Error al actualizar el producto.';
+                    $messageType = 'error';
+                }
+                $stmt->close();
+                break;
+
+            case 'toggle_active':
+                $product_id = intval($_POST['product_id']);
+                // Toggle active flag
+                $stmt = $conn->prepare("UPDATE products SET is_active = IF(is_active=1,0,1), updated_at = NOW() WHERE id = ?");
+                $stmt->bind_param("i", $product_id);
+                if ($stmt->execute()) {
+                    $message = 'Visibilidad del producto actualizada.';
+                    $messageType = 'success';
+                } else {
+                    $message = 'Error al actualizar visibilidad del producto.';
                     $messageType = 'error';
                 }
                 $stmt->close();
@@ -323,7 +339,14 @@ $products_result = $conn->query($products_query);
                                                 <p class="text-muted small mb-2"><?php echo htmlspecialchars($product['category']); ?></p>
                                                 <p class="card-text small"><?php echo nl2br(htmlspecialchars(substr($product['description'], 0, 80))); ?><?php echo strlen($product['description']) > 80 ? '...' : ''; ?></p>
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <strong class="text-primary">₡<?php echo number_format($product['price'], 0); ?></strong>
+                                                    <div>
+                                                        <strong class="text-primary">₡<?php echo number_format($product['price'], 0); ?></strong>
+                                                        <?php if (!isset($product['is_active']) || (int)$product['is_active'] === 1): ?>
+                                                            
+                                                        <?php else: ?>
+                                                            <span class="badge bg-dark ms-2">Oculto</span>
+                                                        <?php endif; ?>
+                                                    </div>
                                                     <small class="text-muted">
                                                         <?php 
                                                         $sizes = json_decode($product['sizes'], true);
@@ -346,6 +369,14 @@ $products_result = $conn->query($products_query);
                                                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                                         <button type="submit" class="btn btn-sm btn-outline-warning">
                                                             <i class="fas fa-star"></i>
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST" class="d-inline">
+                                                        <input type="hidden" name="action" value="toggle_active">
+                                                        <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                                                        <?php $isActive = isset($product['is_active']) ? (int)$product['is_active'] : 1; ?>
+                                                        <button type="submit" class="btn btn-sm <?php echo $isActive ? 'btn-outline-secondary' : 'btn-outline-success'; ?>" title="<?php echo $isActive ? 'Ocultar en sitio' : 'Activar en sitio'; ?>">
+                                                            <i class="fas <?php echo $isActive ? 'fa-eye-slash' : 'fa-eye'; ?>"></i>
                                                         </button>
                                                     </form>
                                                     <form method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este producto?')">

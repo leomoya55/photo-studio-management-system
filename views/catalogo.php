@@ -21,7 +21,7 @@ $products = [];
 $categories = [];
 
 if ($conn && !$conn->connect_error) {
-    $sql = "SELECT id, name, description, price, category, image_url, stock, featured FROM products WHERE is_active = 1 ORDER BY featured DESC, created_at DESC";
+    $sql = "SELECT id, name, description, price, category, image_url, stock, featured FROM products WHERE (is_active = 1 OR is_active IS NULL) ORDER BY featured DESC, created_at DESC";
     if ($res = $conn->query($sql)) {
         while ($row = $res->fetch_assoc()) {
             // Normalize types
@@ -341,7 +341,7 @@ if ($conn && !$conn->connect_error) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php<?php echo $adminViewParam; ?>">Inicio</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>">Inicio</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Clases</a>
@@ -369,7 +369,7 @@ if ($conn && !$conn->connect_error) {
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <?php if ($userRole === 'admin'): ?>
-                                    <li><a class="dropdown-item" href="../admin/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo ADMIN_URL; ?>/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
                                 <?php else: ?>
                                     <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
                                 <?php endif; ?>
@@ -561,7 +561,7 @@ if ($conn && !$conn->connect_error) {
 
     <!-- Floating Cart -->
     <?php if ($isLoggedIn): ?>
-    <a href="cart.php" class="floating-cart" title="Ver carrito">
+            <a href="<?php echo VIEWS_URL; ?>/cart.php" class="floating-cart" title="Ver carrito">
         <i class="fas fa-shopping-cart"></i>
         <span class="cart-count">0</span>
     </a>
@@ -571,7 +571,7 @@ if ($conn && !$conn->connect_error) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
-    <script src="../assets/js/script.js"></script>
+    <script src="<?php echo ASSETS_URL; ?>/js/script.js"></script>
     
     <!-- Clean Catalog JS -->
     <script>
@@ -582,7 +582,7 @@ if ($conn && !$conn->connect_error) {
         
         function loadCartCount() {
             <?php if ($isLoggedIn): ?>
-            fetch('cart_handler.php?action=count')
+            fetch('<?php echo VIEWS_URL; ?>/cart_handler.php?action=count')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -668,7 +668,7 @@ if ($conn && !$conn->connect_error) {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agregando...';
             
             // Send AJAX request to cart handler
-            fetch('cart_handler.php', {
+            fetch('<?php echo VIEWS_URL; ?>/cart_handler.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -712,7 +712,7 @@ if ($conn && !$conn->connect_error) {
         
         function showLoginAlert() {
             if (confirm('Debes iniciar sesión para agregar productos al carrito. ¿Te gustaría iniciar sesión ahora?')) {
-                window.location.href = 'login.php';
+                window.location.href = '<?php echo VIEWS_URL; ?>/login.php';
             }
         }
         

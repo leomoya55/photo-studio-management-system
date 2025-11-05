@@ -20,7 +20,7 @@ try {
         $featured_only = isset($_GET['featured']) && $_GET['featured'] === 'true';
         $category = $_GET['category'] ?? null;
         
-    $sql = "SELECT id, name, description, price, category, image_url, sizes, colors, stock, featured, created_at, updated_at FROM products WHERE is_active = 1";
+    $sql = "SELECT id, name, description, price, category, image_url, sizes, colors, stock, featured, is_active, created_at, updated_at FROM products WHERE is_active = 1";
         
         if ($featured_only) {
             $sql .= " AND featured = 1";
@@ -145,6 +145,26 @@ try {
                 }
                 
                 echo json_encode(['success' => true, 'message' => 'Producto eliminado exitosamente']);
+                break;
+            
+            case 'toggle_active':
+                $productId = intval($input['id'] ?? 0);
+                $hasActive = array_key_exists('active', $input);
+                if ($hasActive) {
+                    $active = $input['active'] ? 1 : 0;
+                    $sql = "UPDATE products SET is_active = ?, updated_at = NOW() WHERE id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("ii", $active, $productId);
+                } else {
+                    // Toggle when explicit state not provided
+                    $sql = "UPDATE products SET is_active = IF(is_active=1,0,1), updated_at = NOW() WHERE id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("i", $productId);
+                }
+                if (!$stmt->execute()) {
+                    throw new Exception('Error al actualizar estado del producto: ' . $stmt->error);
+                }
+                echo json_encode(['success' => true, 'message' => 'Estado del producto actualizado']);
                 break;
                 
             default:

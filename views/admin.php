@@ -895,9 +895,11 @@ if ($conn) {
         if(!list.length){ tbody.innerHTML = `<tr><td colspan=\"7\" class=\"text-center text-muted py-4\">Sin productos</td></tr>`; return; }
         tbody.innerHTML = list.map(p=>{
           const img = p.image_url ? (p.image_url.startsWith('http') ? p.image_url : ('../'+p.image_url)) : '';
+          const isActive = (p.is_active === undefined || p.is_active === null) ? 1 : Number(p.is_active) ? 1 : 0;
+          const statusBadge = isActive ? '' : '<span class="badge bg-dark ms-2">Oculto</span>';
           return `<tr>
             <td>${img ? `<img src="${img}" style="width:80px;height:60px;object-fit:cover;border-radius:8px">` : ''}</td>
-            <td>${p.name}</td>
+            <td>${p.name} ${statusBadge}</td>
             <td>${p.category||''}</td>
             <td>₡${fmtMoney(p.price)}</td>
             <td>${p.featured? '<i class="fas fa-star text-warning"></i>':''}</td>
@@ -905,11 +907,20 @@ if ($conn) {
             <td class="text-end">
               <button class="btn btn-sm btn-outline-info me-1" title="Cambiar imagen" onclick="changeProductImage(${p.id})"><i class="fas fa-camera"></i></button>
               <button class="btn btn-sm btn-outline-warning me-1" title="Editar" onclick="openEditProduct(${p.id})"><i class="fas fa-pencil"></i></button>
+              <button class="btn btn-sm ${isActive? 'btn-outline-secondary':'btn-outline-success'} me-1" title="${isActive? 'Ocultar en sitio':'Activar en sitio'}" onclick="toggleProductActive(${p.id}, ${isActive? 0:1})">${isActive? '<i class=\"fas fa-eye-slash\"></i>':'<i class=\"fas fa-eye\"></i>'}</button>
               <button class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
             </td>
           </tr>`;
         }).join('');
       } catch(e){ tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al cargar productos</td></tr>`; }
+    }
+
+    async function toggleProductActive(id, active){
+      try{
+        const r = await fetch(api.products,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'toggle_active', id, active })}).then(r=>r.json());
+        if(!r.success) throw new Error(r.message||'Error');
+        await loadProducts();
+      }catch(e){ alert('No se pudo actualizar visibilidad: '+e.message); }
     }
     async function openEditProduct(id){
       try {
