@@ -2,6 +2,8 @@
 require_once '../config/db_connect.php';
 // Ensure session is available to identify the admin performing actions
 require_once '../config/session_manager.php';
+// Best-effort transactional emails (SendGrid -> mail) helper
+require_once '../includes/email_helper.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -278,7 +280,7 @@ try {
                                 $name = trim(($cust['first_name'] ?? '') . ' ' . ($cust['last_name'] ?? ''));
                                 $orderNo = $cust['order_number'] ?? (string)$orderId;
                                 $total = (float)($cust['total_amount'] ?? 0) + (float)($cust['delivery_cost'] ?? 0);
-                                $statusLabel = ucfirst($newStatus);
+                                $statusLabel = ($newStatus==='approved'?'Aprobada':($newStatus==='completed'?'Completada':($newStatus==='canceled'?'Cancelada':ucfirst($newStatus))));
                                 $subject = "Actualización de tu orden #{$orderNo} - {$statusLabel}";
                                 $bodyMsg = '';
                                 if ($newStatus === 'approved') {
@@ -296,13 +298,10 @@ try {
                                       .$bodyMsg
                                       ."<p><strong>Total:</strong> ₡".number_format($total,0,'.',',')."</p>"
                                       ."</div><div style='text-align:center;color:#666;font-size:12px;padding:12px'>Gracias por confiar en nosotros.</div></div>";
-                                @mail($to, $subject, $full, implode("\r\n", [
-                                    'MIME-Version: 1.0',
-                                    'Content-type: text/html; charset=UTF-8',
-                                    'From: Academia Legend <info@academialegend.com>'
-                                ]));
+                                // Use best-effort email sender (SendGrid if configured, else mail())
+                                $sent = send_best_effort_email($to, $subject, $full, 'Academia Legend', 'noreply@legenddanceacademy.com');
                                 // Log to file
-                                $line = sprintf("%s - Email to: %s (%s) - Subject: '%s' - Type: order-%s - Sender: %s\n", date('Y-m-d H:i:s'), $to, $name, $subject, $newStatus, 'Admin');
+                                $line = sprintf("%s - Email %s to: %s (%s) - Subject: '%s' - Type: order-%s - Sender: %s\n", date('Y-m-d H:i:s'), $sent?'SENT':'NOT_SENT', $to, $name, $subject, $newStatus, 'Admin');
                                 @file_put_contents(__DIR__ . '/student_emails_log.txt', $line, FILE_APPEND);
                             }
                         } catch (Throwable $t) { /* ignore email/log errors */ }

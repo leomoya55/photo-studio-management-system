@@ -642,7 +642,17 @@ if ($conn) {
   const filter = normalizeStatus(el('ordersStatusFilter').value||'');
       const q = (el('searchOrders').value||'').toLowerCase();
       let list = ordersCache.slice();
-  if (filter) list = list.filter(o=> normalizeStatus(o.status)===filter);
+  if (filter) {
+        // Special behavior: when filtering by 'pending', keep recently approved visible too
+        if (filter === 'pending') {
+          list = list.filter(o=> {
+            const st = normalizeStatus(o.status);
+            return st === 'pending' || st === 'approved';
+          });
+        } else {
+          list = list.filter(o=> normalizeStatus(o.status)===filter);
+        }
+      }
       if (q) list = list.filter(o=> (o.customer_name||'').toLowerCase().includes(q) || (o.order_number||'').toLowerCase().includes(q));
       el('ordersCount').textContent = `${list.length} orden${list.length!==1?'es':''}`;
       const tbody = el('ordersTableBody');
