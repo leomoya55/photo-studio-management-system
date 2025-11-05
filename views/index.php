@@ -247,7 +247,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                     </div>
                     <div class="col-lg-6">
                         <div class="hero-image logo-contrast-bg">
-                            <img src="<?php echo getImageUrl('LegendCR_vjqteo', 0, 0); ?>" alt="Academia Legend" class="img-fluid rounded shadow">
+                            <img src="<?php echo getImageUrl('inicio/LegendCR_vjqteo', 0, 0); ?>" alt="Academia Legend" class="img-fluid rounded shadow">
                         </div>
                     </div>
                 </div>
@@ -261,7 +261,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
             <div class="row align-items-center">
                 <div class="col-lg-6 mb-4 pe-lg-4">
                     <div class="director-image me-3">
-                        <img src="<?php echo getProfileImageUrl('vanessainicio_hzvwrl', 500, 600); ?>" alt="Vanessa Mora - Directora y Fundadora de Legend Dance Academy" class="img-fluid rounded-4 shadow-lg">
+                        <img src="<?php echo getProfileImageUrl('inicio/vanessainicio_hzvwrl', 500, 600); ?>" alt="Vanessa Mora - Directora y Fundadora de Legend Dance Academy" class="img-fluid rounded-4 shadow-lg">
                     </div>
                 </div>
                 <div class="col-lg-6">

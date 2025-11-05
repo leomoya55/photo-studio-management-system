@@ -722,7 +722,7 @@ if (empty($cartData['items'])) {
             const file = input.files[0];
             if (file) {
                 const maxSize = 5 * 1024 * 1024; // 5MB
-                const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
                 
                 if (!allowedTypes.includes(file.type)) {
                     showErrorMessage('Formato no permitido. Solo JPG, PNG o PDF.');

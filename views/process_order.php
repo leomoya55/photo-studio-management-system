@@ -67,7 +67,7 @@ try {
         $upload = $_FILES['sinpe_proof'];
         
         // Validate file
-        $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+        $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
         $max_size = 5 * 1024 * 1024; // 5MB
         
         if (!in_array($upload['type'], $allowed_types)) {
@@ -169,9 +169,13 @@ try {
                 'overwrite' => true
             ]);
             $proofUrl = isset($uploadRes['secure_url']) ? $uploadRes['secure_url'] : ($uploadRes['url'] ?? '');
+            // Audit log: successful Cloudinary upload
+            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | OK | %s\n", date('Y-m-d H:i:s'), $order_number, $proofUrl), FILE_APPEND);
         } catch (Exception $upErr) {
             error_log('Cloudinary upload error (SINPE proof): ' . $upErr->getMessage());
             $proofUrl = '';
+            // Audit log: failed Cloudinary upload
+            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | FAIL | %s\n", date('Y-m-d H:i:s'), $order_number, $upErr->getMessage()), FILE_APPEND);
         }
 
         if (!empty($proofUrl)) {
@@ -192,6 +196,9 @@ try {
                 $notesUpd = $conn->prepare("UPDATE orders SET notes = CONCAT(COALESCE(notes,''), ?) WHERE id = ?");
                 if ($notesUpd) { $notesUpd->bind_param('si', $append, $order_id); $notesUpd->execute(); $notesUpd->close(); }
             }
+        } else {
+            // Enforce proof presence: if Cloudinary upload failed, abort the order
+            throw new Exception('No se pudo subir el comprobante a Cloudinary. Por favor, intenta nuevamente.');
         }
     }
     
