@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once '../config/db_connect.php';
+require_once __DIR__ . '/../config/paths.php';
+require_once __DIR__ . '/../config/db_connect.php';
 require_once '../includes/user_notifications.php';
 
 // Check if user is logged in
@@ -78,7 +79,7 @@ $stmt->close();
     <title>Mi Cuenta - Legend Dance Academy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     <style>
         .dashboard-header {
             background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);
@@ -190,10 +191,10 @@ $stmt->close();
                     </div>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    <a href="index.php" class="btn btn-outline-light btn-lg me-2">
+                    <a href="<?php echo VIEWS_URL; ?>/index.php" class="btn btn-outline-light btn-lg me-2">
                         <i class="fas fa-home me-2"></i>Inicio
                     </a>
-                    <a href="logout.php" class="btn btn-outline-light btn-lg">
+                    <a href="<?php echo VIEWS_URL; ?>/logout.php" class="btn btn-outline-light btn-lg">
                         <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
                     </a>
                 </div>
@@ -217,7 +218,7 @@ $stmt->close();
                     </div>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    <a href="../views/clases.php" class="btn btn-primary btn-lg">
+                    <a href="<?php echo VIEWS_URL; ?>/clases.php" class="btn btn-primary btn-lg">
                         <i class="fas fa-plus me-2"></i>Explorar Clases
                     </a>
                 </div>
@@ -492,7 +493,7 @@ $stmt->close();
                             <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">No tienes clases inscritas aún</h5>
                             <p class="text-muted mb-3">¡Explora nuestras clases y encuentra la perfecta para ti!</p>
-                            <a href="../views/clases.php" class="btn btn-primary">
+                            <a href="<?php echo VIEWS_URL; ?>/clases.php" class="btn btn-primary">
                                 <i class="fas fa-search me-1"></i>Explorar Clases
                             </a>
                         </div>

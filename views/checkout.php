@@ -1,10 +1,11 @@
 <?php
 session_start();
 require_once '../config/db_connect.php';
+require_once '../config/paths.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ' . VIEWS_URL . '/login.php');
     exit();
 }
 
@@ -71,7 +72,7 @@ if (empty($cartData['items'])) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     
     <style>
         /* Orange and Black Color Overrides */
@@ -281,7 +282,7 @@ if (empty($cartData['items'])) {
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="index.php">
+            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php">
                 <span class="brand-text">Legend</span>
             </a>
             
@@ -292,16 +293,16 @@ if (empty($cartData['items'])) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">Inicio</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="clases.php">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Clases</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="catalogo.php">Catálogo</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="contact.php">Contacto</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/contact.php">Contacto</a>
                     </li>
                 </ul>
                 
@@ -312,11 +313,11 @@ if (empty($cartData['items'])) {
                             <i class="fas fa-user-circle me-2"></i>Bienvenido, <?php echo htmlspecialchars($_SESSION['first_name']); ?>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
-                            <li><a class="dropdown-item" href="my_enrollments.php"><i class="fas fa-calendar me-2"></i>Mis Clases</a></li>
-                            <li><a class="dropdown-item" href="cart.php"><i class="fas fa-shopping-cart me-2"></i>Mi Carrito</a></li>
+                            <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                            <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php#clases"><i class="fas fa-calendar me-2"></i>Mis Clases</a></li>
+                            <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/cart.php"><i class="fas fa-shopping-cart me-2"></i>Mi Carrito</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                            <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -548,7 +549,7 @@ if (empty($cartData['items'])) {
                             Confirmar Pedido
                         </button>
                         
-                        <a href="cart.php" class="btn btn-outline-primary w-100" title="Regresar al carrito de compras">
+                        <a href="<?php echo VIEWS_URL; ?>/cart.php" class="btn btn-outline-primary w-100" title="Regresar al carrito de compras">
                             <i class="fas fa-arrow-left me-2"></i>
                             Volver al Carrito
                         </a>
@@ -569,10 +570,10 @@ if (empty($cartData['items'])) {
                 <div class="col-md-4 mb-4">
                     <h5 class="text-primary mb-3">Enlaces Rápidos</h5>
                     <ul class="list-unstyled">
-                        <li><a href="index.php" class="text-white-50">Inicio</a></li>
-                        <li><a href="clases.php" class="text-white-50">Clases</a></li>
-                        <li><a href="catalogo.php" class="text-white-50">Catálogo</a></li>
-                        <li><a href="contact.php" class="text-white-50">Contacto</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/index.php" class="text-white-50">Inicio</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/clases.php" class="text-white-50">Clases</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/catalogo.php" class="text-white-50">Catálogo</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/contact.php" class="text-white-50">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4 mb-4">
@@ -694,14 +695,14 @@ if (empty($cartData['items'])) {
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
                 
-                fetch('process_order.php', {
+                fetch('<?php echo VIEWS_URL; ?>/process_order.php', {
                     method: 'POST',
                     body: formData
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.href = 'order_confirmation.php?order=' + data.order_number;
+                        window.location.href = '<?php echo VIEWS_URL; ?>/order_confirmation.php?order=' + data.order_number;
                     } else {
                         showErrorMessage(data.message || 'Error procesando la orden');
                         this.disabled = false;

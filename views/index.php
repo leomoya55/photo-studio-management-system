@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once(__DIR__ . '/../config/db_connect.php');
+require_once(__DIR__ . '/../config/paths.php');
 require_once(__DIR__ . '/../config/image_helpers.php');
 
 // Set up user session variables
@@ -151,14 +151,14 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
     </style>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
 </head>
 <body>
     
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
         <div class="container">
-            <a class="navbar-brand" href="index.php#inicio">
+            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php#inicio">
                 <span class="brand-text">Legend</span>
             </a>
             
@@ -169,22 +169,22 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php<?php echo $adminViewParam; ?>#inicio">Inicio</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>#inicio">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="clases.php<?php echo $adminViewParam; ?>">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Clases</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="horarios.php<?php echo $adminViewParam; ?>">Horarios</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/horarios.php<?php echo $adminViewParam; ?>">Horarios</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="redes-sociales.php<?php echo $adminViewParam; ?>">Redes Sociales</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/redes-sociales.php<?php echo $adminViewParam; ?>">Redes Sociales</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="ubicacion.php<?php echo $adminViewParam; ?>">Ubicación</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/ubicacion.php<?php echo $adminViewParam; ?>">Ubicación</a>
                     </li>
                 </ul>
                 
@@ -197,20 +197,20 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <?php if ($userRole === 'admin'): ?>
-                                    <li><a class="dropdown-item" href="/ProyectoVanessa/admin/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo ADMIN_URL; ?>/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
                                 <?php else: ?>
-                                    <li><a class="dropdown-item" href="dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
                             </ul>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link btn-outline-primary px-3 me-2" href="register.php">Registrarse</a>
+                            <a class="nav-link btn-outline-primary px-3 me-2" href="<?php echo VIEWS_URL; ?>/register.php">Registrarse</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link btn-primary text-white px-3" href="login.php">Iniciar Sesión</a>
+                            <a class="nav-link btn-primary text-white px-3" href="<?php echo VIEWS_URL; ?>/login.php">Iniciar Sesión</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -224,7 +224,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
         <div class="container">
             <i class="fas fa-eye me-2"></i>
             <strong>Vista de Administrador</strong> - Vanessa, estás viendo el sitio web sin opciones de inscripción
-            <a href="/ProyectoVanessa/admin/admin.php" class="btn btn-light btn-sm ms-3">
+            <a href="<?php echo ADMIN_URL; ?>/admin.php" class="btn btn-light btn-sm ms-3">
                 <i class="fas fa-arrow-left me-1"></i>Volver al Panel Admin
             </a>
         </div>
@@ -241,8 +241,8 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                         <p class="hero-subtitle">Donde cada movimiento cuenta una historia</p>
                         <p class="hero-description">Descubre tu pasión por la danza en nuestra academia. Ofrecemos clases para todos los niveles y edades en un ambiente profesional y acogedor.</p>
                         <div class="hero-buttons">
-                            <a href="clases.php<?php echo $adminViewParam; ?>" class="btn btn-primary btn-lg me-3">Ver Clases</a>
-                            <a href="register.php" class="btn btn-outline-primary btn-lg">Únete Ahora</a>
+                            <a href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>" class="btn btn-primary btn-lg me-3">Ver Clases</a>
+                            <a href="<?php echo VIEWS_URL; ?>/register.php" class="btn btn-outline-primary btn-lg">Únete Ahora</a>
                         </div>
                     </div>
                     <div class="col-lg-6">
@@ -317,7 +317,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
             
             <div class="row mt-5">
                 <div class="col-12 text-center">
-                    <a href="clases.php<?php echo $adminViewParam; ?>" class="btn btn-primary btn-lg">
+                    <a href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>" class="btn btn-primary btn-lg">
                         <i class="fas fa-th-large me-2"></i>Ver Todas las Clases
                     </a>
                     <p class="mt-3 text-muted">Explora nuestra amplia variedad: Ballet, Hip Hop, Contemporáneo, Pilates, Salsa, Flamenco y mucho más.</p>
@@ -392,10 +392,10 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
-    <script src="../assets/js/script.js"></script>
+    <script src="<?php echo ASSETS_URL; ?>/js/script.js"></script>
     <!-- User Alert System (only for logged-in users) -->
     <?php if ($isLoggedIn && $userRole !== 'admin'): ?>
-    <script src="../assets/js/user-alerts.js"></script>
+    <script src="<?php echo ASSETS_URL; ?>/js/user-alerts.js"></script>
     <?php endif; ?>
     
     <!-- Homepage specific JS -->

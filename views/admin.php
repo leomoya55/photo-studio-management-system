@@ -2,8 +2,9 @@
 // Admin dashboard bootstrap: session guard, DB connect, quick stats
 session_start();
 require_once '../config/session_manager.php';
+require_once '../config/paths.php';
 if (!$isLoggedIn || ($userRole !== 'admin')) {
-  header('Location: ../views/login.php');
+  header('Location: ' . VIEWS_URL . '/login.php');
   exit();
 }
 require_once '../config/db_connect.php';
@@ -62,12 +63,12 @@ if ($conn) {
     .search-input { max-width:360px; }
   </style>
   <!-- PWA/service worker (optional) -->
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="<?php echo BASE_URL; ?>/manifest.json">
   <script>
     // Optional: register service worker if present
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        try { navigator.serviceWorker.register('/sw.js'); } catch(e) {}
+        try { navigator.serviceWorker.register('<?php echo BASE_URL; ?>/sw.js'); } catch(e) {}
       });
     }
   </script>
@@ -85,8 +86,8 @@ if ($conn) {
         </div>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <a class="btn btn-sm btn-outline-light" href="index.php"><i class="fas fa-home me-1"></i> Sitio</a>
-        <a class="btn btn-sm btn-outline-light" href="logout.php"><i class="fas fa-sign-out-alt me-1"></i> Salir</a>
+  <a class="btn btn-sm btn-outline-light" href="<?php echo VIEWS_URL; ?>/index.php"><i class="fas fa-home me-1"></i> Sitio</a>
+  <a class="btn btn-sm btn-outline-light" href="<?php echo VIEWS_URL; ?>/logout.php"><i class="fas fa-sign-out-alt me-1"></i> Salir</a>
       </div>
     </div>
   </div>
@@ -136,9 +137,9 @@ if ($conn) {
             <div class="card card-stat p-3 h-100">
               <h5 class="mb-3"><i class="fas fa-clipboard-list me-2 text-success"></i>Atajos</h5>
               <div class="d-grid gap-2">
-                <a href="../admin/classes_management.php" class="btn btn-outline-secondary"><i class="fas fa-dumbbell me-2"></i>Gestionar Clases</a>
-                <a href="../admin/admin_products.php" class="btn btn-outline-secondary"><i class="fas fa-bag-shopping me-2"></i>Gestionar Productos</a>
-                <a href="../admin/admin_social.php" class="btn btn-outline-secondary"><i class="fas fa-share-alt me-2"></i>Gestionar Redes Sociales</a>
+                <a href="<?php echo ADMIN_URL; ?>/classes_management.php" class="btn btn-outline-secondary"><i class="fas fa-dumbbell me-2"></i>Gestionar Clases</a>
+                <a href="<?php echo ADMIN_URL; ?>/admin_products.php" class="btn btn-outline-secondary"><i class="fas fa-bag-shopping me-2"></i>Gestionar Productos</a>
+                <a href="<?php echo ADMIN_URL; ?>/admin_social.php" class="btn btn-outline-secondary"><i class="fas fa-share-alt me-2"></i>Gestionar Redes Sociales</a>
               </div>
             </div>
           </div>
@@ -207,7 +208,7 @@ if ($conn) {
       <div class="tab-pane fade" id="pane-productos" role="tabpanel">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <h5 class="mb-0"><i class="fas fa-bag-shopping me-2 text-primary"></i>Productos</h5>
-          <a class="btn btn-sm btn-gradient text-white" href="../admin/admin_products.php"><i class="fas fa-plus me-1"></i> Gestionar</a>
+          <a class="btn btn-sm btn-gradient text-white" href="<?php echo ADMIN_URL; ?>/admin_products.php"><i class="fas fa-plus me-1"></i> Gestionar</a>
         </div>
         <div class="card">
           <div class="table-responsive">
@@ -225,7 +226,7 @@ if ($conn) {
           <h5 class="mb-0"><i class="fas fa-share-alt me-2 text-primary"></i>Redes Sociales</h5>
           <div class="d-flex gap-2">
             <button class="btn btn-sm btn-outline-secondary" onclick="addPost()"><i class="fas fa-plus me-1"></i> Nuevo post</button>
-            <a class="btn btn-sm btn-gradient text-white" href="../admin/admin_social.php"><i class="fas fa-gears me-1"></i> Gestionar</a>
+            <a class="btn btn-sm btn-gradient text-white" href="<?php echo ADMIN_URL; ?>/admin_social.php"><i class="fas fa-gears me-1"></i> Gestionar</a>
           </div>
         </div>
         <div class="card">
@@ -434,19 +435,21 @@ if ($conn) {
     // Cloudinary cloud name for building public-id URLs on the client
     const CLOUDINARY_CLOUD = '<?php echo htmlspecialchars(getCloudName(), ENT_QUOTES); ?>';
 
+    const ADMIN_BASE = '<?php echo ADMIN_URL; ?>';
+    const VIEWS_BASE = '<?php echo VIEWS_URL; ?>';
     const api = {
-      users: '../admin/users_api.php?endpoint=users',
-      enrollments: '../admin/users_api.php?endpoint=enrollments',
-      payments: '../admin/payments_api.php',
-      sessions: '../admin/sessions_api.php',
-      attendance: '../admin/attendance_api.php',
-      feedback: '../admin/feedback_api.php',
-      classes: '../admin/get_classes.php',
-      products: '../admin/products_api.php',
-      social: '../admin/social_api.php',
-      orders: '../admin/users_api.php?endpoint=orders',
-      deleteEnrollment: '../admin/delete_enrollment.php',
-      updateEnrollmentStatus: '../admin/update_enrollment_status.php'
+      users: ADMIN_BASE + '/users_api.php?endpoint=users',
+      enrollments: ADMIN_BASE + '/users_api.php?endpoint=enrollments',
+      payments: ADMIN_BASE + '/payments_api.php',
+      sessions: ADMIN_BASE + '/sessions_api.php',
+      attendance: ADMIN_BASE + '/attendance_api.php',
+      feedback: ADMIN_BASE + '/feedback_api.php',
+      classes: ADMIN_BASE + '/get_classes.php',
+      products: ADMIN_BASE + '/products_api.php',
+      social: ADMIN_BASE + '/social_api.php',
+      orders: ADMIN_BASE + '/users_api.php?endpoint=orders',
+      deleteEnrollment: ADMIN_BASE + '/delete_enrollment.php',
+      updateEnrollmentStatus: ADMIN_BASE + '/update_enrollment_status.php'
     };
 
     const fmtMoney = v => new Intl.NumberFormat('es-CR').format(Number(v||0));
@@ -866,7 +869,7 @@ if ($conn) {
         benefits: []
       }};
       try{
-        const r = await fetch('../admin/save_classes.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).then(r=>r.json());
+  const r = await fetch(ADMIN_BASE + '/save_classes.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).then(r=>r.json());
         if(!r.success) throw new Error(r.message||'Error');
         bootstrap.Modal.getInstance(document.getElementById('modalEditClass')).hide();
         await loadClasses();
@@ -876,7 +879,7 @@ if ($conn) {
     async function deleteClass(id){
       if(!confirm('¿Eliminar esta clase?')) return;
       try{
-        const r = await fetch('../admin/save_classes.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'delete', id })}).then(r=>r.json());
+  const r = await fetch(ADMIN_BASE + '/save_classes.php', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'delete', id })}).then(r=>r.json());
         if(!r.success) throw new Error(r.message||'Error');
         await loadClasses();
       }catch(e){ alert('No se pudo eliminar la clase: '+e.message); }
@@ -1189,7 +1192,7 @@ if ($conn) {
     async function submitPayment(){ try{ const payload={ action:'add', enrollment_id:Number(el('paymentEnrollment').value||0), user_id:Number(el('paymentUser').value||0), amount:Number(el('paymentAmount').value||0), payment_method: el('paymentMethod').value, payment_status:'completed', payment_date: el('paymentDate').value, reference_number: el('paymentRef').value||'', notes: el('paymentNotes').value||'' }; if(!payload.user_id || !payload.amount){ alert('Selecciona estudiante y monto'); return; } const r=await fetch(api.payments,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).then(r=>r.json()); if(!r.success) throw new Error(r.message||'Error'); await loadPayments(); alert('Pago registrado'); }catch(e){ alert('No se pudo registrar el pago: '+e.message);} }
 
     // CSV export
-    async function exportCSV(type){ let url; if(type==='users') url=api.users; else if(type==='enrollments') url=api.enrollments; else if(type==='payment_records') url=api.payments; else if(type==='orders') url='../admin/users_api.php?endpoint=orders'; else return; try{ const data=await fetch(url).then(r=>r.json()); if(!Array.isArray(data)||!data.length){ alert('Sin datos para exportar'); return; } const cols=Object.keys(data[0]); const csv=[cols.join(',')].concat(data.map(row=> cols.map(k=> (`${(row[k]??'')}`.replaceAll('"','""')) ).map(v=>`"${v}"`).join(','))).join('\n'); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${type}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); }catch(e){ alert('No se pudo exportar: '+e.message);} }
+  async function exportCSV(type){ let url; if(type==='users') url=api.users; else if(type==='enrollments') url=api.enrollments; else if(type==='payment_records') url=api.payments; else if(type==='orders') url=ADMIN_BASE + '/users_api.php?endpoint=orders'; else return; try{ const data=await fetch(url).then(r=>r.json()); if(!Array.isArray(data)||!data.length){ alert('Sin datos para exportar'); return; } const cols=Object.keys(data[0]); const csv=[cols.join(',')].concat(data.map(row=> cols.map(k=> (`${(row[k]??'')}`.replaceAll('"','""')) ).map(v=>`"${v}"`).join(','))).join('\n'); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${type}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); }catch(e){ alert('No se pudo exportar: '+e.message);} }
 
     // Init
     document.addEventListener('DOMContentLoaded', async ()=>{
@@ -1420,7 +1423,7 @@ if ($conn) {
       e.preventDefault();
       const fd = new FormData(e.currentTarget);
       try{
-        const res = await fetch('../admin/upload_class_image_cloud.php', { method:'POST', body: fd }).then(r=>r.json());
+  const res = await fetch(ADMIN_BASE + '/upload_class_image_cloud.php', { method:'POST', body: fd }).then(r=>r.json());
         if(!res.success) throw new Error(res.message||'Error');
         bootstrap.Modal.getInstance(document.getElementById('modalUploadClassImage')).hide();
         await loadClasses();
@@ -1488,7 +1491,7 @@ if ($conn) {
       const form = e.currentTarget;
       const fd = new FormData(form);
       try{
-        const res = await fetch('../admin/upload_product_image.php', { method:'POST', body: fd }).then(r=>r.json());
+  const res = await fetch(ADMIN_BASE + '/upload_product_image.php', { method:'POST', body: fd }).then(r=>r.json());
         if(!res.success) throw new Error(res.message||'Error');
         bootstrap.Modal.getInstance(document.getElementById('modalUploadProductImage')).hide();
         await loadProducts();
@@ -1500,7 +1503,7 @@ if ($conn) {
       e.preventDefault();
       const fd = new FormData(e.currentTarget);
       try{
-        const res = await fetch('../admin/upload_social_image_update.php', { method:'POST', body: fd }).then(r=>r.json());
+  const res = await fetch(ADMIN_BASE + '/upload_social_image_update.php', { method:'POST', body: fd }).then(r=>r.json());
         if(!res.success) throw new Error(res.message||'Error');
         bootstrap.Modal.getInstance(document.getElementById('modalUploadPostImage')).hide();
         await loadSocial();

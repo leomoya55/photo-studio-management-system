@@ -1,10 +1,11 @@
 <?php
 session_start();
 require_once '../config/db_connect.php';
+require_once '../config/paths.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ' . VIEWS_URL . '/login.php');
     exit();
 }
 
@@ -12,7 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 $order_number = $_GET['order'] ?? '';
 
 if (empty($order_number)) {
-    header('Location: catalogo.php');
+    header('Location: ' . VIEWS_URL . '/catalogo.php');
     exit();
 }
 
@@ -30,7 +31,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    header('Location: catalogo.php');
+    header('Location: ' . VIEWS_URL . '/catalogo.php');
     exit();
 }
 
@@ -69,7 +70,7 @@ $items_stmt->close();
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     
     <style>
         /* Orange and Black Color Overrides */
@@ -242,7 +243,7 @@ $items_stmt->close();
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
         <div class="container">
-            <a class="navbar-brand" href="index.php">
+            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php">
                 <span class="brand-text">Legend</span>
             </a>
             
@@ -253,19 +254,19 @@ $items_stmt->close();
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">Inicio</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="clases.php">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Clases</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="catalogo.php">Catálogo</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="ubicacion.php">Ubicación</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/ubicacion.php">Ubicación</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="contact.php">Contacto</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/contact.php">Contacto</a>
                     </li>
                 </ul>
                 
@@ -276,11 +277,11 @@ $items_stmt->close();
                             <i class="fas fa-user-circle me-2"></i>Bienvenido, <?php echo htmlspecialchars($_SESSION['first_name']); ?>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
-                            <li><a class="dropdown-item" href="dashboard.php#clases"><i class="fas fa-calendar me-2"></i>Mis Clases</a></li>
-                            <li><a class="dropdown-item" href="cart.php"><i class="fas fa-shopping-cart me-2"></i>Mi Carrito</a></li>
+                            <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                            <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php#clases"><i class="fas fa-calendar me-2"></i>Mis Clases</a></li>
+                            <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/cart.php"><i class="fas fa-shopping-cart me-2"></i>Mi Carrito</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                            <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -481,7 +482,7 @@ $items_stmt->close();
 
                     <!-- Action Buttons -->
                     <div class="text-center mt-4">
-                        <a href="catalogo.php" class="btn btn-primary me-3">
+                        <a href="<?php echo VIEWS_URL; ?>/catalogo.php" class="btn btn-primary me-3">
                             <i class="fas fa-shopping-bag me-2"></i>
                             Continuar Comprando
                         </a>
@@ -537,10 +538,10 @@ $items_stmt->close();
                 <div class="col-md-4 mb-4">
                     <h5 class="text-primary mb-3">Enlaces Rápidos</h5>
                     <ul class="list-unstyled">
-                        <li><a href="index.php" class="text-white-50">Inicio</a></li>
-                        <li><a href="clases.php" class="text-white-50">Clases</a></li>
-                        <li><a href="catalogo.php" class="text-white-50">Catálogo</a></li>
-                        <li><a href="contact.php" class="text-white-50">Contacto</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/index.php" class="text-white-50">Inicio</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/clases.php" class="text-white-50">Clases</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/catalogo.php" class="text-white-50">Catálogo</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/contact.php" class="text-white-50">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4 mb-4">
@@ -591,7 +592,7 @@ $items_stmt->close();
                 if (!message) { alert('Por favor escribe un mensaje.'); return; }
                 btn.disabled = true; btn.innerText = 'Enviando...';
                 try {
-                    const res = await fetch('../api/send_support.php', {
+                    const res = await fetch('<?php echo BASE_URL; ?>/api/send_support.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ order_number: order, subject, message })

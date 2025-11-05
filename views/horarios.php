@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once '../config/db_connect.php';
+require_once __DIR__ . '/../config/paths.php';
+require_once __DIR__ . '/../config/db_connect.php';
 
 // Set up user session variables
 $isLoggedIn = isset($_SESSION['user_id']);
@@ -84,7 +85,7 @@ $sampleSchedules = [
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     
     <!-- Orange and Black Color Overrides to match other pages -->
     <style>
@@ -304,7 +305,7 @@ $sampleSchedules = [
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="index.php<?php echo $adminViewParam; ?>">
+            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>">
                 <span class="brand-text">Legend</span>
             </a>
             
@@ -315,22 +316,22 @@ $sampleSchedules = [
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php<?php echo $adminViewParam; ?>">Inicio</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="clases.php<?php echo $adminViewParam; ?>">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Clases</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="horarios.php<?php echo $adminViewParam; ?>">Horarios</a>
+                        <a class="nav-link active" href="<?php echo VIEWS_URL; ?>/horarios.php<?php echo $adminViewParam; ?>">Horarios</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="redes-sociales.php<?php echo $adminViewParam; ?>">Redes Sociales</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/redes-sociales.php<?php echo $adminViewParam; ?>">Redes Sociales</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="ubicacion.php<?php echo $adminViewParam; ?>">Ubicación</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/ubicacion.php<?php echo $adminViewParam; ?>">Ubicación</a>
                     </li>
                 </ul>
                 
@@ -343,20 +344,20 @@ $sampleSchedules = [
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <?php if ($userRole === 'admin'): ?>
-                                    <li><a class="dropdown-item" href="/ProyectoVanessa/admin/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo ADMIN_URL; ?>/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
                                 <?php else: ?>
-                                    <li><a class="dropdown-item" href="dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
                             </ul>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link btn-outline-primary px-3 me-2" href="register.php">Registrarse</a>
+                            <a class="nav-link btn-outline-primary px-3 me-2" href="<?php echo VIEWS_URL; ?>/register.php">Registrarse</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link btn-primary text-white px-3" href="login.php">Iniciar Sesión</a>
+                            <a class="nav-link btn-primary text-white px-3" href="<?php echo VIEWS_URL; ?>/login.php">Iniciar Sesión</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -370,7 +371,7 @@ $sampleSchedules = [
         <div class="container">
             <i class="fas fa-eye me-2"></i>
             <strong>Vista de Administrador</strong> - Vanessa, estás viendo el sitio web sin opciones de inscripción
-            <a href="/ProyectoVanessa/admin/admin.php" class="btn btn-light btn-sm ms-3">
+            <a href="<?php echo ADMIN_URL; ?>/admin.php" class="btn btn-light btn-sm ms-3">
                 <i class="fas fa-arrow-left me-1"></i>Volver al Panel Admin
             </a>
         </div>

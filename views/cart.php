@@ -1,10 +1,11 @@
 <?php
 session_start();
 require_once '../config/db_connect.php';
+require_once '../config/paths.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ' . VIEWS_URL . '/login.php');
     exit();
 }
 
@@ -36,7 +37,7 @@ if ($isLoggedIn) {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     
     <!-- Orange and Black Color Overrides -->
     <style>
@@ -240,7 +241,7 @@ if ($isLoggedIn) {
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
         <div class="container">
-            <a class="navbar-brand" href="index.php">
+            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php">
                 <span class="brand-text">Legend</span>
             </a>
             
@@ -251,19 +252,19 @@ if ($isLoggedIn) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">Inicio</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="clases.php">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Clases</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="catalogo.php">Catálogo</a>
+                        <a class="nav-link active" href="<?php echo VIEWS_URL; ?>/catalogo.php">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="ubicacion.php">Ubicación</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/ubicacion.php">Ubicación</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="contact.php">Contacto</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/contact.php">Contacto</a>
                     </li>
                 </ul>
                 
@@ -275,11 +276,11 @@ if ($isLoggedIn) {
                                 <i class="fas fa-user-circle me-2"></i>Bienvenido, <?php echo htmlspecialchars($_SESSION['first_name']); ?>
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="profile.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
-                                <li><a class="dropdown-item" href="my_enrollments.php"><i class="fas fa-calendar me-2"></i>Mis Clases</a></li>
-                                <li><a class="dropdown-item" href="cart.php"><i class="fas fa-shopping-cart me-2"></i>Mi Carrito</a></li>
+                                <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                                <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php#clases"><i class="fas fa-calendar me-2"></i>Mis Clases</a></li>
+                                <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/cart.php"><i class="fas fa-shopping-cart me-2"></i>Mi Carrito</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
                             </ul>
                         </li>
                     <?php else: ?>
@@ -346,7 +347,7 @@ if ($isLoggedIn) {
                             Proceder al Checkout
                         </button>
                         
-                        <a href="catalogo.php" class="btn btn-outline-primary w-100">
+                        <a href="<?php echo VIEWS_URL; ?>/catalogo.php" class="btn btn-outline-primary w-100">
                             <i class="fas fa-arrow-left me-2"></i>
                             Continuar Comprando
                         </a>
@@ -388,10 +389,11 @@ if ($isLoggedIn) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
-    <script src="../assets/js/script.js"></script>
+    <script src="<?php echo ASSETS_URL; ?>/js/script.js"></script>
     
     <!-- Cart JS -->
     <script>
+        const VIEWS_BASE = '<?php echo VIEWS_URL; ?>';
         // Normalize image URLs: handle http(s), root-relative, backslashes (Windows), or local relative stored paths
         function normalizeImageUrl(url){
             if(!url) return 'https://via.placeholder.com/80?text=IMG';
@@ -406,7 +408,7 @@ if ($isLoggedIn) {
         });
         
         function loadCartItems() {
-            fetch('cart_handler.php?action=get')
+            fetch(VIEWS_BASE + '/cart_handler.php?action=get')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -483,7 +485,7 @@ if ($isLoggedIn) {
             
             // Add checkout event listener
             document.getElementById('checkout-btn').onclick = () => {
-                window.location.href = 'checkout.php';
+                window.location.href = VIEWS_BASE + '/checkout.php';
             };
         }
         
@@ -496,7 +498,7 @@ if ($isLoggedIn) {
             formData.append('item_id', itemId);
             formData.append('quantity', quantity);
             
-            fetch('cart_handler.php', {
+            fetch(VIEWS_BASE + '/cart_handler.php', {
                 method: 'POST',
                 body: formData
             })
@@ -524,7 +526,7 @@ if ($isLoggedIn) {
             formData.append('action', 'remove');
             formData.append('item_id', itemId);
             
-            fetch('cart_handler.php', {
+            fetch(VIEWS_BASE + '/cart_handler.php', {
                 method: 'POST',
                 body: formData
             })

@@ -28,8 +28,11 @@ if ($envBaseUrl !== false && $envBaseUrl !== '') {
     // Local default (XAMPP): project in subfolder
     define('BASE_URL', '/ProyectoVanessa');
 }
+// Derived URLs
 define('ASSETS_URL', BASE_URL . '/assets');
 define('ADMIN_URL', BASE_URL . '/admin');
+define('VIEWS_URL', BASE_URL . '/views');
+// (ASSETS_URL and ADMIN_URL are defined above, kept for backward compatibility)
 
 // Helper function to include files from different layers
 function includeConfig($filename) {
