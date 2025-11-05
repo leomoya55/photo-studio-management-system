@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../config/db_connect.php';
+require_once(__DIR__ . '/../config/db_connect.php');
 require_once '../config/image_helpers.php';
 
 // Set up user session variables
