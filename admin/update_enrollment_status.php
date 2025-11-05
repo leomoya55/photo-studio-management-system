@@ -43,7 +43,7 @@ if (!$input || !isset($input['enrollment_id']) || !isset($input['status'])) {
 $enrollment_id = (int)$input['enrollment_id'];
 $new_status = trim($input['status']);
 
-// Validate status
+// Validate status from UI (canonical keys)
 $valid_statuses = ['pending', 'approved', 'rejected'];
 if (!in_array($new_status, $valid_statuses)) {
     echo json_encode([
@@ -81,13 +81,23 @@ try {
     // Preserve old status for logging
     $old_status = $enrollment['status'];
 
-    // Update enrollment status
+    // Map UI status to DB status (legacy schema uses 'active' for approved)
+    $db_status = $new_status;
+    if ($new_status === 'approved') {
+        $db_status = 'active';
+    } else if ($new_status === 'pending') {
+        $db_status = 'pending';
+    } else if ($new_status === 'rejected') {
+        $db_status = 'rejected';
+    }
+
+    // Update enrollment status in DB
     $stmt = $conn->prepare("
         UPDATE enrollments 
         SET status = ?, updated_at = NOW() 
         WHERE id = ?
     ");
-    $stmt->bind_param("si", $new_status, $enrollment_id);
+    $stmt->bind_param("si", $db_status, $enrollment_id);
     
     if ($stmt->execute()) {
         // Log the status change

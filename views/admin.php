@@ -567,11 +567,24 @@ if ($conn) {
         renderEnrollments();
       } catch(e) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error al cargar inscripciones</td></tr>`; }
     }
-  function statusBadge(st){ const key=(st||'').toLowerCase() || 'pending'; const m={pending:'secondary', approved:'primary', rejected:'danger'}; const label = key; return `<span class="badge badge-status bg-${m[key]||'light'} ${m[key]?'text-white':'text-dark'} text-capitalize">${label}</span>`; }
+  // Normalize enrollment statuses: map DB values to UI canonical and localize labels
+  function normalizeEnrollmentStatus(st){
+    const s = String(st||'').toLowerCase();
+    if (['approved','aprobada','aprobado','active'].includes(s)) return 'approved';
+    if (['pending','pendiente'].includes(s)) return 'pending';
+    if (['rejected','rechazada','rechazado'].includes(s)) return 'rejected';
+    return s || 'pending';
+  }
+  function statusBadge(st){
+    const key = normalizeEnrollmentStatus(st);
+    const m = { pending:'secondary', approved:'primary', rejected:'danger' };
+    const es = key==='pending' ? 'Pendiente' : key==='approved' ? 'Aprobada' : key==='rejected' ? 'Rechazada' : key;
+    return `<span class="badge badge-status bg-${m[key]||'light'} ${m[key]?'text-white':'text-dark'}">${es}</span>`;
+  }
     function renderEnrollments(){
-      const filter = el('enrollmentStatusFilter').value;
+      const filter = (el('enrollmentStatusFilter').value||'').toLowerCase();
       const tbody = el('enrollmentsTableBody');
-      const list = enrollmentsCache.filter(e=> !filter || (e.status||'').toLowerCase()===filter.toLowerCase());
+      const list = enrollmentsCache.filter(e=> !filter || normalizeEnrollmentStatus(e.status)===filter);
       el('enrollmentsCount').textContent = `${list.length} inscripción${list.length!==1?'es':''}`;
       if(!list.length){ tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Sin inscripciones</td></tr>`; return; }
       tbody.innerHTML = list.map(e=>`<tr>
