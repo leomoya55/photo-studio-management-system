@@ -1,7 +1,12 @@
-# Redirect any requests to index.html to index.php
+# Redirect HTML pages to PHP versions
 RewriteEngine On
-RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+ProyectoVanessa/index\.html[\s?] [NC]
+
+# Redirect specific HTML pages to PHP
 RewriteRule ^index\.html$ index.php [R=301,L]
+RewriteRule ^clases\.html$ clases.php [R=301,L]
+RewriteRule ^ubicacion\.html$ ubicacion.php [R=301,L]
+RewriteRule ^catalogo\.html$ catalogo.php [R=301,L]
+RewriteRule ^redes-sociales\.html$ redes-sociales.php [R=301,L]
 
 # Set index.php as the default directory index
 DirectoryIndex index.php index.html
