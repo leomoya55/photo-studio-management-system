@@ -1,6 +1,20 @@
 <?php
 // Database connection configuration with environment variables (Heroku/JawsDB ready)
 
+// Optionally load .env for local development
+try {
+    $autoload = dirname(__DIR__) . '/vendor/autoload.php';
+    if (file_exists($autoload)) {
+        require_once $autoload;
+        if (class_exists('Dotenv\\Dotenv')) {
+            $env = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+            $env->safeLoad();
+        }
+    }
+} catch (Throwable $e) {
+    // Ignore dotenv load errors in production
+}
+
 // Parse a MySQL URL like mysql://user:pass@host:port/dbname
 function parse_mysql_url($url) {
     $parts = parse_url($url);
@@ -17,15 +31,22 @@ function parse_mysql_url($url) {
     ];
 }
 
-// Prefer a single DATABASE URL first (JAWSDB_URL or CLEARDB_DATABASE_URL), then individual env vars, then fallbacks
+// Prefer a single DATABASE URL first, then individual env vars, then fallbacks
 $dbConfig = null;
 
-$jawsUrl   = getenv('JAWSDB_URL');
-$cleardbUrl= getenv('CLEARDB_DATABASE_URL');
-if ($jawsUrl) {
-    $dbConfig = parse_mysql_url($jawsUrl);
-} elseif ($cleardbUrl) {
-    $dbConfig = parse_mysql_url($cleardbUrl);
+$candidateUrls = [
+    getenv('JAWSDB_URL') ?: null,
+    getenv('CLEARDB_DATABASE_URL') ?: null,
+    getenv('DATABASE_URL') ?: null,
+    getenv('MYSQL_URL') ?: null,
+    getenv('MYSQL_CONNECTION_STRING') ?: null,
+];
+
+foreach ($candidateUrls as $url) {
+    if ($url && stripos($url, 'mysql://') === 0) {
+        $dbConfig = parse_mysql_url($url);
+        if ($dbConfig) { break; }
+    }
 }
 
 if (!$dbConfig) {
