@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once(__DIR__ . '/../config/db_connect.php');
-require_once '../config/image_helpers.php';
+require_once(__DIR__ . '/../config/image_helpers.php');
 
 // Set up user session variables
 $isLoggedIn = isset($_SESSION['user_id']);
