@@ -78,6 +78,9 @@ try {
         exit;
     }
     
+    // Preserve old status for logging
+    $old_status = $enrollment['status'];
+
     // Update enrollment status
     $stmt = $conn->prepare("
         UPDATE enrollments 
@@ -93,7 +96,7 @@ try {
             VALUES (?, ?, ?, ?, NOW())
         ");
         $admin_id = $_SESSION['user_id'];
-        $log_stmt->bind_param("issi", $enrollment_id, $enrollment['status'], $new_status, $admin_id);
+        $log_stmt->bind_param("issi", $enrollment_id, $old_status, $new_status, $admin_id);
         $log_stmt->execute();
         
         // Send notification email to user based on status

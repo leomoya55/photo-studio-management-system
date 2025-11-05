@@ -18,57 +18,41 @@ if ($_SESSION['role'] === 'admin') {
 
 $user_id = $_SESSION['user_id'];
 $first_name = $_SESSION['first_name'];
-$last_name = $_SESSION['last_name'];
+// Clean, safe queries block
+$user_profile = [];
+if ($stmt = $conn->prepare("SELECT * FROM users WHERE id = ?")) {
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $user_profile = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+}
 
-// Get user's complete profile information
-$stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$user_profile = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$enrollments = null; $enrollments_count = 0;
+if ($stmt = $conn->prepare("\n    SELECT e.*, \n           COUNT(f.id) as feedback_count,\n           AVG(f.performance_rating) as avg_rating,\n           MAX(f.class_date) as last_feedback_date\n    FROM enrollments e \n    LEFT JOIN instructor_feedback f ON e.id = f.enrollment_id \n    WHERE e.user_id = ? \n    GROUP BY e.id \n    ORDER BY e.enrollment_date DESC\n")) {
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $enrollments = $stmt->get_result();
+    $enrollments_count = $enrollments ? $enrollments->num_rows : 0;
+    $stmt->close();
+}
 
-// Get user's enrollments with detailed information
-$stmt = $conn->prepare("
-    SELECT e.*, 
-           COUNT(f.id) as feedback_count,
-           AVG(f.performance_rating) as avg_rating,
-           MAX(f.class_date) as last_feedback_date
-    FROM enrollments e 
-    LEFT JOIN instructor_feedback f ON e.id = f.enrollment_id 
-    WHERE e.user_id = ? 
-    GROUP BY e.id 
-    ORDER BY e.enrollment_date DESC
-");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$enrollments = $stmt->get_result();
-$stmt->close();
+$recent_feedback = null; $feedback_count = 0;
+if ($stmt = $conn->prepare("\n    SELECT f.*, e.class_name, e.class_schedule\n    FROM instructor_feedback f\n    JOIN enrollments e ON f.enrollment_id = e.id\n    WHERE f.user_id = ?\n    ORDER BY f.class_date DESC\n    LIMIT 5\n")) {
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $recent_feedback = $stmt->get_result();
+    $feedback_count = $recent_feedback ? $recent_feedback->num_rows : 0;
+    $stmt->close();
+}
 
-// Get recent instructor feedback
-$stmt = $conn->prepare("
-    SELECT f.*, e.class_name, e.class_schedule
-    FROM instructor_feedback f
-    JOIN enrollments e ON f.enrollment_id = e.id
-    WHERE f.user_id = ?
-    ORDER BY f.class_date DESC
-    LIMIT 5
-");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$recent_feedback = $stmt->get_result();
-$stmt->close();
-
-// Get user progress summary
-$stmt = $conn->prepare("
-    SELECT class_type, skill_level, total_classes_attended, average_rating, goals, achievements
-    FROM user_progress 
-    WHERE user_id = ?
-    ORDER BY updated_at DESC
-");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$progress_summary = $stmt->get_result();
-$stmt->close();
+$progress_summary = null; $progress_count = 0;
+if ($stmt = $conn->prepare("\n    SELECT class_type, skill_level, total_classes_attended, average_rating, goals, achievements\n    FROM user_progress \n    WHERE user_id = ?\n    ORDER BY updated_at DESC\n")) {
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $progress_summary = $stmt->get_result();
+    $progress_count = $progress_summary ? $progress_summary->num_rows : 0;
+    $stmt->close();
+}
 ?>
 
 <!DOCTYPE html>
@@ -121,6 +105,63 @@ $stmt->close();
             background: white;
             border-radius: 15px;
             padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .enrollment-card {
+            border: none;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .feedback-card {
+            border-left: 4px solid #ff6600;
+            margin-bottom: 1rem;
+        }
+        .status-badge {
+            border-radius: 20px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-inactive { background: #fff3cd; color: #856404; }
+        .status-pending { background: #cce5ff; color: #004085; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .status-completed { background: #d1ecf1; color: #0c5460; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .rating-stars {
+            color: #ffc107;
+        }
+        .profile-info-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        .profile-info-item:last-child {
+            border-bottom: none;
+        }
+        .edit-profile-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        .emergency-contact {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .health-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             margin-bottom: 1rem;
             text-align: center;
@@ -337,19 +378,19 @@ $stmt->close();
                     
                     <div class="stat-card mb-2">
                         <i class="fas fa-calendar-check fa-2x text-primary mb-2"></i>
-                        <h4 class="text-primary"><?php echo $enrollments->num_rows; ?></h4>
+                        <h4 class="text-primary"><?php echo (int)($enrollments_count ?? ($enrollments ? $enrollments->num_rows : 0)); ?></h4>
                         <p class="text-muted mb-0">Clases Inscritas</p>
                     </div>
                     
                     <div class="stat-card mb-2">
                         <i class="fas fa-star fa-2x text-warning mb-2"></i>
-                        <h4 class="text-warning"><?php echo $recent_feedback->num_rows; ?></h4>
+                        <h4 class="text-warning"><?php echo (int)($feedback_count ?? ($recent_feedback ? $recent_feedback->num_rows : 0)); ?></h4>
                         <p class="text-muted mb-0">Evaluaciones Recibidas</p>
                     </div>
                     
                     <div class="stat-card">
                         <i class="fas fa-trophy fa-2x text-success mb-2"></i>
-                        <h4 class="text-success"><?php echo $progress_summary->num_rows; ?></h4>
+                        <h4 class="text-success"><?php echo (int)($progress_count ?? ($progress_summary ? $progress_summary->num_rows : 0)); ?></h4>
                         <p class="text-muted mb-0">Programas en Progreso</p>
                     </div>
                 </div>
@@ -364,7 +405,7 @@ $stmt->close();
                     <i class="fas fa-list me-2 text-primary"></i>Mis Inscripciones
                 </h3>
                 
-                <?php if ($enrollments->num_rows > 0): ?>
+                <?php if ($enrollments && $enrollments->num_rows > 0): ?>
                     <?php $enrollments->data_seek(0); // Reset pointer ?>
                     <?php while ($enrollment = $enrollments->fetch_assoc()): ?>
                         <div class="card enrollment-card">
@@ -513,7 +554,7 @@ $stmt->close();
                     <i class="fas fa-comments me-2 text-primary"></i>Evaluaciones Recientes
                 </h3>
                 
-                <?php if ($recent_feedback->num_rows > 0): ?>
+                <?php if ($recent_feedback && $recent_feedback->num_rows > 0): ?>
                     <?php while ($feedback = $recent_feedback->fetch_assoc()): ?>
                         <div class="card feedback-card">
                             <div class="card-body">
