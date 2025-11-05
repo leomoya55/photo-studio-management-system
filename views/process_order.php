@@ -155,7 +155,7 @@ try {
     $order_id = $conn->insert_id;
     $order_stmt->close();
 
-    // If SINPE proof uploaded, try Cloudinary; if not available, store locally and reference URL (best-effort)
+    // If SINPE proof uploaded, try Cloudinary ONLY (no local fallback)
     if ($payment_method === 'sinpe' && $sinpe_proof_tmp) {
         $proofUrl = '';
         $okProof = false;
@@ -174,31 +174,6 @@ try {
             $proofUrl = '';
         }
 
-        // If Cloudinary didn't return a URL, fallback to local storage
-        if (empty($proofUrl)) {
-            try {
-                $uploadsDir = dirname(__DIR__) . '/assets/uploads/payment_proofs';
-                if (!is_dir($uploadsDir)) {
-                    @mkdir($uploadsDir, 0775, true);
-                }
-                $ext = '';
-                if ($sinpe_proof_mime) {
-                    if (stripos($sinpe_proof_mime, 'pdf') !== false) $ext = '.pdf';
-                    elseif (stripos($sinpe_proof_mime, 'png') !== false) $ext = '.png';
-                    elseif (stripos($sinpe_proof_mime, 'jpeg') !== false || stripos($sinpe_proof_mime, 'jpg') !== false) $ext = '.jpg';
-                }
-                if ($ext === '') { $ext = '.bin'; }
-                $fileName = 'proof_' . preg_replace('/[^A-Za-z0-9_-]/','', $order_number) . $ext;
-                $destPath = $uploadsDir . '/' . $fileName;
-                // move the uploaded tmp file to public uploads
-                if (@move_uploaded_file($sinpe_proof_tmp, $destPath) || @rename($sinpe_proof_tmp, $destPath) || @copy($sinpe_proof_tmp, $destPath)) {
-                    $proofUrl = rtrim(BASE_URL, '/') . '/assets/uploads/payment_proofs/' . $fileName;
-                }
-            } catch (Throwable $t) {
-                error_log('Local fallback save failed: ' . $t->getMessage());
-            }
-        }
-
         if (!empty($proofUrl)) {
             // Try to store in dedicated columns
             $upd = $conn->prepare("UPDATE orders SET payment_proof_url = ?, payment_proof_type = ? WHERE id = ?");
@@ -211,14 +186,12 @@ try {
                 }
                 $upd->close();
             }
-            // Always append absolute proof URL to notes so admin can still view
-            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-            $host = $_SERVER['HTTP_HOST'] ?? '';
-            // If proofUrl is relative, prefix with scheme+host
-            $absoluteUrl = preg_match('#^https?://#i', $proofUrl) ? $proofUrl : ($scheme . '://' . $host . $proofUrl);
-            $append = "\nComprobante: " . $absoluteUrl;
-            $notesUpd = $conn->prepare("UPDATE orders SET notes = CONCAT(COALESCE(notes,''), ?) WHERE id = ?");
-            if ($notesUpd) { $notesUpd->bind_param('si', $append, $order_id); $notesUpd->execute(); $notesUpd->close(); }
+            // Append proof URL to notes ONLY if it's a Cloudinary URL (redundancy for admin viewing)
+            if (preg_match('#^https?://res\.cloudinary\.com/#i', $proofUrl)) {
+                $append = "\nComprobante: " . $proofUrl;
+                $notesUpd = $conn->prepare("UPDATE orders SET notes = CONCAT(COALESCE(notes,''), ?) WHERE id = ?");
+                if ($notesUpd) { $notesUpd->bind_param('si', $append, $order_id); $notesUpd->execute(); $notesUpd->close(); }
+            }
         }
     }
     

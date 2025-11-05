@@ -1,5 +1,7 @@
 <?php
 require_once '../config/db_connect.php';
+// Ensure session is available to identify the admin performing actions
+require_once '../config/session_manager.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -162,6 +164,42 @@ try {
                 break;
             case 'order':
                 switch ($action) {
+                    case 'attach_proof_url':
+                        $orderId = (int)($input['order_id'] ?? 0);
+                        $url = trim((string)($input['url'] ?? ''));
+                        if ($orderId <= 0) {
+                            throw new Exception('ID de orden inválido');
+                        }
+                        if ($url === '' || !preg_match('#^https?://#i', $url)) {
+                            throw new Exception('URL inválida (debe empezar con http o https)');
+                        }
+                        // Guess type by extension
+                        $type = '';
+                        $lu = strtolower(parse_url($url, PHP_URL_PATH) ?? '');
+                        if (preg_match('/\.pdf(?:$|\?)/', $lu)) $type = 'application/pdf';
+                        elseif (preg_match('/\.(png|jpg|jpeg|gif|webp)(?:$|\?)/', $lu, $m)) $type = 'image/'.($m[1]==='jpg'?'jpeg':$m[1]);
+
+                        // Update orders table
+                        if ($stmt = $conn->prepare('UPDATE orders SET payment_proof_url = ?, payment_proof_type = ?, updated_at = NOW() WHERE id = ?')) {
+                            $stmt->bind_param('ssi', $url, $type, $orderId);
+                            if (!$stmt->execute()) {
+                                throw new Exception('No se pudo guardar el comprobante: ' . $stmt->error);
+                            }
+                            $stmt->close();
+                        }
+
+                        // Append to notes ONLY if it's a Cloudinary URL (redundancy)
+                        if (preg_match('#^https?://res\\.cloudinary\\.com/#i', $url)) {
+                            if ($stmt2 = $conn->prepare("UPDATE orders SET notes = CONCAT(COALESCE(notes,''), ?) WHERE id = ?")) {
+                                $append = "\nComprobante: ".$url;
+                                $stmt2->bind_param('si', $append, $orderId);
+                                $stmt2->execute();
+                                $stmt2->close();
+                            }
+                        }
+
+                        echo json_encode(['success' => true, 'message' => 'Comprobante adjuntado']);
+                        break;
                     case 'update_status':
                         $orderId = (int)($input['order_id'] ?? 0);
                         $newStatus = strtolower(trim($input['status'] ?? ''));
@@ -214,12 +252,14 @@ try {
                         }
 
                         // Log status change (store external/new status label for readability)
-                        if ($log = $conn->prepare('INSERT INTO order_status_log (order_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)')) {
-                            $who = (int)($_SESSION['user_id'] ?? 0);
-                            $old = $oldStatus; $new = $newStatus; $notes = 'Cambio desde admin';
-                            $log->bind_param('issis', $orderId, $old, $new, $who, $notes);
-                            $log->execute();
-                            $log->close();
+                        $who = ($isLoggedIn && !empty($_SESSION['user_id'])) ? (int)$_SESSION['user_id'] : 0;
+                        if ($who > 0) {
+                            if ($log = $conn->prepare('INSERT INTO order_status_log (order_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)')) {
+                                $old = $oldStatus; $new = $newStatus; $notes = 'Cambio desde admin';
+                                $log->bind_param('issis', $orderId, $old, $new, $who, $notes);
+                                $log->execute();
+                                $log->close();
+                            }
                         }
 
                         // Notify customer via email (best-effort) and log

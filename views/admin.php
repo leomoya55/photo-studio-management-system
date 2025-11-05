@@ -649,7 +649,9 @@ if ($conn) {
       if (!list.length){ tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Sin órdenes</td></tr>`; return; }
       tbody.innerHTML = list.map(o=>{
         const proof = ((o.payment_proof_url||'').trim()) || extractUrlFromNotes(o.notes||'');
-        const proofBtn = proof ? `<button class="btn btn-sm btn-outline-info" onclick="viewProof('${(proof||'').replace(/'/g,"&#39;")}')"><i class="fas fa-eye"></i> Ver</button>` : '<span class="text-muted small">—</span>';
+        const proofBtn = proof
+          ? `<button class="btn btn-sm btn-outline-info" onclick="viewProof('${(proof||'').replace(/'/g,"&#39;")}')"><i class="fas fa-eye"></i> Ver</button>`
+          : `<button class="btn btn-sm btn-outline-secondary" onclick="attachProofUrl(${o.id})"><i class="fas fa-paperclip"></i> Adjuntar URL</button>`;
         const total = Number(o.total_amount||0) + Number(o.delivery_cost||0);
         const st = normalizeStatus(o.status);
         const canApprove = st==='pending';
@@ -673,6 +675,20 @@ if ($conn) {
           </td>
         </tr>`;
       }).join('');
+    }
+    async function attachProofUrl(orderId){
+      const url = prompt('Pega la URL del comprobante (http/https):');
+      if (!url) return;
+      if (!/^https?:\/\//i.test(url)) { alert('URL inválida, debe comenzar con http o https'); return; }
+      try {
+        const r = await fetch(api.users.replace('?endpoint=users',''), {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ type:'order', action:'attach_proof_url', order_id: orderId, url })
+        }).then(r=>r.json());
+        if (!r.success) throw new Error(r.message||'Error');
+        await loadOrders();
+        alert('Comprobante adjuntado');
+      } catch(e){ alert('No se pudo adjuntar: '+e.message); }
     }
     async function updateOrderStatus(id, status){
       try {
