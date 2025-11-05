@@ -21,17 +21,43 @@ define('ASSETS_PATH', ROOT_PATH . '/assets');
 // Define URL paths (for web access)
 // Allow override via environment for deployment (e.g., Heroku)
 $envBaseUrl = getenv('APP_BASE_URL');
-if ($envBaseUrl !== false && $envBaseUrl !== '') {
-    $envBaseUrl = rtrim($envBaseUrl, '/');
-    define('BASE_URL', $envBaseUrl === '' ? '/' : $envBaseUrl);
+
+function normalize_base_url($val) {
+    $val = trim((string)$val);
+    if ($val === '' || $val === '/') {
+        // Represent site root as empty string to avoid generating double slashes like //assets
+        return '';
+    }
+    // If absolute URL provided, strip only trailing slash
+    if (preg_match('#^https?://#i', $val)) {
+        return rtrim($val, '/');
+    }
+    // Otherwise treat as path prefix; ensure it starts with single leading slash and has no trailing slash
+    $val = '/' . ltrim($val, '/');
+    return rtrim($val, '/');
+}
+
+if ($envBaseUrl !== false) {
+    define('BASE_URL', normalize_base_url($envBaseUrl));
 } else {
     // Local default (XAMPP): project in subfolder
-    define('BASE_URL', '/ProyectoVanessa');
+    define('BASE_URL', normalize_base_url('/ProyectoVanessa'));
 }
+
+// Safe URL join to avoid accidental double slashes
+function url_join($base, $segment) {
+    $b = rtrim($base, '/');
+    $s = ltrim((string)$segment, '/');
+    if ($b === '' && $s === '') return '';
+    if ($b === '') return '/' . $s;
+    if ($s === '') return $b;
+    return $b . '/' . $s;
+}
+
 // Derived URLs
-define('ASSETS_URL', BASE_URL . '/assets');
-define('ADMIN_URL', BASE_URL . '/admin');
-define('VIEWS_URL', BASE_URL . '/views');
+define('ASSETS_URL', url_join(BASE_URL, 'assets'));
+define('ADMIN_URL', url_join(BASE_URL, 'admin'));
+define('VIEWS_URL', url_join(BASE_URL, 'views'));
 // (ASSETS_URL and ADMIN_URL are defined above, kept for backward compatibility)
 
 // Helper function to include files from different layers
