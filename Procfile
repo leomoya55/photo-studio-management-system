@@ -1,1 +1,2 @@
-web: heroku-php-apache2 ProyectoVanessa/
+web: heroku-php-apache2 .
+
