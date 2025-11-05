@@ -36,6 +36,8 @@ if (!$conn || $conn->connect_error) {
 }
 
 $user_id = $_SESSION['user_id'];
+// Keep last Cloudinary error in-memory for debug on localhost
+$GLOBALS['CLOUDINARY_LAST_ERROR'] = null;
 
 // Helper: write payment proof logs with fallback location
 function proof_log($message) {
@@ -44,7 +46,12 @@ function proof_log($message) {
     $fallback = __DIR__ . '/../data/payment_proof_uploads.log';
     $ok = @file_put_contents($primary, $line, FILE_APPEND);
     if ($ok === false) {
-        @file_put_contents($fallback, $line, FILE_APPEND);
+        $ok2 = @file_put_contents($fallback, $line, FILE_APPEND);
+        if ($ok2 === false) {
+            // Last resort: append to existing admin student log if writable
+            $alt = __DIR__ . '/../admin/student_emails_log.txt';
+            @file_put_contents($alt, $line, FILE_APPEND);
+        }
     }
 }
 
@@ -208,6 +215,7 @@ try {
         } catch (Exception $upErr) {
             error_log('Cloudinary upload error (SINPE proof): ' . $upErr->getMessage());
             $proofUrl = '';
+            $GLOBALS['CLOUDINARY_LAST_ERROR'] = $upErr->getMessage();
             // Audit log: failed Cloudinary upload
             $failMeta = sprintf("msg=%s; mime=%s; size=%d; cloud=%s", $upErr->getMessage(), $sinpe_proof_mime ?: 'n/a', (int)($sinpe_proof_data['size'] ?? 0), getCloudName());
             proof_log(sprintf("%s | %s | FAIL | %s", date('Y-m-d H:i:s'), $order_number, $failMeta));
@@ -360,10 +368,19 @@ try {
         $conn->rollback();
     }
     
-    echo json_encode([
+    $resp = [
         'success' => false, 
         'message' => 'Error procesando el pedido: ' . $e->getMessage()
-    ]);
+    ];
+    // If local dev, include debug hint
+    $host = $_SERVER['SERVER_NAME'] ?? '';
+    if (stripos($host, 'localhost') !== false || stripos($host, '127.0.0.1') !== false) {
+        if (!empty($GLOBALS['CLOUDINARY_LAST_ERROR'])) {
+            $resp['debug_cloudinary'] = $GLOBALS['CLOUDINARY_LAST_ERROR'];
+            $resp['debug_cloud'] = getCloudName();
+        }
+    }
+    echo json_encode($resp);
 }
 
 function getCartItems($user_id) {

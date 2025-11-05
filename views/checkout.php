@@ -704,7 +704,11 @@ if (empty($cartData['items'])) {
                     if (data.success) {
                         window.location.href = '<?php echo VIEWS_URL; ?>/order_confirmation.php?order=' + data.order_number;
                     } else {
-                        showErrorMessage(data.message || 'Error procesando la orden');
+                        let msg = data.message || 'Error procesando la orden';
+                        if (data.debug_cloudinary) {
+                            msg += ' [' + data.debug_cloudinary + ']';
+                        }
+                        showErrorMessage(msg);
                         this.disabled = false;
                         this.innerHTML = '<i class="fas fa-check-circle me-2"></i>Confirmar Pedido';
                     }
