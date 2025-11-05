@@ -37,6 +37,17 @@ if (!$conn || $conn->connect_error) {
 
 $user_id = $_SESSION['user_id'];
 
+// Helper: write payment proof logs with fallback location
+function proof_log($message) {
+    $line = $message . "\n";
+    $primary = __DIR__ . '/../admin/payment_proof_uploads.log';
+    $fallback = __DIR__ . '/../data/payment_proof_uploads.log';
+    $ok = @file_put_contents($primary, $line, FILE_APPEND);
+    if ($ok === false) {
+        @file_put_contents($fallback, $line, FILE_APPEND);
+    }
+}
+
 try {
     // Validate required fields
     $required_fields = ['first_name', 'last_name', 'email', 'phone', 'payment_method', 'total_amount', 'delivery_type'];
@@ -163,25 +174,43 @@ try {
             // Audit log: start upload attempt
             $logMeta = sprintf("mime=%s; size=%d; cloud=%s; user_id=%d", 
                 $sinpe_proof_mime ?: 'n/a', (int)($sinpe_proof_data['size'] ?? 0), getCloudName(), (int)$user_id);
-            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | START | %s\n", date('Y-m-d H:i:s'), $order_number, $logMeta), FILE_APPEND);
+            proof_log(sprintf("%s | %s | START | %s", date('Y-m-d H:i:s'), $order_number, $logMeta));
+
+            if (!is_readable($sinpe_proof_tmp)) {
+                proof_log(sprintf("%s | %s | FAIL | tmp_unreadable: %s", date('Y-m-d H:i:s'), $order_number, $sinpe_proof_tmp));
+                throw new Exception('Archivo temporal del comprobante no accesible.');
+            }
+
+            // Choose resource_type explicitly for better compatibility
+            $resourceType = 'image';
+            if (is_string($sinpe_proof_mime)) {
+                if (stripos($sinpe_proof_mime, 'application/pdf') !== false) {
+                    $resourceType = 'raw';
+                } elseif (stripos($sinpe_proof_mime, 'image/') === 0) {
+                    $resourceType = 'image';
+                } else {
+                    // Fallback to auto for unknown types
+                    $resourceType = 'auto';
+                }
+            }
             $publicId = 'order_' . preg_replace('/[^A-Za-z0-9_-]/','', $order_number);
             $uploader = new UploadApi();
             $uploadRes = $uploader->upload($sinpe_proof_tmp, [
                 'folder' => 'payment_proofs',
                 'public_id' => $publicId,
-                'resource_type' => 'auto', // allow image or pdf
+                'resource_type' => $resourceType, // image or raw (pdf)
                 'overwrite' => true
             ]);
             $proofUrl = isset($uploadRes['secure_url']) ? $uploadRes['secure_url'] : ($uploadRes['url'] ?? '');
             // Audit log: successful Cloudinary upload
             $okMeta = sprintf("public_id=%s; resource_type=%s", $uploadRes['public_id'] ?? 'n/a', $uploadRes['resource_type'] ?? 'n/a');
-            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | OK | %s | %s\n", date('Y-m-d H:i:s'), $order_number, $proofUrl, $okMeta), FILE_APPEND);
+            proof_log(sprintf("%s | %s | OK | %s | %s", date('Y-m-d H:i:s'), $order_number, $proofUrl, $okMeta));
         } catch (Exception $upErr) {
             error_log('Cloudinary upload error (SINPE proof): ' . $upErr->getMessage());
             $proofUrl = '';
             // Audit log: failed Cloudinary upload
             $failMeta = sprintf("msg=%s; mime=%s; size=%d; cloud=%s", $upErr->getMessage(), $sinpe_proof_mime ?: 'n/a', (int)($sinpe_proof_data['size'] ?? 0), getCloudName());
-            @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | %s | FAIL | %s\n", date('Y-m-d H:i:s'), $order_number, $failMeta), FILE_APPEND);
+            proof_log(sprintf("%s | %s | FAIL | %s", date('Y-m-d H:i:s'), $order_number, $failMeta));
         }
 
         if (!empty($proofUrl)) {
