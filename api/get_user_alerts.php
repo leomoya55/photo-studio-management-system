@@ -145,13 +145,17 @@ try {
     }
 
     // Check for recently approved enrollments (last 7 days)
+    // Support legacy schema where 'active' represents an approved enrollment
     $stmt = $conn->prepare("
         SELECT 
             e.class_name,
             e.selected_schedule,
-            e.updated_at
+            e.updated_at,
+            e.status
         FROM enrollments e
-        WHERE e.user_id = ? AND e.status = 'approved' AND e.updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        WHERE e.user_id = ? 
+          AND e.status IN ('approved','active')
+          AND e.updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ORDER BY e.updated_at DESC
     ");
     $stmt->bind_param("i", $user_id);

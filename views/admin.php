@@ -614,6 +614,14 @@ if ($conn) {
         reloadAttendance();
         // Refresh recent activity widget
         reloadRecent();
+        // Surface email/notification info to admin (best-effort)
+        try {
+          if (typeof r.notification_sent !== 'undefined') {
+            const msg = r.notification_sent ? 'Correo de aprobación enviado al estudiante.' : 'Aprobada (correo no enviado).';
+            // Non-intrusive toast using alert() as a minimal fallback
+            console.log(msg);
+          }
+        } catch(_){}
       }catch(e){ alert('No se pudo actualizar: '+e.message); }
     }
     async function deleteEnrollment(id){ if(!confirm('¿Eliminar inscripción? Esta acción no se puede deshacer.')) return; try{ const r=await fetch(api.deleteEnrollment,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({enrollment_id:id})}).then(r=>r.json()); if(!r.success) throw new Error(r.message||'Error'); await loadEnrollments(); }catch(e){ alert('No se pudo eliminar: '+e.message);} }
