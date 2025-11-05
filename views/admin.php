@@ -574,9 +574,9 @@ if ($conn) {
         <td>${statusBadge(e.status)}</td>
         <td class="text-end">
           <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-success" title="Aprobar" onclick="updateEnrollmentStatus(${e.id}, 'approved')"><i class="fas fa-check"></i></button>
-            <button class="btn btn-outline-danger" title="Rechazar" onclick="updateEnrollmentStatus(${e.id}, 'rejected')"><i class="fas fa-xmark"></i></button>
-            <button class="btn btn-outline-dark" title="Eliminar" onclick="deleteEnrollment(${e.id})"><i class="fas fa-trash"></i></button>
+            <button type="button" class="btn btn-outline-success" title="Aprobar" onclick="updateEnrollmentStatus(${e.id}, 'approved')"><i class="fas fa-check"></i></button>
+            <button type="button" class="btn btn-outline-danger" title="Rechazar" onclick="updateEnrollmentStatus(${e.id}, 'rejected')"><i class="fas fa-xmark"></i></button>
+            <button type="button" class="btn btn-outline-dark" title="Eliminar" onclick="deleteEnrollment(${e.id})"><i class="fas fa-trash"></i></button>
           </div>
         </td>
       </tr>`).join('');
@@ -636,10 +636,10 @@ if ($conn) {
           <td>${proofBtn}</td>
           <td class="text-end">
             <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-primary" ${canApprove?'':'disabled'} onclick="updateOrderStatus(${o.id}, 'approved')" title="Aprobar"><i class="fas fa-check"></i></button>
-              <button class="btn btn-outline-success" ${canComplete?'':'disabled'} onclick="updateOrderStatus(${o.id}, 'completed')" title="Completar"><i class="fas fa-flag-checkered"></i></button>
-              <button class="btn btn-outline-danger" ${canCancel?'':'disabled'} onclick="updateOrderStatus(${o.id}, 'canceled')" title="Cancelar"><i class="fas fa-xmark"></i></button>
-              <button class="btn btn-danger" onclick="deleteOrder(${o.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+              <button type="button" class="btn btn-outline-primary" ${canApprove?'':'disabled'} onclick="updateOrderStatus(${o.id}, 'approved')" title="Aprobar"><i class="fas fa-check"></i></button>
+              <button type="button" class="btn btn-outline-success" ${canComplete?'':'disabled'} onclick="updateOrderStatus(${o.id}, 'completed')" title="Completar"><i class="fas fa-flag-checkered"></i></button>
+              <button type="button" class="btn btn-outline-danger" ${canCancel?'':'disabled'} onclick="updateOrderStatus(${o.id}, 'canceled')" title="Cancelar"><i class="fas fa-xmark"></i></button>
+              <button type="button" class="btn btn-danger" onclick="deleteOrder(${o.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         </tr>`;

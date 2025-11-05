@@ -21,6 +21,8 @@ define('ASSETS_PATH', ROOT_PATH . '/assets');
 // Define URL paths (for web access)
 // Allow override via environment for deployment (e.g., Heroku)
 $envBaseUrl = getenv('APP_BASE_URL');
+// Heroku detection: if running on Heroku and no APP_BASE_URL set, default to root ('')
+$isHeroku = getenv('DYNO') !== false || (isset($_SERVER['HTTP_HOST']) && stripos($_SERVER['HTTP_HOST'], 'herokuapp.com') !== false);
 
 function normalize_base_url($val) {
     $val = trim((string)$val);
@@ -37,11 +39,15 @@ function normalize_base_url($val) {
     return rtrim($val, '/');
 }
 
-if ($envBaseUrl !== false) {
+if ($envBaseUrl !== false && $envBaseUrl !== '') {
     define('BASE_URL', normalize_base_url($envBaseUrl));
 } else {
-    // Local default (XAMPP): project in subfolder
-    define('BASE_URL', normalize_base_url('/ProyectoVanessa'));
+    // Default heuristics: on Heroku use site root; on local XAMPP fall back to /ProyectoVanessa
+    if ($isHeroku) {
+        define('BASE_URL', '');
+    } else {
+        define('BASE_URL', normalize_base_url('/ProyectoVanessa'));
+    }
 }
 
 // Safe URL join to avoid accidental double slashes

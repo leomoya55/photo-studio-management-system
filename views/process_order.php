@@ -212,8 +212,12 @@ try {
                 }
                 $upd->close();
             }
-            // Always append proof URL to notes so admin can still view
-            $append = "\nComprobante: " . $proofUrl;
+            // Always append absolute proof URL to notes so admin can still view
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'] ?? '';
+            // If proofUrl is relative, prefix with scheme+host
+            $absoluteUrl = preg_match('#^https?://#i', $proofUrl) ? $proofUrl : ($scheme . '://' . $host . $proofUrl);
+            $append = "\nComprobante: " . $absoluteUrl;
             $notesUpd = $conn->prepare("UPDATE orders SET notes = CONCAT(COALESCE(notes,''), ?) WHERE id = ?");
             if ($notesUpd) { $notesUpd->bind_param('si', $append, $order_id); $notesUpd->execute(); $notesUpd->close(); }
         }
