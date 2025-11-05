@@ -390,17 +390,23 @@ if ($stmt = $conn->prepare("\n    SELECT class_type, skill_level, total_classes_
                     
                     <div class="stat-card">
                         <i class="fas fa-trophy fa-2x text-success mb-2"></i>
-                        <h4 class="text-success"><?php echo (int)($progress_count ?? ($progress_summary ? $progress_summary->num_rows : 0)); ?></h4>
+                            <h4 class="text-primary"><?php echo (int)($enrollments_count ?? ($enrollments ? $enrollments->num_rows : 0)); ?></h4>
                         <p class="text-muted mb-0">Programas en Progreso</p>
                     </div>
+                    
+                    
+                    
                 </div>
             </div>
-        </div>
+                            <h4 class="text-warning"><?php echo (int)($feedback_count ?? ($recent_feedback ? $recent_feedback->num_rows : 0)); ?></h4>
 
         <!-- Enrollments and Feedback -->
+                    
+                    
+                    
         <div class="row">
             <!-- My Enrollments -->
-            <div class="col-lg-8">
+                            <h4 class="text-success"><?php echo (int)($progress_count ?? ($progress_summary ? $progress_summary->num_rows : 0)); ?></h4>
                 <h3 class="mb-4">
                     <i class="fas fa-list me-2 text-primary"></i>Mis Inscripciones
                 </h3>

@@ -469,8 +469,9 @@ if ($conn) {
     function normalizeStatus(st){
       const s = String(st||'').toLowerCase();
       if(['pending','pendiente'].includes(s)) return 'pending';
-      if(['approved','aprobada','aprobado'].includes(s)) return 'approved';
-      if(['completed','completada','completado'].includes(s)) return 'completed';
+      // Map DB/order statuses to UI canonical values
+      if(['approved','aprobada','aprobado','paid','processing'].includes(s)) return 'approved';
+      if(['completed','completada','completado','delivered','shipped'].includes(s)) return 'completed';
       if(['canceled','cancelled','cancelada','cancelado'].includes(s)) return 'canceled';
       return s || 'pending';
     }

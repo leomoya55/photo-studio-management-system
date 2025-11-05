@@ -8,8 +8,9 @@
 ob_start();
 
 session_start();
+session_start();
 require_once '../config/db_connect.php';
-// Cloudinary for SINPE proof upload (image/pdf)
+require_once '../config/paths.php';
 require_once '../config/cloudinary_config.php';
 use Cloudinary\Api\Upload\UploadApi;
 
@@ -155,8 +156,10 @@ try {
     $order_id = $conn->insert_id;
     $order_stmt->close();
 
-    // If SINPE proof uploaded, send to Cloudinary and store URL on order (best-effort)
+    // If SINPE proof uploaded, try Cloudinary; if not available, store locally and reference URL (best-effort)
     if ($payment_method === 'sinpe' && $sinpe_proof_tmp) {
+        $proofUrl = '';
+        $okProof = false;
         try {
             $publicId = 'order_' . preg_replace('/[^A-Za-z0-9_-]/','', $order_number);
             $uploader = new UploadApi();
@@ -167,27 +170,52 @@ try {
                 'overwrite' => true
             ]);
             $proofUrl = isset($uploadRes['secure_url']) ? $uploadRes['secure_url'] : ($uploadRes['url'] ?? '');
-            if (!empty($proofUrl)) {
-                $upd = $conn->prepare("UPDATE orders SET payment_proof_url = ?, payment_proof_type = ? WHERE id = ?");
-                $okProof = false;
-                if ($upd) {
-                    $typeVal = $sinpe_proof_mime ?: '';
-                    $upd->bind_param('ssi', $proofUrl, $typeVal, $order_id);
-                    $okProof = $upd->execute();
-                    if (!$okProof) {
-                        error_log('orders.payment_proof update failed: ' . $upd->error);
-                    }
-                    $upd->close();
-                }
-                // Fallback: if update failed (e.g., columns missing), append proof URL to notes so admin can still view
-                if (!$okProof) {
-                    $append = "\nComprobante: " . $proofUrl;
-                    $notesUpd = $conn->prepare("UPDATE orders SET notes = CONCAT(COALESCE(notes,''), ?) WHERE id = ?");
-                    if ($notesUpd) { $notesUpd->bind_param('si', $append, $order_id); $notesUpd->execute(); $notesUpd->close(); }
-                }
-            }
         } catch (Exception $upErr) {
             error_log('Cloudinary upload error (SINPE proof): ' . $upErr->getMessage());
+            $proofUrl = '';
+        }
+
+        // If Cloudinary didn't return a URL, fallback to local storage
+        if (empty($proofUrl)) {
+            try {
+                $uploadsDir = dirname(__DIR__) . '/assets/uploads/payment_proofs';
+                if (!is_dir($uploadsDir)) {
+                    @mkdir($uploadsDir, 0775, true);
+                }
+                $ext = '';
+                if ($sinpe_proof_mime) {
+                    if (stripos($sinpe_proof_mime, 'pdf') !== false) $ext = '.pdf';
+                    elseif (stripos($sinpe_proof_mime, 'png') !== false) $ext = '.png';
+                    elseif (stripos($sinpe_proof_mime, 'jpeg') !== false || stripos($sinpe_proof_mime, 'jpg') !== false) $ext = '.jpg';
+                }
+                if ($ext === '') { $ext = '.bin'; }
+                $fileName = 'proof_' . preg_replace('/[^A-Za-z0-9_-]/','', $order_number) . $ext;
+                $destPath = $uploadsDir . '/' . $fileName;
+                // move the uploaded tmp file to public uploads
+                if (@move_uploaded_file($sinpe_proof_tmp, $destPath) || @rename($sinpe_proof_tmp, $destPath) || @copy($sinpe_proof_tmp, $destPath)) {
+                    $proofUrl = rtrim(BASE_URL, '/') . '/assets/uploads/payment_proofs/' . $fileName;
+                }
+            } catch (Throwable $t) {
+                error_log('Local fallback save failed: ' . $t->getMessage());
+            }
+        }
+
+        if (!empty($proofUrl)) {
+            // Try to store in dedicated columns
+            $upd = $conn->prepare("UPDATE orders SET payment_proof_url = ?, payment_proof_type = ? WHERE id = ?");
+            if ($upd) {
+                $typeVal = $sinpe_proof_mime ?: '';
+                $upd->bind_param('ssi', $proofUrl, $typeVal, $order_id);
+                $okProof = $upd->execute();
+                if (!$okProof) {
+                    error_log('orders.payment_proof update failed: ' . $upd->error);
+                }
+                $upd->close();
+            }
+            // Always append proof URL to notes so admin can still view
+            $append = "\nComprobante: " . $proofUrl;
+            $notesUpd = $conn->prepare("UPDATE orders SET notes = CONCAT(COALESCE(notes,''), ?) WHERE id = ?");
+            if ($notesUpd) { $notesUpd->bind_param('si', $append, $order_id); $notesUpd->execute(); $notesUpd->close(); }
         }
     }
     

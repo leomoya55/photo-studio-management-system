@@ -175,6 +175,15 @@ try {
                         // Normalize spelling
                         if ($newStatus === 'cancelled') { $newStatus = 'canceled'; }
 
+                        // Map to DB enum-compatible values
+                        $dbStatusMap = [
+                            'pending'   => 'pending',
+                            'approved'  => 'paid',       // treat approved as payment confirmed
+                            'completed' => 'delivered',   // treat completed as delivered/fulfilled
+                            'canceled'  => 'cancelled'
+                        ];
+                        $dbStatus = $dbStatusMap[$newStatus] ?? 'pending';
+
                         // Fetch old status for logging
                         $oldStatus = null;
                         if ($st0 = $conn->prepare('SELECT status FROM orders WHERE id = ?')) {
@@ -185,16 +194,16 @@ try {
                             $st0->close();
                         }
 
-                        // Update order status; optionally align payment_status
+                        // Update order status using DB-compatible status; optionally align payment_status
                         $stmt = $conn->prepare("UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?");
-                        $stmt->bind_param('si', $newStatus, $orderId);
+                        $stmt->bind_param('si', $dbStatus, $orderId);
                         if (!$stmt->execute()) {
                             throw new Exception('Error al actualizar orden: ' . $stmt->error);
                         }
                         $stmt->close();
 
-                        // Payment status sync (best-effort): pending-> on approved stays pending; completed->completed; canceled->cancelled
-                        $payMap = [ 'completed' => 'completed', 'canceled' => 'cancelled' ];
+                        // Payment status sync (best-effort)
+                        $payMap = [ 'completed' => 'completed', 'canceled' => 'cancelled', 'approved' => 'paid' ];
                         if (isset($payMap[$newStatus])) {
                             $ps = $payMap[$newStatus];
                             if ($ps) {
@@ -204,7 +213,7 @@ try {
                             }
                         }
 
-                        // Log status change
+                        // Log status change (store external/new status label for readability)
                         if ($log = $conn->prepare('INSERT INTO order_status_log (order_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)')) {
                             $who = (int)($_SESSION['user_id'] ?? 0);
                             $old = $oldStatus; $new = $newStatus; $notes = 'Cambio desde admin';
