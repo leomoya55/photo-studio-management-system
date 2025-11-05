@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../config/paths.php';
 require_once __DIR__ . '/../config/db_connect.php';
-require_once '../includes/user_notifications.php';
+require_once __DIR__ . '/../includes/user_notifications.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {

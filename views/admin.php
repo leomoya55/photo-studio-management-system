@@ -458,8 +458,16 @@ if ($conn) {
     const isPdfUrl = (u) => /\.pdf$/i.test(u||'') || String(u||'').toLowerCase().includes('application/pdf');
     const extractUrlFromNotes = (notes) => {
       const n = String(notes||'');
+      // 1) Prefer explicit http(s) links
       const m = n.match(/https?:\/\/\S+/i);
-      return m ? m[0].replace(/[\)\]]+$/,'') : '';
+      if (m) return m[0].replace(/[\)\]]+$/,'');
+      // 2) Fallback: detect common relative path for proofs
+      const rel = n.match(/\/(assets\/uploads\/payment_proofs\/[^\s\)\]]+)/i);
+      if (rel && rel[1]) {
+        const origin = window.location.origin || '';
+        return origin + '/' + rel[1].replace(/^\/+/, '');
+      }
+      return '';
     };
 
     // Simple caches
