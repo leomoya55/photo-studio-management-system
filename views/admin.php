@@ -1,14 +1,16 @@
 <?php
 // Admin dashboard bootstrap: session guard, DB connect, quick stats
 session_start();
-require_once '../config/session_manager.php';
-require_once '../config/paths.php';
+require_once __DIR__ . '/../config/session_manager.php';
+require_once __DIR__ . '/../config/paths.php';
 if (!$isLoggedIn || ($userRole !== 'admin')) {
   header('Location: ' . VIEWS_URL . '/login.php');
   exit();
 }
-require_once '../config/db_connect.php';
-require_once '../config/cloudinary_config.php';
+require_once __DIR__ . '/../config/db_connect.php';
+// Defensive: ensure $conn is defined to avoid PHP notices in edge cases
+if (!isset($conn)) { $conn = null; }
+require_once __DIR__ . '/../config/cloudinary_config.php';
 
 // Compute top-level stats for dashboard cards
 $stats = [
@@ -17,7 +19,7 @@ $stats = [
   'new_users_7d' => 0,
   'new_enrollments_7d' => 0,
 ];
-if ($conn) {
+if (isset($conn) && $conn) {
   try {
     // Total active users
     $res = $conn->query("SELECT COUNT(*) AS c FROM users WHERE is_active = 1");
@@ -705,6 +707,19 @@ if ($conn) {
         const r = await fetch(api.users.replace('?endpoint=users',''), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ type:'order', action:'update_status', order_id: id, status }) }).then(r=>r.json());
         if(!r.success) throw new Error(r.message||'Error');
         await loadOrders();
+        // If we were filtering by 'pending' and we completed/approved, switch filter to keep item visible
+        const curr = (document.getElementById('ordersStatusFilter')?.value || '').toLowerCase();
+        if ((status === 'completed' || status === 'approved') && curr === 'pending') {
+          document.getElementById('ordersStatusFilter').value = status;
+          renderOrders();
+        }
+        // Surface email outcome if flag present
+        if (typeof r.notification_sent !== 'undefined') {
+          console.log(r.notification_sent ? 'Correo enviado al cliente.' : 'Correo NO enviado al cliente.');
+        }
+        if (typeof r.admin_notification_sent !== 'undefined') {
+          console.log(r.admin_notification_sent ? 'Correo enviado a administración.' : 'Correo NO enviado a administración.');
+        }
       } catch(e){ alert('No se pudo actualizar la orden: '+e.message); }
     }
     async function deleteOrder(id){
@@ -1623,4 +1638,4 @@ if ($conn) {
   </script>
 </body>
 </html>
-<?php closeConnection($conn); ?>
+<?php if (function_exists('closeConnection') && isset($conn) && $conn) { closeConnection($conn); } ?>

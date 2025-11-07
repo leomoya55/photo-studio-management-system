@@ -266,15 +266,33 @@ try {
 
                         // Notify customer via email (best-effort) and log
                         try {
-                            // Fetch order with customer info
-                            $cust = null;
-                            if ($s1 = $conn->prepare('SELECT o.order_number, o.status, o.total_amount, o.delivery_cost, u.first_name, u.last_name, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = ?')) {
+                            // Fetch order with customer info and items for richer email
+                            $cust = null; $itemsHtml = '';
+                            if ($s1 = $conn->prepare('SELECT o.order_number, o.status, o.total_amount, o.delivery_cost, o.payment_method, o.payment_status, o.created_at, u.first_name, u.last_name, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = ?')) {
                                 $s1->bind_param('i', $orderId);
                                 $s1->execute();
                                 $r1 = $s1->get_result();
                                 $cust = $r1 ? $r1->fetch_assoc() : null;
                                 $s1->close();
                             }
+                            if ($cust) {
+                                if ($s2 = $conn->prepare('SELECT product_name, quantity, product_price FROM order_items WHERE order_id = ?')) {
+                                    $s2->bind_param('i', $orderId);
+                                    $s2->execute();
+                                    $r2 = $s2->get_result();
+                                    while ($row = $r2->fetch_assoc()) {
+                                        $sub = (float)$row['product_price'] * (int)$row['quantity'];
+                                        $itemsHtml .= '<tr>'
+                                            .'<td style="padding:8px 4px;border-bottom:1px solid #eee">'.htmlspecialchars($row['product_name']).'</td>'
+                                            .'<td style="padding:8px 4px;border-bottom:1px solid #eee;text-align:center">'.(int)$row['quantity'].'</td>'
+                                            .'<td style="padding:8px 4px;border-bottom:1px solid #eee;text-align:right">₡'.number_format($row['product_price'],0,',','.').'</td>'
+                                            .'<td style="padding:8px 4px;border-bottom:1px solid #eee;text-align:right">₡'.number_format($sub,0,',','.').'</td>'
+                                            .'</tr>';
+                                    }
+                                    $s2->close();
+                                }
+                            }
+                            $sentCustomer = false; $sentAdmin = false;
                             if ($cust && !empty($cust['email'])) {
                                 $to = $cust['email'];
                                 $name = trim(($cust['first_name'] ?? '') . ' ' . ($cust['last_name'] ?? ''));
@@ -282,31 +300,42 @@ try {
                                 $total = (float)($cust['total_amount'] ?? 0) + (float)($cust['delivery_cost'] ?? 0);
                                 $statusLabel = ($newStatus==='approved'?'Aprobada':($newStatus==='completed'?'Completada':($newStatus==='canceled'?'Cancelada':ucfirst($newStatus))));
                                 $subject = "Actualización de tu orden #{$orderNo} - {$statusLabel}";
-                                $bodyMsg = '';
+                                $msgIntro = '';
                                 if ($newStatus === 'approved') {
-                                    $bodyMsg = "<p>Hola {$name},</p><p>Tu orden <strong>#{$orderNo}</strong> ha sido <strong>aprobada</strong>. Estamos preparando tu pedido.</p>";
+                                    $msgIntro = "Tu orden <strong>#{$orderNo}</strong> ha sido <strong>aprobada</strong>. Estamos preparando tu pedido.";
                                 } elseif ($newStatus === 'completed') {
-                                    $bodyMsg = "<p>Hola {$name},</p><p>¡Buenas noticias! Tu orden <strong>#{$orderNo}</strong> ha sido <strong>completada</strong>. Gracias por tu compra.</p>";
+                                    $msgIntro = "¡Buenas noticias! Tu orden <strong>#{$orderNo}</strong> ha sido <strong>completada</strong>. Gracias por tu compra.";
                                 } elseif ($newStatus === 'canceled') {
-                                    $bodyMsg = "<p>Hola {$name},</p><p>Tu orden <strong>#{$orderNo}</strong> ha sido <strong>cancelada</strong>. Si no reconoces esta acción o tienes dudas, contáctanos.</p>";
+                                    $msgIntro = "Tu orden <strong>#{$orderNo}</strong> ha sido <strong>cancelada</strong>. Si no reconoces esta acción o tienes dudas, contáctanos.";
                                 } else {
-                                    $bodyMsg = "<p>Hola {$name},</p><p>Tu orden <strong>#{$orderNo}</strong> se actualizó al estado: <strong>{$statusLabel}</strong>.</p>";
+                                    $msgIntro = "Tu orden <strong>#{$orderNo}</strong> se actualizó al estado <strong>{$statusLabel}</strong>.";
                                 }
-                                $full = "<div style='font-family: Arial, sans-serif; max-width:600px;margin:0 auto'>"
-                                      ."<div style='background:linear-gradient(135deg,#ff6600,#ff8533);color:#fff;padding:16px;border-radius:6px 6px 0 0'><h2 style=\"margin:0\">Academia Legend</h2><small>Actualización de orden</small></div>"
-                                      ."<div style='background:#f9f9f9;padding:16px'>"
-                                      .$bodyMsg
-                                      ."<p><strong>Total:</strong> ₡".number_format($total,0,'.',',')."</p>"
-                                      ."</div><div style='text-align:center;color:#666;font-size:12px;padding:12px'>Gracias por confiar en nosotros.</div></div>";
-                                // Use best-effort email sender (SendGrid if configured, else mail())
-                                $sent = send_best_effort_email($to, $subject, $full, 'Academia Legend', 'noreply@legenddanceacademy.com');
-                                // Log to file
-                                $line = sprintf("%s - Email %s to: %s (%s) - Subject: '%s' - Type: order-%s - Sender: %s\n", date('Y-m-d H:i:s'), $sent?'SENT':'NOT_SENT', $to, $name, $subject, $newStatus, 'Admin');
-                                @file_put_contents(__DIR__ . '/student_emails_log.txt', $line, FILE_APPEND);
+                                $itemsTable = $itemsHtml ? ('<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr><th style="text-align:left;padding:8px;background:#fafafa">Producto</th><th style="text-align:center;padding:8px;background:#fafafa">Cant</th><th style="text-align:right;padding:8px;background:#fafafa">Precio</th><th style="text-align:right;padding:8px;background:#fafafa">Subtotal</th></tr></thead><tbody>' . $itemsHtml . '<tr style="background:#f3f4f7;font-weight:bold"><td colspan="3" style="padding:10px;text-align:right">TOTAL</td><td style="padding:10px;text-align:right">₡'.number_format($total,0,',','.').'</td></tr></tbody></table>') : '';
+                                $bodyHtml = '<p>Hola '.htmlspecialchars($name).',</p><p>'.$msgIntro.'</p>' . $itemsTable . '<p style="margin-top:18px">Gracias por apoyar a Legend Dance Academy.</p>';
+                                $accent = ($newStatus==='approved') ? '#0d6efd' : (($newStatus==='completed') ? '#198754' : (($newStatus==='canceled') ? '#6c757d' : '#ff6600'));
+                                $sentCustomer = send_branded_email($to, $subject, 'Actualización de tu pedido', $bodyHtml, $statusLabel, $accent);
+                                $lineC = sprintf("%s - Email %s to: %s (%s) - Subject: '%s' - Type: order-%s-customer - Sender: %s\n", date('Y-m-d H:i:s'), $sentCustomer?'SENT':'NOT_SENT', $to, $name, $subject, $newStatus, 'Admin');
+                                @file_put_contents(__DIR__ . '/student_emails_log.txt', $lineC, FILE_APPEND);
+                                // Admin notification
+                                $adminEmail = 'vanessa@legenddanceacademy.com';
+                                $adminBody = '<p><strong>Cambio de estado de orden</strong></p>'
+                                    .'<p><strong>Orden:</strong> '.htmlspecialchars($orderNo).' <br><strong>Estado nuevo:</strong> '.htmlspecialchars($statusLabel).' <br><strong>Cliente:</strong> '.htmlspecialchars($name).' <br><strong>Total:</strong> ₡'.number_format($total,0,',','.').'</p>'
+                                    .$itemsTable
+                                    .'<p style="margin-top:14px;font-size:12px;color:#666">Este correo confirma el cambio de estado realizado en el panel.</p>';
+                                $adminAccent = ($newStatus==='approved') ? '#0d6efd' : (($newStatus==='completed') ? '#198754' : (($newStatus==='canceled') ? '#6c757d' : '#ff6600'));
+                                $adminSubject = "Orden #{$orderNo} cambiada a {$statusLabel}";
+                                $sentAdmin = send_branded_email($adminEmail, $adminSubject, 'Estado de pedido actualizado', $adminBody, $statusLabel, $adminAccent);
+                                $lineA = sprintf("%s - Email %s to: %s (%s) - Subject: '%s' - Type: order-%s-admin - Sender: %s\n", date('Y-m-d H:i:s'), $sentAdmin?'SENT':'NOT_SENT', $adminEmail, 'Admin', $adminSubject, $newStatus, 'System');
+                                @file_put_contents(__DIR__ . '/student_emails_log.txt', $lineA, FILE_APPEND);
                             }
-                        } catch (Throwable $t) { /* ignore email/log errors */ }
+                        } catch (Throwable $t) { /* ignore email/log errors */ $sentCustomer = false; $sentAdmin = false; }
 
-                        echo json_encode(['success' => true, 'message' => 'Orden actualizada']);
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'Orden actualizada',
+                            'notification_sent' => !empty($sentCustomer),
+                            'admin_notification_sent' => !empty($sentAdmin)
+                        ]);
                         break;
                     case 'delete':
                         $orderId = (int)($input['order_id'] ?? 0);

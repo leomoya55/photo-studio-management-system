@@ -423,7 +423,17 @@ $items_stmt->close();
                         <p><strong>Dirección:</strong><br><?php echo nl2br(htmlspecialchars($order['shipping_address'])); ?></p>
                         <p><strong>Teléfono:</strong><br><?php echo htmlspecialchars($order['customer_phone']); ?></p>
                         <?php if (!empty($order['notes'])): ?>
-                        <p><strong>Notas:</strong><br><?php echo nl2br(htmlspecialchars($order['notes'])); ?></p>
+                        <?php
+                            // Hide raw Cloudinary proof URL from customer (only admin sees direct link)
+                            $cleanNotes = preg_replace('#\n?Comprobante:\s+https?://res\.cloudinary\.com/[^\s]+#i', '', $order['notes']);
+                            $cleanNotes = trim($cleanNotes);
+                        ?>
+                        <?php if (strlen($cleanNotes) > 0): ?>
+                            <p><strong>Notas:</strong><br><?php echo nl2br(htmlspecialchars($cleanNotes)); ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($order['payment_proof_url'])): ?>
+                            <p class="text-muted small"><em>Tu comprobante fue recibido correctamente y está en revisión.</em></p>
+                        <?php endif; ?>
                         <?php endif; ?>
                     </div>
 

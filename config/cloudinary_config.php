@@ -16,6 +16,15 @@ try {
     }
 } catch (Throwable $e) {}
 
+// Helper to fetch env values from multiple sources
+function env_value($key) {
+    $v = getenv($key);
+    if ($v !== false && $v !== null && $v !== '') return $v;
+    if (isset($_ENV[$key]) && $_ENV[$key] !== '') return $_ENV[$key];
+    if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') return $_SERVER[$key];
+    return null;
+}
+
 function parse_cloudinary_url($url) {
     $parts = parse_url($url);
     if (!$parts || empty($parts['host'])) return null;
@@ -27,9 +36,9 @@ function parse_cloudinary_url($url) {
 }
 
 function getCloudName() {
-    $name = getenv('CLOUDINARY_CLOUD_NAME');
+    $name = env_value('CLOUDINARY_CLOUD_NAME');
     if ($name) return $name;
-    $url = getenv('CLOUDINARY_URL');
+    $url = env_value('CLOUDINARY_URL');
     if ($url) {
         $p = parse_cloudinary_url($url);
         if ($p && !empty($p['cloud_name'])) return $p['cloud_name'];
@@ -37,10 +46,10 @@ function getCloudName() {
     return 'deov2g1ji';
 }
 
-$cloudName = getenv('CLOUDINARY_CLOUD_NAME');
-$apiKey    = getenv('CLOUDINARY_API_KEY');
-$apiSecret = getenv('CLOUDINARY_API_SECRET');
-$url       = getenv('CLOUDINARY_URL');
+$cloudName = env_value('CLOUDINARY_CLOUD_NAME');
+$apiKey    = env_value('CLOUDINARY_API_KEY');
+$apiSecret = env_value('CLOUDINARY_API_SECRET');
+$url       = env_value('CLOUDINARY_URL');
 
 if ($url && (!$cloudName || !$apiKey || !$apiSecret)) {
     $p = parse_cloudinary_url($url);

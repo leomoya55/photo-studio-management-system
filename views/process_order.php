@@ -11,6 +11,7 @@ session_start();
 require_once '../config/db_connect.php';
 require_once '../config/paths.php';
 require_once '../config/cloudinary_config.php';
+require_once '../includes/email_helper.php';
 use Cloudinary\Api\Upload\UploadApi;
 
 // Clean any previous output and set content type to JSON for AJAX responses
@@ -42,16 +43,17 @@ $GLOBALS['CLOUDINARY_LAST_ERROR'] = null;
 // Helper: write payment proof logs with fallback location
 function proof_log($message) {
     $line = $message . "\n";
-    $primary = __DIR__ . '/../admin/payment_proof_uploads.log';
-    $fallback = __DIR__ . '/../data/payment_proof_uploads.log';
-    $ok = @file_put_contents($primary, $line, FILE_APPEND);
-    if ($ok === false) {
-        $ok2 = @file_put_contents($fallback, $line, FILE_APPEND);
-        if ($ok2 === false) {
-            // Last resort: append to existing admin student log if writable
-            $alt = __DIR__ . '/../admin/student_emails_log.txt';
-            @file_put_contents($alt, $line, FILE_APPEND);
-        }
+    $paths = [
+        __DIR__ . '/../admin/payment_proof_uploads.log',
+        __DIR__ . '/../data/payment_proof_uploads.log',
+        // Heroku-friendly temp dir
+        sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'payment_proof_uploads.log',
+        // Last resort inside admin student log
+        __DIR__ . '/../admin/student_emails_log.txt',
+    ];
+    foreach ($paths as $p) {
+        $ok = @file_put_contents($p, $line, FILE_APPEND);
+        if ($ok !== false) { break; }
     }
 }
 
@@ -85,7 +87,7 @@ try {
         $upload = $_FILES['sinpe_proof'];
         
         // Validate file
-        $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
+    $allowed_types = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
         $max_size = 5 * 1024 * 1024; // 5MB
         
         if (!in_array($upload['type'], $allowed_types)) {
@@ -431,221 +433,72 @@ function clearUserCart($user_id) {
 
 function sendOrderNotifications($order_number, $customer_name, $customer_email, $cart_items, $total_amount, $payment_method, $shipping_address, $notes, $customer_phone, $sinpe_proof_data = null) {
     try {
-        // Email configuration (you may want to use a proper email service like SendGrid, Mailgun, etc.)
-        $admin_email = 'vanessa@legenddanceacademy.com'; // Vanessa's email
+        $admin_email = 'vanessa@legenddanceacademy.com';
         $from_email = 'noreply@legenddanceacademy.com';
         $from_name = 'Legend Dance Academy';
-        
-        // Create order items HTML for email
-        $items_html = '';
+
+        // Items table fragment
+        $rows = '';
         foreach ($cart_items as $item) {
             $subtotal = $item['product_price'] * $item['quantity'];
-            $items_html .= "
-                <tr>
-                    <td style='padding: 10px; border-bottom: 1px solid #eee;'>{$item['product_name']}</td>
-                    <td style='padding: 10px; border-bottom: 1px solid #eee; text-align: center;'>{$item['quantity']}</td>
-                    <td style='padding: 10px; border-bottom: 1px solid #eee; text-align: right;'>₡" . number_format($item['product_price'], 0, ',', '.') . "</td>
-                    <td style='padding: 10px; border-bottom: 1px solid #eee; text-align: right;'>₡" . number_format($subtotal, 0, ',', '.') . "</td>
-                </tr>
-            ";
+            $rows .= '<tr>'
+                .'<td style="padding:8px 6px;border-bottom:1px solid #eee">'.htmlspecialchars($item['product_name']).'</td>'
+                .'<td style="padding:8px 6px;border-bottom:1px solid #eee;text-align:center">'.(int)$item['quantity'].'</td>'
+                .'<td style="padding:8px 6px;border-bottom:1px solid #eee;text-align:right">₡'.number_format($item['product_price'],0,',','.').'</td>'
+                .'<td style="padding:8px 6px;border-bottom:1px solid #eee;text-align:right">₡'.number_format($subtotal,0,',','.').'</td>'
+                .'</tr>';
         }
-        
-        // Payment method display
+        $items_table = '<table style="width:100%;border-collapse:collapse;margin-top:12px">'
+            .'<thead><tr><th style="text-align:left;padding:8px;background:#fafafa">Producto</th><th style="text-align:center;padding:8px;background:#fafafa">Cant</th><th style="text-align:right;padding:8px;background:#fafafa">Precio</th><th style="text-align:right;padding:8px;background:#fafafa">Subtotal</th></tr></thead>'
+            .'<tbody>'.$rows.'<tr style="background:#f3f4f7;font-weight:bold"><td colspan="3" style="padding:10px;text-align:right">TOTAL</td><td style="padding:10px;text-align:right">₡'.number_format($total_amount,0,',','.').'</td></tr></tbody></table>';
+
         $payment_display = ($payment_method === 'sinpe') ? 'SINPE Móvil' : ucfirst($payment_method);
-        
-        // Email to customer
-        $customer_subject = "Confirmación de Pedido #$order_number - Legend Dance Academy";
-        $customer_body = "
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset='UTF-8'>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-                .order-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
-                table { width: 100%; border-collapse: collapse; }
-                th { background: #ff6600; color: white; padding: 12px; text-align: left; }
-                .total-row { background: #f0f0f0; font-weight: bold; }
-                .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='header'>
-                    <h1>¡Gracias por tu pedido!</h1>
-                    <p>Pedido #$order_number</p>
-                </div>
-                <div class='content'>
-                    <p>Hola <strong>$customer_name</strong>,</p>
-                    <p>Tu pedido ha sido recibido exitosamente. A continuación encontrarás los detalles:</p>
-                    
-                    <div class='order-details'>
-                        <h3>Detalles del Pedido</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th style='text-align: center;'>Cantidad</th>
-                                    <th style='text-align: right;'>Precio</th>
-                                    <th style='text-align: right;'>Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                $items_html
-                                <tr class='total-row'>
-                                    <td colspan='3' style='padding: 15px; text-align: right;'>TOTAL:</td>
-                                    <td style='padding: 15px; text-align: right;'>₡" . number_format($total_amount, 0, ',', '.') . "</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class='order-details'>
-                        <h3>Información de Entrega</h3>
-                        <p><strong>Dirección:</strong> $shipping_address</p>
-                        <p><strong>Teléfono:</strong> $customer_phone</p>
-                        <p><strong>Método de Pago:</strong> $payment_display</p>
-                        " . (!empty($notes) ? "<p><strong>Notas:</strong> $notes</p>" : "") . "
-                    </div>
-                    
-                    <div style='background: #e8f5e8; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745; margin: 20px 0;'>
-                        <h4 style='color: #28a745; margin-top: 0;'>Próximos Pasos</h4>
-                        <p>• Nos pondremos en contacto contigo para confirmar la entrega</p>
-                        <p>• Si seleccionaste SINPE Móvil, realiza la transferencia a +506 8888-8888</p>
-                        <p>• Una vez confirmado el pago, procesaremos tu pedido</p>
-                    </div>
-                    
-                    <p>Si tienes alguna pregunta, no dudes en contactarnos:</p>
-                    <p>📧 Email: info@legenddanceacademy.com<br>
-                    📞 Teléfono: +506 8888-8888</p>
-                    
-                    <div class='footer'>
-                        <p>Gracias por confiar en Legend Dance Academy</p>
-                        <p>¡Seguimos transformando vidas a través de la danza!</p>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-        ";
-        
-        // Email to admin (Vanessa)
-        $admin_subject = "Nuevo Pedido Recibido #$order_number";
-        $admin_body = "
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset='UTF-8'>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-                .order-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
-                table { width: 100%; border-collapse: collapse; }
-                th { background: #28a745; color: white; padding: 12px; text-align: left; }
-                .total-row { background: #f0f0f0; font-weight: bold; }
-                .alert { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0; }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='header'>
-                    <h1>Nuevo Pedido Recibido</h1>
-                    <p>Pedido #$order_number</p>
-                </div>
-                <div class='content'>
-                    <div class='alert'>
-                        <strong>🎉 ¡Tienes un nuevo pedido!</strong><br>
-                        Por favor revisa los detalles y contacta al cliente para coordinar la entrega.
-                    </div>
-                    
-                    <div class='order-details'>
-                        <h3>Información del Cliente</h3>
-                        <p><strong>Nombre:</strong> $customer_name</p>
-                        <p><strong>Email:</strong> $customer_email</p>
-                        <p><strong>Teléfono:</strong> $customer_phone</p>
-                        <p><strong>Dirección:</strong> $shipping_address</p>
-                        " . (!empty($notes) ? "<p><strong>Notas:</strong> $notes</p>" : "") . "
-                    </div>
-                    
-                    <div class='order-details'>
-                        <h3>Productos Pedidos</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th style='text-align: center;'>Cantidad</th>
-                                    <th style='text-align: right;'>Precio</th>
-                                    <th style='text-align: right;'>Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                $items_html
-                                <tr class='total-row'>
-                                    <td colspan='3' style='padding: 15px; text-align: right;'>TOTAL:</td>
-                                    <td style='padding: 15px; text-align: right;'>₡" . number_format($total_amount, 0, ',', '.') . "</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class='order-details'>
-                        <h3>Detalles de Pago</h3>
-                        <p><strong>Método:</strong> $payment_display</p>
-                        <p><strong>Estado:</strong> Pendiente de confirmación</p>
-                        <p><strong>Total:</strong> ₡" . number_format($total_amount, 0, ',', '.') . "</p>
-                        " . ($sinpe_proof_data ? "<p><strong>Comprobante SINPE:</strong> Adjunto en este email</p>" : "") . "
-                    </div>
-                    
-                    <div style='background: #e8f5e8; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745; margin: 20px 0;'>
-                        <h4 style='color: #28a745; margin-top: 0;'>Acciones Requeridas</h4>
-                        <p>1. Contactar al cliente para confirmar el pedido</p>
-                        <p>2. Verificar el pago (si es SINPE Móvil)</p>
-                        <p>3. Coordinar la entrega</p>
-                        <p>4. Actualizar el estado del pedido en el sistema</p>
-                    </div>
-                    
-                    <p><strong>Fecha del pedido:</strong> " . date('d/m/Y H:i') . "</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        ";
-        
-        // Send emails (basic PHP mail - in production you should use a proper email service)
-        $customer_headers = "MIME-Version: 1.0" . "\r\n";
-        $customer_headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-        $customer_headers .= "From: $from_name <$from_email>" . "\r\n";
-        
-        // Admin email with attachment if SINPE proof is provided
-        // Send emails with error suppression for local development
+        $notes_block = $notes ? ('<p><strong>Notas:</strong> '.htmlspecialchars($notes).'</p>') : '';
+
+        // Customer email
+        $cust_subject = "Tu pedido #{$order_number} se envió para aprobación";
+        $cust_body = '<p>Hola <strong>'.htmlspecialchars($customer_name).'</strong>,</p>'
+            .'<p>Hemos recibido tu pedido y está <strong>pendiente de aprobación</strong>. Pronto validaremos el pago y te notificaremos.</p>'
+            .$items_table
+            .'<div style="margin-top:18px;background:#fff7e6;border-left:4px solid #ff9800;padding:14px;border-radius:8px">'
+            .'<p style="margin:0 0 6px 0"><strong>Siguientes pasos:</strong></p>'
+            .'<p style="margin:4px 0">1. Validaremos tu pago.</p>'
+            .'<p style="margin:4px 0">2. Prepararemos tu pedido.</p>'
+            .'<p style="margin:4px 0">3. Te avisaremos cuando esté listo.</p>'
+            .'</div>'
+            .'<p style="margin-top:18px"><strong>Entrega:</strong> '.htmlspecialchars($shipping_address).'<br><strong>Teléfono:</strong> '.htmlspecialchars($customer_phone).'<br><strong>Método de pago:</strong> '.$payment_display.'</p>'
+            .$notes_block
+            .'<p style="margin-top:20px">Gracias por comprar en Legend Dance Academy.</p>';
+
+        $attachments = [];
         if ($sinpe_proof_data) {
-            $admin_sent = @sendEmailWithAttachment($admin_email, $admin_subject, $admin_body, $from_name, $from_email, $sinpe_proof_data);
-        } else {
-            $admin_headers = "MIME-Version: 1.0" . "\r\n";
-            $admin_headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-            $admin_headers .= "From: $from_name <$from_email>" . "\r\n";
-            $admin_sent = @mail($admin_email, $admin_subject, $admin_body, $admin_headers);
+            $attachments[] = [
+                'name' => $sinpe_proof_data['name'],
+                'type' => $sinpe_proof_data['type'],
+                'content' => $sinpe_proof_data['content']
+            ];
         }
-        
-        $customer_sent = @mail($customer_email, $customer_subject, $customer_body, $customer_headers);
-        
-        return [
-            'customer_sent' => $customer_sent,
-            'admin_sent' => $admin_sent
-        ];
-        
-    } catch (Exception $e) {
-        error_log("Email notification error: " . $e->getMessage());
-        return [
-            'customer_sent' => false,
-            'admin_sent' => false,
-            'error' => $e->getMessage()
-        ];
+
+        $customer_sent = send_branded_email($customer_email, $cust_subject, 'Pedido recibido', $cust_body, 'Pendiente', '#ff6600');
+
+        // Admin email (includes attachment if SINPE)
+        $admin_subject = "Nuevo pedido #{$order_number} (pendiente)";
+        $admin_body = '<p><strong>Nuevo pedido recibido</strong></p>'
+            .'<p><strong>Cliente:</strong> '.htmlspecialchars($customer_name).' ('.htmlspecialchars($customer_email).')<br><strong>Teléfono:</strong> '.htmlspecialchars($customer_phone).'<br><strong>Entrega:</strong> '.htmlspecialchars($shipping_address).'<br><strong>Método Pago:</strong> '.$payment_display.'</p>'
+            .$items_table
+            .$notes_block
+            .($sinpe_proof_data ? '<p style="margin-top:12px"><strong>Comprobante SINPE adjunto.</strong></p>' : '')
+            .'<p style="margin-top:14px;font-size:13px;color:#555">Acciones sugeridas: validar pago, actualizar estado, coordinar entrega.</p>';
+        $admin_sent = send_branded_email($admin_email, $admin_subject, 'Nuevo pedido recibido', $admin_body, 'Pendiente', '#28a745', $attachments, $from_name, $from_email);
+
+        // Log basic email outcomes
+        $logLine = sprintf("%s | ORDER_EMAIL | %s | customer=%s sent=%d | admin=%s sent=%d\n", date('Y-m-d H:i:s'), $order_number, $customer_email, $customer_sent?1:0, $admin_email, $admin_sent?1:0);
+        @file_put_contents(__DIR__ . '/../admin/student_emails_log.txt', $logLine, FILE_APPEND);
+
+        return [ 'customer_sent' => $customer_sent, 'admin_sent' => $admin_sent ];
+    } catch (Throwable $e) {
+        error_log('sendOrderNotifications error: '.$e->getMessage());
+        return [ 'customer_sent' => false, 'admin_sent' => false, 'error' => $e->getMessage() ];
     }
 }
 
