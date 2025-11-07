@@ -181,45 +181,20 @@ try {
         $okProof = false;
         try {
             // Audit log: start upload attempt
-            $logMeta = sprintf("mime=%s; size=%d; cloud=%s; user_id=%d", 
-                $sinpe_proof_mime ?: 'n/a', (int)($sinpe_proof_data['size'] ?? 0), getCloudName(), (int)$user_id);
+            $logMeta = sprintf("mime=%s; size=%d; cloud=%s; user_id=%d; folder=%s", 
+                $sinpe_proof_mime ?: 'n/a', (int)($sinpe_proof_data['size'] ?? 0), getCloudName(), (int)$user_id, getPaymentProofFolder());
             proof_log(sprintf("%s | %s | START | %s", date('Y-m-d H:i:s'), $order_number, $logMeta));
 
-            if (!is_readable($sinpe_proof_tmp)) {
-                proof_log(sprintf("%s | %s | FAIL | tmp_unreadable: %s", date('Y-m-d H:i:s'), $order_number, $sinpe_proof_tmp));
-                throw new Exception('Archivo temporal del comprobante no accesible.');
-            }
-
-            // Choose resource_type explicitly for better compatibility
-            $resourceType = 'image';
-            if (is_string($sinpe_proof_mime)) {
-                if (stripos($sinpe_proof_mime, 'application/pdf') !== false) {
-                    $resourceType = 'raw';
-                } elseif (stripos($sinpe_proof_mime, 'image/') === 0) {
-                    $resourceType = 'image';
-                } else {
-                    // Fallback to auto for unknown types
-                    $resourceType = 'auto';
-                }
-            }
-            $publicId = 'order_' . preg_replace('/[^A-Za-z0-9_-]/','', $order_number);
-            $uploader = new UploadApi();
-            $uploadRes = $uploader->upload($sinpe_proof_tmp, [
-                'folder' => 'payment_proofs',
-                'public_id' => $publicId,
-                'resource_type' => $resourceType, // image or raw (pdf)
-                'overwrite' => true
-            ]);
-            $proofUrl = isset($uploadRes['secure_url']) ? $uploadRes['secure_url'] : ($uploadRes['url'] ?? '');
-            // Audit log: successful Cloudinary upload
-            $okMeta = sprintf("public_id=%s; resource_type=%s", $uploadRes['public_id'] ?? 'n/a', $uploadRes['resource_type'] ?? 'n/a');
+            // Use new helper (auto resource_type + env folder override)
+            $uploadRes = uploadPaymentProof($sinpe_proof_tmp, $order_number, $sinpe_proof_mime);
+            $proofUrl = $uploadRes['secure_url'] ?? ($uploadRes['url'] ?? '');
+            $okMeta = sprintf("public_id=%s; resource_type=%s; folder=%s", $uploadRes['public_id'] ?? 'n/a', $uploadRes['resource_type'] ?? 'n/a', getPaymentProofFolder());
             proof_log(sprintf("%s | %s | OK | %s | %s", date('Y-m-d H:i:s'), $order_number, $proofUrl, $okMeta));
         } catch (Exception $upErr) {
             error_log('Cloudinary upload error (SINPE proof): ' . $upErr->getMessage());
             $proofUrl = '';
             $GLOBALS['CLOUDINARY_LAST_ERROR'] = $upErr->getMessage();
-            // Audit log: failed Cloudinary upload
-            $failMeta = sprintf("msg=%s; mime=%s; size=%d; cloud=%s", $upErr->getMessage(), $sinpe_proof_mime ?: 'n/a', (int)($sinpe_proof_data['size'] ?? 0), getCloudName());
+            $failMeta = sprintf("msg=%s; mime=%s; size=%d; cloud=%s; folder=%s", $upErr->getMessage(), $sinpe_proof_mime ?: 'n/a', (int)($sinpe_proof_data['size'] ?? 0), getCloudName(), getPaymentProofFolder());
             proof_log(sprintf("%s | %s | FAIL | %s", date('Y-m-d H:i:s'), $order_number, $failMeta));
         }
 

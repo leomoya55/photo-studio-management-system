@@ -126,3 +126,59 @@ function cloudinaryImageExists($publicId) {
         return false;
     }
 }
+
+/**
+ * Get the folder used for payment proofs (allow override via env)
+ */
+function getPaymentProofFolder() {
+    $folder = env_value('CLOUDINARY_PAYMENT_PROOFS_FOLDER');
+    if ($folder && trim($folder) !== '') {
+        return trim($folder);
+    }
+    return 'payment_proofs';
+}
+
+/**
+ * Upload a payment/SINPE proof to Cloudinary, auto-selecting resource_type.
+ * Throws Exception on failure so callers can enforce mandatory proof presence.
+ *
+ * @param string $tmpPath      Temporary file path from PHP upload
+ * @param string $orderNumber  Raw order number (e.g. ORD-20241107-ABC123)
+ * @param string $mime         Detected MIME type (image/jpeg, application/pdf, etc.)
+ * @return array               Cloudinary upload result (includes secure_url, public_id, resource_type)
+ * @throws Exception
+ */
+function uploadPaymentProof($tmpPath, $orderNumber, $mime) {
+    if (!is_string($tmpPath) || !is_readable($tmpPath)) {
+        throw new Exception('Archivo temporal del comprobante no accesible.');
+    }
+    // Decide resource_type
+    $resourceType = 'image';
+    if (is_string($mime)) {
+        if (stripos($mime, 'application/pdf') !== false) {
+            $resourceType = 'raw';
+        } elseif (stripos($mime, 'image/') === 0) {
+            $resourceType = 'image';
+        } else {
+            $resourceType = 'auto';
+        }
+    }
+    // Sanitize public_id (avoid slashes and spaces)
+    $publicId = 'order_' . preg_replace('/[^A-Za-z0-9_-]/','', (string)$orderNumber);
+    $folder = getPaymentProofFolder();
+    try {
+        $uploadApi = new UploadApi();
+        $res = $uploadApi->upload($tmpPath, [
+            'folder' => $folder,
+            'public_id' => $publicId,
+            'resource_type' => $resourceType,
+            'overwrite' => true
+        ]);
+        if (!is_array($res) || empty($res['secure_url'])) {
+            throw new Exception('Respuesta de Cloudinary inválida para el comprobante.');
+        }
+        return $res;
+    } catch (Exception $e) {
+        throw new Exception('Cloudinary upload error (comprobante): ' . $e->getMessage());
+    }
+}
