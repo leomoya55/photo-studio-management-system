@@ -111,7 +111,10 @@ function uploadToCloudinary($filePath, $publicId, $folder = '') {
         if (!empty($folder)) {
             $options['folder'] = $folder;
         }
-        return $uploadApi->upload($filePath, $options);
+        $res = $uploadApi->upload($filePath, $options);
+        // Normalize response into plain array for consistent handling
+        $resArray = json_decode(json_encode($res), true);
+        return is_array($resArray) ? $resArray : [];
     } catch (Exception $e) {
         error_log('Cloudinary upload error: ' . $e->getMessage());
         return false;

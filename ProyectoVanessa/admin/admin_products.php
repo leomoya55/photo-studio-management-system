@@ -2,7 +2,9 @@
 // admin_products.php - Product management for admin
 session_start();
 require_once '../config/db_connect.php';
+require_once '../config/cloudinary_config.php';
 require_once '../includes/ImageUploader.php';
+use Cloudinary\Api\Upload\UploadApi;
 
 // Check if user is admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
@@ -115,10 +117,50 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
             case 'delete_product':
                 $product_id = intval($_POST['product_id']);
-                // Soft delete to keep history consistent with API behavior
-                $stmt = $conn->prepare("UPDATE products SET is_active = 0, updated_at = NOW() WHERE id = ?");
+                $imageUrl = '';
+                $stmt = $conn->prepare("SELECT image_url FROM products WHERE id = ?");
                 $stmt->bind_param("i", $product_id);
-                
+                if ($stmt->execute()) {
+                    $res = $stmt->get_result();
+                    if ($res && $row = $res->fetch_assoc()) {
+                        $imageUrl = $row['image_url'] ?? '';
+                    }
+                }
+                $stmt->close();
+
+                if ($imageUrl && preg_match('/res\.cloudinary\.com/i', $imageUrl)) {
+                    try {
+                        $parsed = parse_url($imageUrl);
+                        $path = $parsed['path'] ?? '';
+                        $publicId = '';
+                        if ($path) {
+                            $parts = explode('/', ltrim($path, '/'));
+                            $uploadIndex = array_search('upload', $parts);
+                            if ($uploadIndex !== false) {
+                                $publicParts = array_slice($parts, $uploadIndex + 1);
+                                if ($publicParts && preg_match('/^v\d+$/', $publicParts[0])) {
+                                    array_shift($publicParts);
+                                }
+                                if (!empty($publicParts)) {
+                                    $publicWithExt = implode('/', $publicParts);
+                                    $publicId = preg_replace('/\.[^\.]+$/', '', $publicWithExt);
+                                }
+                            }
+                        }
+                        if ($publicId) {
+                            $uploadApi = new UploadApi();
+                            $uploadApi->destroy($publicId, ['invalidate' => true, 'resource_type' => 'image']);
+                        }
+                    } catch (Exception $cloudEx) {
+                        error_log('Cloudinary destroy (product) failed: ' . $cloudEx->getMessage());
+                    }
+                } elseif ($imageUrl) {
+                    $uploader = new ImageUploader('products');
+                    $uploader->deleteImage($imageUrl);
+                }
+
+                $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
+                $stmt->bind_param("i", $product_id);
                 if ($stmt->execute()) {
                     $message = 'Producto eliminado exitosamente.';
                     $messageType = 'success';

@@ -60,17 +60,21 @@ class ImageUploader {
             $publicId = $baseName . '_' . date('Ymd_His');
             try {
                 $result = uploadToCloudinary($file['tmp_name'], $publicId, $this->cloud_folder);
-                if (is_array($result) && !empty($result['secure_url'])) {
+                if ($result && !empty($result['secure_url'])) {
+                    $secureUrl = $result['secure_url'];
+                    $publicIdReturned = $result['public_id'] ?? ($this->cloud_folder . '/' . $publicId);
+                    @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | PRODUCT_UPLOAD | OK | %s\n", date('Y-m-d H:i:s'), $secureUrl), FILE_APPEND);
                     return [
                         'success' => true,
                         'message' => 'Imagen subida exitosamente a Cloudinary.',
-                        'filepath' => $result['secure_url'],
-                        'filename' => $result['public_id'] ?? ($this->cloud_folder . '/' . $publicId),
+                        'filepath' => $secureUrl,
+                        'filename' => $publicIdReturned,
                         'cloudinary' => true
                     ];
                 }
             } catch (Exception $e) {
                 error_log('ImageUploader Cloudinary error: ' . $e->getMessage());
+                @file_put_contents(__DIR__ . '/../admin/payment_proof_uploads.log', sprintf("%s | PRODUCT_UPLOAD | FAIL | %s\n", date('Y-m-d H:i:s'), $e->getMessage()), FILE_APPEND);
             }
         }
 
