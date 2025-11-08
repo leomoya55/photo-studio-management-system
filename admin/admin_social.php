@@ -52,7 +52,12 @@ $cloudinaryAdmin = new CloudinaryAdmin();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     switch ($_POST['action']) {
         case 'add_post':
-            $platform = sanitizeInput($_POST['platform']);
+            $platform = strtolower(sanitizeInput($_POST['platform']));
+            if (!in_array($platform, ['facebook', 'instagram'], true)) {
+                $message = 'Plataforma seleccionada no es valida.';
+                $messageType = 'error';
+                break;
+            }
             $caption = sanitizeInput($_POST['caption']);
             $post_date = sanitizeInput($_POST['post_date']);
 
