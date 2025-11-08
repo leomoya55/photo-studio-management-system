@@ -4,13 +4,24 @@
  * Handles secure image uploads for products and social media
  */
 
+if (!function_exists('uploadToCloudinary')) {
+    $cloudCfg = __DIR__ . '/../config/cloudinary_config.php';
+    if (file_exists($cloudCfg)) {
+        require_once $cloudCfg;
+    }
+}
+
 class ImageUploader {
     private $upload_dir;
+    private $cloud_folder;
+    private $cloud_enabled = false;
     private $allowed_types = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     private $max_size = 5 * 1024 * 1024; // 5MB
     
     public function __construct($category = 'general') {
         $this->upload_dir = '../assets/images/' . $category . '/';
+        $this->cloud_folder = $category;
+        $this->cloud_enabled = function_exists('uploadToCloudinary');
         
         // Create directory if it doesn't exist
         if (!file_exists($this->upload_dir)) {
@@ -37,20 +48,40 @@ class ImageUploader {
             return ['success' => false, 'message' => 'Tipo de archivo no permitido. Use: ' . implode(', ', $this->allowed_types)];
         }
         
+        if (!getimagesize($file['tmp_name'])) {
+            return ['success' => false, 'message' => 'El archivo no es una imagen válida.'];
+        }
+
+        if ($this->cloud_enabled) {
+            $baseName = $custom_name ? $this->sanitizeFilename($custom_name) : pathinfo($file['name'], PATHINFO_FILENAME);
+            if (!$baseName) {
+                $baseName = 'img_' . substr(md5(uniqid('', true)), 0, 10);
+            }
+            $publicId = $baseName . '_' . date('Ymd_His');
+            try {
+                $result = uploadToCloudinary($file['tmp_name'], $publicId, $this->cloud_folder);
+                if (is_array($result) && !empty($result['secure_url'])) {
+                    return [
+                        'success' => true,
+                        'message' => 'Imagen subida exitosamente a Cloudinary.',
+                        'filepath' => $result['secure_url'],
+                        'filename' => $result['public_id'] ?? ($this->cloud_folder . '/' . $publicId),
+                        'cloudinary' => true
+                    ];
+                }
+            } catch (Exception $e) {
+                error_log('ImageUploader Cloudinary error: ' . $e->getMessage());
+            }
+        }
+
         // Generate unique filename
         if ($custom_name) {
             $filename = $this->sanitizeFilename($custom_name) . '.' . $extension;
         } else {
             $filename = uniqid('img_') . '_' . time() . '.' . $extension;
         }
-        
+
         $target_path = $this->upload_dir . $filename;
-        
-        // Check if file is actually an image
-        if (!getimagesize($file['tmp_name'])) {
-            return ['success' => false, 'message' => 'El archivo no es una imagen válida.'];
-        }
-        
         // Move uploaded file
         if (move_uploaded_file($file['tmp_name'], $target_path)) {
             // Return relative path for database storage

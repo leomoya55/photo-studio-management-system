@@ -323,7 +323,13 @@ $products_result = $conn->query($products_query);
                                     <div class="col-md-6 col-lg-4 mb-3">
                                         <div class="card product-card <?php echo $product['featured'] ? 'product-featured' : ''; ?>">
                                             <?php if ($product['image_url']): ?>
-                                                <img src="../<?php echo htmlspecialchars($product['image_url']); ?>" class="card-img-top" style="height: 200px; object-fit: cover;">
+                                                <?php
+                                                    $imgSrc = $product['image_url'];
+                                                    if (!preg_match('/^https?:\/\//i', $imgSrc)) {
+                                                        $imgSrc = '../' . ltrim($imgSrc, '/');
+                                                    }
+                                                ?>
+                                                <img src="<?php echo htmlspecialchars($imgSrc); ?>" class="card-img-top" style="height: 200px; object-fit: cover;">
                                             <?php else: ?>
                                                 <div class="d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
                                                     <i class="fas fa-image fa-3x text-muted"></i>
