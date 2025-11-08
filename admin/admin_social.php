@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $platform = sanitizeInput($_POST['platform']);
                 $caption = sanitizeInput($_POST['caption']);
                 $post_date = sanitizeInput($_POST['post_date']);
-                $cloud_public_id = isset($_POST['cloud_public_id']) ? trim($_POST['cloud_public_id']) : '';
                 
                 // Handle image upload with validation
                 $image_path = '';
@@ -46,13 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                     $image_path = $upload['secure_url'];
                 }
-                // If no file uploaded but Cloudinary selection was made, use that URL
-                if (empty($image_path) && !empty($cloud_public_id)) {
-                    $image_path = 'https://res.cloudinary.com/' . getCloudName() . '/image/upload/f_auto,q_auto/' . $cloud_public_id;
-                }
                 
                 // Insert into database
-                $stmt = $conn->prepare("INSERT INTO social_posts (platform, caption, image_url, post_date) VALUES (?, ?, ?, ?)");
+                $stmt = $conn->prepare("INSERT INTO social_posts (platform, caption, image_url, post_date, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, 1, NOW(), NOW())");
                 $stmt->bind_param("ssss", $platform, $caption, $image_path, $post_date);
                 
                 if ($stmt->execute()) {
@@ -86,9 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Get all social posts
 $posts_query = "SELECT * FROM social_posts ORDER BY post_date DESC, created_at DESC";
 $posts_result = $conn->query($posts_query);
-
-// Fetch Cloudinary images from social_media folder for selection
-$cloudImages = $cloudinaryAdmin->getImagesFromFolder('social_media');
 ?>
 
 <!DOCTYPE html>
@@ -172,7 +164,6 @@ $cloudImages = $cloudinaryAdmin->getImagesFromFolder('social_media');
                     <div class="card-body">
                         <form method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="add_post">
-                            <input type="hidden" name="cloud_public_id" id="cloud_public_id" value="">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="platform" class="form-label">Plataforma</label>
@@ -192,29 +183,10 @@ $cloudImages = $cloudinaryAdmin->getImagesFromFolder('social_media');
                                 <textarea class="form-control" name="caption" rows="3" placeholder="Escribe el texto del post..." required></textarea>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Seleccionar desde Cloudinary (carpeta social_media)</label>
-                                    <div class="border rounded p-2" style="max-height:220px; overflow:auto">
-                                        <div class="row g-2">
-                                            <?php if ($cloudImages['success'] && !empty($cloudImages['images'])): ?>
-                                                <?php foreach ($cloudImages['images'] as $img): ?>
-                                                    <div class="col-4">
-                                                        <img src="<?php echo $cloudinaryAdmin->getOptimizedUrl($img['public_id'], 150, 100); ?>" class="img-fluid border rounded select-cloud-img" data-public-id="<?php echo htmlspecialchars($img['public_id']); ?>" style="cursor:pointer">
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <div class="col-12 text-muted small">No hay imágenes en Cloudinary/social_media</div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                    <div class="form-text">Haz clic en una imagen para seleccionarla.</div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="social_image" class="form-label">O subir imagen</label>
-                                    <input type="file" class="form-control" name="social_image" accept="image/*" onchange="validateFileSize(this, 'social')">
-                                    <div class="form-text">Formatos: JPG, PNG, GIF, WEBP. Máx 10MB.</div>
-                                </div>
+                            <div class="mb-3">
+                                <label for="social_image" class="form-label">Subir imagen (opcional)</label>
+                                <input type="file" class="form-control" name="social_image" accept="image/*" onchange="validateFileSize(this, 'social')">
+                                <div class="form-text">Formatos aceptados: JPG, PNG, GIF o WEBP. Máximo 10MB.</div>
                             </div>
 
                             <button type="submit" class="btn btn-primary">
@@ -255,7 +227,6 @@ $cloudImages = $cloudinaryAdmin->getImagesFromFolder('social_media');
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     </form>
-                                                    <button type="button" class="btn btn-sm btn-info" onclick="pickCloudForPost(<?php echo $post['id']; ?>)"><i class="fas fa-camera"></i></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -277,26 +248,6 @@ $cloudImages = $cloudinaryAdmin->getImagesFromFolder('social_media');
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        const CLOUD_NAME = '<?php echo htmlspecialchars(getCloudName()); ?>';
-        // Handle Cloudinary selection in form
-        document.querySelectorAll('.select-cloud-img').forEach(img => {
-            img.addEventListener('click', () => {
-                const id = img.getAttribute('data-public-id');
-                document.getElementById('cloud_public_id').value = id;
-                img.classList.add('selected-image');
-            });
-        });
-
-        // Assign Cloudinary image to an existing post quickly
-        function pickCloudForPost(postId){
-            const publicId = prompt('Public ID en Cloudinary (carpeta social_media/...)');
-            if(!publicId) return;
-            const url = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto/${publicId}`;
-            fetch('social_api.php', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'update_image', id: postId, image_url: url})})
-                .then(r=>r.json())
-                .then(d=>{ if(d.success){ location.reload(); } else { alert(d.message||'Error'); } })
-                .catch(err=> alert('Error: '+err.message));
-        }
         /**
          * Validate file size before upload
          */
