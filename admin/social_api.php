@@ -29,7 +29,7 @@ try {
             $platform = $_GET['platform'] ?? null;
             $limit = intval($_GET['limit'] ?? 50);
             
-            $sql = "SELECT id, platform, caption, image_url, post_date, created_at, updated_at FROM social_posts WHERE is_active = 1";
+            $sql = "SELECT id, platform, caption, image_url, post_date, created_at, updated_at FROM social_posts WHERE (is_active IS NULL OR is_active = 1)";
             
             if ($platform) {
                 $sql .= " AND platform = ?";

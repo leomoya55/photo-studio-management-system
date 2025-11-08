@@ -20,7 +20,7 @@ try {
         $featured_only = isset($_GET['featured']) && $_GET['featured'] === 'true';
         $category = $_GET['category'] ?? null;
         
-    $sql = "SELECT id, name, description, price, category, image_url, sizes, colors, stock, featured, is_active, created_at, updated_at FROM products WHERE is_active = 1";
+    $sql = "SELECT id, name, description, price, category, image_url, sizes, colors, stock, featured, is_active, created_at, updated_at FROM products WHERE (is_active IS NULL OR is_active = 1)";
         
         if ($featured_only) {
             $sql .= " AND featured = 1";

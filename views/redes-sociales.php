@@ -22,7 +22,7 @@ $facebook_posts = [];
 
 if ($conn) {
     // Get Instagram posts (latest 6)
-    $instagram_query = "SELECT * FROM social_posts WHERE platform = 'instagram' AND is_active = 1 ORDER BY post_date DESC, created_at DESC LIMIT 6";
+    $instagram_query = "SELECT * FROM social_posts WHERE platform = 'instagram' AND (is_active IS NULL OR is_active = 1) ORDER BY post_date DESC, created_at DESC LIMIT 6";
     $instagram_result = $conn->query($instagram_query);
     if ($instagram_result && $instagram_result->num_rows > 0) {
         while ($post = $instagram_result->fetch_assoc()) {
@@ -31,7 +31,7 @@ if ($conn) {
     }
     
     // Get Facebook posts (latest 4)
-    $facebook_query = "SELECT * FROM social_posts WHERE platform = 'facebook' AND is_active = 1 ORDER BY post_date DESC, created_at DESC LIMIT 4";
+    $facebook_query = "SELECT * FROM social_posts WHERE platform = 'facebook' AND (is_active IS NULL OR is_active = 1) ORDER BY post_date DESC, created_at DESC LIMIT 4";
     $facebook_result = $conn->query($facebook_query);
     if ($facebook_result && $facebook_result->num_rows > 0) {
         while ($post = $facebook_result->fetch_assoc()) {

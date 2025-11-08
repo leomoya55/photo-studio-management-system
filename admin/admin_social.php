@@ -14,6 +14,9 @@ $message = '';
 $messageType = '';
 $cloudinaryAdmin = new CloudinaryAdmin();
 
+$showAllPosts = isset($_GET['view']) && $_GET['view'] === 'all';
+$archivedCount = 0;
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['action'])) {
@@ -60,16 +63,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt->close();
                 break;
                 
+            case 'archive_post':
+                $post_id = intval($_POST['post_id']);
+                $stmt = $conn->prepare("UPDATE social_posts SET is_active = 0, updated_at = NOW() WHERE id = ?");
+                $stmt->bind_param("i", $post_id);
+
+                if ($stmt->execute()) {
+                    $message = 'Post archivado exitosamente.';
+                    $messageType = 'success';
+                } else {
+                    $message = 'Error al archivar el post.';
+                    $messageType = 'error';
+                }
+                $stmt->close();
+                break;
+
+            case 'restore_post':
+                $post_id = intval($_POST['post_id']);
+                $stmt = $conn->prepare("UPDATE social_posts SET is_active = 1, updated_at = NOW() WHERE id = ?");
+                $stmt->bind_param("i", $post_id);
+
+                if ($stmt->execute()) {
+                    $message = 'Post restaurado y visible nuevamente.';
+                    $messageType = 'success';
+                } else {
+                    $message = 'Error al restaurar el post.';
+                    $messageType = 'error';
+                }
+                $stmt->close();
+                break;
+
             case 'delete_post':
                 $post_id = intval($_POST['post_id']);
                 $stmt = $conn->prepare("DELETE FROM social_posts WHERE id = ?");
                 $stmt->bind_param("i", $post_id);
-                
+
                 if ($stmt->execute()) {
-                    $message = 'Post eliminado exitosamente.';
+                    $message = 'Post eliminado permanentemente.';
                     $messageType = 'success';
                 } else {
-                    $message = 'Error al eliminar el post.';
+                    $message = 'Error al eliminar el post definitivamente.';
                     $messageType = 'error';
                 }
                 $stmt->close();
@@ -78,8 +111,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Get all social posts
-$posts_query = "SELECT * FROM social_posts ORDER BY post_date DESC, created_at DESC";
+if ($conn) {
+    $archivedResult = $conn->query("SELECT COUNT(*) AS total FROM social_posts WHERE is_active = 0");
+    if ($archivedResult && $row = $archivedResult->fetch_assoc()) {
+        $archivedCount = (int) ($row['total'] ?? 0);
+    }
+}
+
+// Get social posts (active by default, all when requested)
+$posts_query = "SELECT * FROM social_posts";
+if (!$showAllPosts) {
+    $posts_query .= " WHERE (is_active IS NULL OR is_active = 1)";
+}
+$posts_query .= " ORDER BY post_date DESC, created_at DESC";
 $posts_result = $conn->query($posts_query);
 ?>
 
@@ -143,11 +187,16 @@ $posts_result = $conn->query($posts_query);
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1><i class="fas fa-share-alt text-primary me-2"></i>Gestión de Redes Sociales</h1>
-                    <a href="admin.php" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Volver al Panel
-                    </a>
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <h1 class="mb-0"><i class="fas fa-share-alt text-primary me-2"></i>Gestión de Redes Sociales</h1>
+                    <div class="d-flex gap-2">
+                        <a href="admin.php" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Volver al Panel
+                        </a>
+                        <a href="admin_social.php<?php echo $showAllPosts ? '' : '?view=all'; ?>" class="btn btn-outline-primary">
+                            <i class="fas fa-filter me-1"></i><?php echo $showAllPosts ? 'Ver solo activos' : 'Ver todo'; ?><?php if (!$showAllPosts && $archivedCount > 0) { echo ' (' . $archivedCount . ')'; } ?>
+                        </a>
+                    </div>
                 </div>
 
                 <?php if ($message): ?>
@@ -198,13 +247,20 @@ $posts_result = $conn->query($posts_query);
 
                 <!-- Existing Posts -->
                 <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-list me-2"></i>Posts Actuales</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Posts <?php echo $showAllPosts ? 'registrados' : 'activos'; ?></h5>
+                        <?php if ($showAllPosts && $archivedCount > 0): ?>
+                            <span class="badge bg-secondary">Archivados: <?php echo $archivedCount; ?></span>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <?php if ($posts_result && $posts_result->num_rows > 0): ?>
                             <div class="row">
                                 <?php while ($post = $posts_result->fetch_assoc()): ?>
+                                    <?php 
+                                        $isActive = !isset($post['is_active']) || (int)$post['is_active'] === 1;
+                                        $statusBadge = $isActive ? '' : '<span class="badge bg-secondary ms-2">Archivado</span>';
+                                    ?>
                                     <div class="col-md-6 mb-3">
                                         <div class="card">
                                             <?php if ($post['image_url']): ?>
@@ -215,18 +271,35 @@ $posts_result = $conn->query($posts_query);
                                                     <span class="badge bg-<?php echo $post['platform'] === 'facebook' ? 'primary' : 'danger'; ?>">
                                                         <i class="fab fa-<?php echo $post['platform']; ?> me-1"></i>
                                                         <?php echo ucfirst($post['platform']); ?>
-                                                    </span>
+                                                    </span><?php echo $statusBadge; ?>
                                                     <small class="text-muted"><?php echo date('d/m/Y', strtotime($post['post_date'])); ?></small>
                                                 </div>
                                                 <p class="card-text"><?php echo nl2br(htmlspecialchars($post['caption'])); ?></p>
                                                 <div class="d-flex gap-2">
-                                                    <form method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este post?')">
-                                                        <input type="hidden" name="action" value="delete_post">
-                                                        <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
-                                                        <button type="submit" class="btn btn-sm btn-danger">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
+                                                    <?php if ($isActive): ?>
+                                                        <form method="POST" class="d-inline" onsubmit="return confirm('¿Archivar este post? Dejará de mostrarse en el sitio público.')">
+                                                            <input type="hidden" name="action" value="archive_post">
+                                                            <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Archivar">
+                                                                <i class="fas fa-box-archive"></i>
+                                                            </button>
+                                                        </form>
+                                                    <?php else: ?>
+                                                        <form method="POST" class="d-inline">
+                                                            <input type="hidden" name="action" value="restore_post">
+                                                            <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Restaurar">
+                                                                <i class="fas fa-rotate-left"></i>
+                                                            </button>
+                                                        </form>
+                                                        <form method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar permanentemente este post? Esta acción no se puede deshacer.')">
+                                                            <input type="hidden" name="action" value="delete_post">
+                                                            <input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar permanentemente">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -236,7 +309,12 @@ $posts_result = $conn->query($posts_query);
                         <?php else: ?>
                             <div class="text-center py-4">
                                 <i class="fas fa-images fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">No hay posts agregados aún. ¡Agrega tu primer post!</p>
+                                <h5 class="text-muted">No hay posts <?php echo $showAllPosts ? 'registrados' : 'activos'; ?></h5>
+                                <?php if (!$showAllPosts && $archivedCount > 0): ?>
+                                    <p class="text-muted">Todos los posts están archivados. Usa "Ver todo" para gestionarlos o restaurarlos.</p>
+                                <?php else: ?>
+                                    <p class="text-muted">¡Agrega tu primer post desde el formulario superior!</p>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>

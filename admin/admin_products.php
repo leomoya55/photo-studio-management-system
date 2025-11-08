@@ -14,6 +14,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 $message = '';
 $messageType = '';
+$showAllProducts = isset($_GET['view']) && $_GET['view'] === 'all';
+$archivedProductCount = 0;
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -206,8 +208,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Get all products
-$products_query = "SELECT * FROM products ORDER BY created_at DESC";
+if ($conn) {
+    $countResult = $conn->query("SELECT COUNT(*) AS total FROM products WHERE is_active = 0");
+    if ($countResult && $countRow = $countResult->fetch_assoc()) {
+        $archivedProductCount = (int) ($countRow['total'] ?? 0);
+    }
+}
+
+// Get products (active by default, all when requested)
+$products_query = "SELECT * FROM products";
+if (!$showAllProducts) {
+    $products_query .= " WHERE is_active IS NULL OR is_active = 1";
+}
+$products_query .= " ORDER BY created_at DESC";
 $products_result = $conn->query($products_query);
 ?>
 
@@ -271,11 +284,16 @@ $products_result = $conn->query($products_query);
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1><i class="fas fa-shopping-bag text-primary me-2"></i>Gestión de Productos</h1>
-                    <a href="admin.php" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Volver al Panel
-                    </a>
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <h1 class="mb-0"><i class="fas fa-shopping-bag text-primary me-2"></i>Gestión de Productos</h1>
+                    <div class="d-flex gap-2">
+                        <a href="admin.php" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Volver al Panel
+                        </a>
+                        <a href="admin_products.php<?php echo $showAllProducts ? '' : '?view=all'; ?>" class="btn btn-outline-primary">
+                            <i class="fas fa-filter me-1"></i><?php echo $showAllProducts ? 'Ver solo activos' : 'Ver todo'; ?><?php if (!$showAllProducts && $archivedProductCount > 0) { echo ' (' . $archivedProductCount . ')'; } ?>
+                        </a>
+                    </div>
                 </div>
 
                 <?php if ($message): ?>
@@ -357,8 +375,11 @@ $products_result = $conn->query($products_query);
 
                 <!-- Existing Products -->
                 <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-list me-2"></i>Productos Actuales (<?php echo $products_result ? $products_result->num_rows : 0; ?>)</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Productos <?php echo $showAllProducts ? 'registrados' : 'activos'; ?> (<?php echo $products_result ? $products_result->num_rows : 0; ?>)</h5>
+                        <?php if ($showAllProducts && $archivedProductCount > 0): ?>
+                            <span class="badge bg-secondary">Archivados: <?php echo $archivedProductCount; ?></span>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <?php if ($products_result && $products_result->num_rows > 0): ?>
@@ -385,17 +406,15 @@ $products_result = $conn->query($products_query);
                                                     <?php if ($product['featured']): ?>
                                                         <span class="badge badge-featured">Destacado</span>
                                                     <?php endif; ?>
+                                                    <?php if (isset($product['is_active']) && (int)$product['is_active'] === 0): ?>
+                                                        <span class="badge bg-secondary ms-2">Archivado</span>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <p class="text-muted small mb-2"><?php echo htmlspecialchars($product['category']); ?></p>
                                                 <p class="card-text small"><?php echo nl2br(htmlspecialchars(substr($product['description'], 0, 80))); ?><?php echo strlen($product['description']) > 80 ? '...' : ''; ?></p>
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div>
                                                         <strong class="text-primary">₡<?php echo number_format($product['price'], 0); ?></strong>
-                                                        <?php if (!isset($product['is_active']) || (int)$product['is_active'] === 1): ?>
-                                                            
-                                                        <?php else: ?>
-                                                            <span class="badge bg-dark ms-2">Oculto</span>
-                                                        <?php endif; ?>
                                                     </div>
                                                     <small class="text-muted">
                                                         <?php 
@@ -429,7 +448,7 @@ $products_result = $conn->query($products_query);
                                                             <i class="fas <?php echo $isActive ? 'fa-eye-slash' : 'fa-eye'; ?>"></i>
                                                         </button>
                                                     </form>
-                                                    <form method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este producto?')">
+                                                    <form method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar permanentemente este producto? Esta acción no se puede deshacer.')">
                                                         <input type="hidden" name="action" value="delete_product">
                                                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                                         <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -445,8 +464,12 @@ $products_result = $conn->query($products_query);
                         <?php else: ?>
                             <div class="text-center py-5">
                                 <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
-                                <h5 class="text-muted">No hay productos agregados aún</h5>
-                                <p class="text-muted">¡Agrega tu primer producto usando el formulario de arriba!</p>
+                                <h5 class="text-muted">No hay productos <?php echo $showAllProducts ? 'registrados' : 'activos'; ?></h5>
+                                <?php if (!$showAllProducts && $archivedProductCount > 0): ?>
+                                    <p class="text-muted">Todos los productos están archivados. Usa "Ver todo" para administrarlos o restaurarlos.</p>
+                                <?php else: ?>
+                                    <p class="text-muted">¡Agrega tu primer producto usando el formulario de arriba!</p>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>
