@@ -2,6 +2,36 @@
 require_once '../config/db_connect.php';
 require_once '../config/cloudinary_admin.php';
 
+if (!function_exists('extractCloudinaryPublicId')) {
+    function extractCloudinaryPublicId($url) {
+        if (strpos($url, 'res.cloudinary.com') === false) {
+            return '';
+        }
+        $parts = parse_url($url);
+        $path = $parts['path'] ?? '';
+        if (!$path) {
+            return '';
+        }
+        $segments = explode('/', ltrim($path, '/'));
+        $uploadIndex = array_search('upload', $segments);
+        if ($uploadIndex === false) {
+            return '';
+        }
+        $publicParts = array_slice($segments, $uploadIndex + 1);
+        if (!$publicParts) {
+            return '';
+        }
+        if (isset($publicParts[0]) && preg_match('/^v\d+$/', $publicParts[0])) {
+            array_shift($publicParts);
+        }
+        if (!$publicParts) {
+            return '';
+        }
+        $publicWithExt = implode('/', $publicParts);
+        return preg_replace('/\.[^\.]+$/', '', $publicWithExt);
+    }
+}
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -122,18 +152,45 @@ try {
                 break;
                 
             case 'delete':
-                $postId = $input['id'];
-                
-                // Soft delete
-                $sql = "UPDATE social_posts SET is_active = 0, updated_at = NOW() WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("i", $postId);
-                
+                $postId = intval($input['id'] ?? 0);
+                if ($postId <= 0) {
+                    throw new Exception('ID de post invalido');
+                }
+
+                $imageUrl = '';
+                $lookup = $conn->prepare('SELECT image_url FROM social_posts WHERE id = ?');
+                if (!$lookup) {
+                    throw new Exception('No se pudo preparar la consulta de imagen: ' . $conn->error);
+                }
+                $lookup->bind_param('i', $postId);
+                if ($lookup->execute()) {
+                    $result = $lookup->get_result();
+                    if ($result && $row = $result->fetch_assoc()) {
+                        $imageUrl = $row['image_url'] ?? '';
+                    }
+                }
+                $lookup->close();
+
+                if ($imageUrl) {
+                    $publicId = extractCloudinaryPublicId($imageUrl);
+                    if ($publicId) {
+                        $cloud = new CloudinaryAdmin();
+                        $cloud->deleteImage($publicId);
+                    }
+                }
+
+                $stmt = $conn->prepare('DELETE FROM social_posts WHERE id = ?');
+                if (!$stmt) {
+                    throw new Exception('No se pudo preparar la eliminacion: ' . $conn->error);
+                }
+                $stmt->bind_param('i', $postId);
+
                 if (!$stmt->execute()) {
                     throw new Exception('Error al eliminar el post: ' . $stmt->error);
                 }
-                
-                echo json_encode(['success' => true, 'message' => 'Post eliminado exitosamente']);
+                $stmt->close();
+
+                echo json_encode(['success' => true, 'message' => 'Post eliminado permanentemente']);
                 break;
                 
             default:
