@@ -8,6 +8,85 @@
  *  - build_branded_email (returns branded HTML only)
  */
 
+// Ensure composer autoload (PHPMailer, etc.) is available when helper is included standalone
+if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+    $autoload = __DIR__ . '/../vendor/autoload.php';
+    if (file_exists($autoload)) {
+        require_once $autoload;
+    }
+}
+
+function legend_env($key, $default = '') {
+    $sources = [getenv($key), $_ENV[$key] ?? null, $_SERVER[$key] ?? null];
+    foreach ($sources as $value) {
+        if ($value !== false && $value !== null && $value !== '') {
+            return $value;
+        }
+    }
+    return $default;
+}
+
+function legend_smtp_config() {
+    $host = legend_env('SMTP_HOST');
+    $user = legend_env('SMTP_USER');
+    $pass = legend_env('SMTP_PASS');
+    if (!$host || !$user || !$pass) {
+        return null;
+    }
+    return [
+        'host' => $host,
+        'user' => $user,
+        'pass' => $pass,
+        'port' => (int)(legend_env('SMTP_PORT') ?: 587),
+        'secure' => strtolower(legend_env('SMTP_SECURE') ?: 'tls')
+    ];
+}
+
+function send_via_phpmailer($to, $subject, $html, $attachments, $fromName, $fromEmail) {
+    $phpMailerClass = 'PHPMailer\\PHPMailer\\PHPMailer';
+    if (!class_exists($phpMailerClass)) {
+        return false;
+    }
+    $smtp = legend_smtp_config();
+    if (!$smtp) {
+        return false;
+    }
+    $mailer = new $phpMailerClass(true);
+    try {
+        $mailer->isSMTP();
+        $mailer->Host = $smtp['host'];
+        $mailer->SMTPAuth = true;
+        $mailer->Username = $smtp['user'];
+        $mailer->Password = $smtp['pass'];
+        $secure = $smtp['secure'];
+        if ($secure === 'ssl') {
+            $const = $phpMailerClass . '::ENCRYPTION_SMTPS';
+            $mailer->SMTPSecure = defined($const) ? constant($const) : 'ssl';
+        } else {
+            $const = $phpMailerClass . '::ENCRYPTION_STARTTLS';
+            $mailer->SMTPSecure = defined($const) ? constant($const) : 'tls';
+        }
+        $mailer->Port = $smtp['port'] > 0 ? $smtp['port'] : 587;
+        $mailer->CharSet = 'UTF-8';
+        $mailer->setFrom($fromEmail, $fromName);
+        $mailer->addAddress($to);
+        $mailer->isHTML(true);
+        $mailer->Subject = $subject;
+        $mailer->Body = $html;
+        foreach ($attachments as $att) {
+            if (isset($att['content'], $att['name'])) {
+                $ctype = $att['type'] ?? 'application/octet-stream';
+                $mailer->addStringAttachment($att['content'], $att['name'], 'base64', $ctype);
+            }
+        }
+        $mailer->send();
+        return true;
+    } catch (Throwable $t) {
+        error_log('PHPMailer unexpected error: ' . $t->getMessage());
+        return false;
+    }
+}
+
 // --- Core simple sender (HTML only) ---
 function send_best_effort_email($to, $subject, $html, $fromName = 'Legend Academy', $fromEmail = 'noreply@legenddanceacademy.com') {
     return send_best_effort_email_with_attachments($to, $subject, $html, [], $fromName, $fromEmail);
@@ -18,6 +97,11 @@ function send_best_effort_email($to, $subject, $html, $fromName = 'Legend Academ
 function send_best_effort_email_with_attachments($to, $subject, $html, $attachments = [], $fromName = 'Legend Academy', $fromEmail = 'noreply@legenddanceacademy.com') {
     $to = trim((string)$to);
     if ($to === '') { return false; }
+
+    $envFromEmail = legend_env('SENDER_EMAIL');
+    if ($envFromEmail) { $fromEmail = $envFromEmail; }
+    $envFromName = legend_env('SENDER_NAME');
+    if ($envFromName) { $fromName = $envFromName; }
 
     // TestMail (capture sandbox) integration: if TESTMAIL_NAMESPACE is set, redirect outbound
     $testmailNs = getenv('TESTMAIL_NAMESPACE') ?: '';
@@ -32,7 +116,7 @@ function send_best_effort_email_with_attachments($to, $subject, $html, $attachme
         $html .= '<div style="margin-top:28px;font-size:11px;color:#999">[TestMail capture: original recipient ' . htmlspecialchars($original,ENT_QUOTES) . ']</div>';
     }
 
-    $apiKey = getenv('SENDGRID_API_KEY') ?: '';
+    $apiKey = legend_env('SENDGRID_API_KEY');
     if ($apiKey) {
         $payload = [
             'personalizations' => [[ 'to' => [[ 'email' => $to ]] ]],
@@ -68,6 +152,11 @@ function send_best_effort_email_with_attachments($to, $subject, $html, $attachme
         }
         error_log('SendGrid email failed: HTTP ' . $code . ' ' . $err . ' body=' . substr((string)$resp,0,500));
         // fall through to mail() fallback
+    }
+
+    // Attempt SMTP via PHPMailer if configured
+    if (send_via_phpmailer($to, $subject, $html, $attachments, $fromName, $fromEmail)) {
+        return true;
     }
 
     // Fallback: build headers & possibly multipart for attachments
