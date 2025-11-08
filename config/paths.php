@@ -87,8 +87,8 @@ function includeHelper($filename) {
     return include_once INCLUDES_PATH . '/' . $filename;
 }
 
-// Auto-load essential configurations
-includeConfig('db_connect.php');
-includeConfig('session_manager.php');
+// Auto-load essential configurations in the global scope to expose shared variables
+require_once CONFIG_PATH . '/db_connect.php';
+require_once CONFIG_PATH . '/session_manager.php';
 
 ?>
