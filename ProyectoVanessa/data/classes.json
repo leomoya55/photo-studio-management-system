@@ -1,0 +1,299 @@
+[
+    {
+        "id": "pilates-funcional",
+        "name": "Pilates\/Funcional",
+        "description": "Fortalece tu core, mejora tu postura y desarrolla fuerza funcional. Perfecto para complementar tu entrenamiento de danza.",
+        "level": "Todos los niveles",
+        "duration": "60 min",
+        "schedule": "Lunes 10:00, Martes 15:00 y 19:00, Miércoles 10:00 y 15:00",
+        "price": 12000,
+        "image": "class_pilates-funcional_1761458478.jpg",
+        "instructor": "Vanessa Mora",
+        "capacity": 15,
+        "ageGroup": "16+ años",
+        "category": "Fitness",
+        "featured": true,
+        "benefits": [
+            "Fortalecimiento del core",
+            "Mejora de postura",
+            "Flexibilidad y control",
+            "Prevención de lesiones"
+        ]
+    },
+    {
+        "id": "kids-tecnica",
+        "name": "Kids\/Técnica",
+        "description": "Desarrollo de técnica de danza fundamental para niños con ejercicios adaptados a su edad y nivel de desarrollo.",
+        "level": "Principiante",
+        "duration": "60 min",
+        "schedule": "Sábado 14:00",
+        "price": 10000,
+        "image": "",
+        "instructor": "Vanessa Mora",
+        "capacity": 12,
+        "ageGroup": "6-12 años",
+        "category": "Infantil",
+        "featured": true,
+        "benefits": [
+            "Desarrollo de técnica básica",
+            "Coordinación y equilibrio",
+            "Postura corporal",
+            "Disciplina divertida"
+        ]
+    },
+    {
+        "id": "kids-coreo",
+        "name": "Kids\/Coreo",
+        "description": "Coreografías divertidas y creativas diseñadas especialmente para niños. Expresión artística y trabajo en equipo.",
+        "level": "Principiante",
+        "duration": "60 min",
+        "schedule": "Sábado 15:00",
+        "price": 10000,
+        "image": "classes\/kids\/coreo_68f94224d4c75",
+        "instructor": "Vanessa Mora",
+        "capacity": 15,
+        "ageGroup": "6-12 años",
+        "category": "Infantil",
+        "featured": false,
+        "benefits": [
+            "Coreografías creativas",
+            "Expresión artística",
+            "Trabajo en equipo",
+            "Memoria y concentración"
+        ]
+    },
+    {
+        "id": "cardio-step",
+        "name": "Cardio\/Step",
+        "description": "Entrenamiento cardiovascular intenso combinado con step. Quema calorías mientras te diviertes al ritmo de la música.",
+        "level": "Intermedio",
+        "duration": "60 min",
+        "schedule": "Martes 20:00",
+        "price": 12000,
+        "image": "",
+        "instructor": "Vanessa Mora",
+        "capacity": 20,
+        "ageGroup": "16+ años",
+        "category": "Fitness",
+        "featured": false,
+        "benefits": [
+            "Cardio intenso",
+            "Quema de calorías",
+            "Coordinación avanzada",
+            "Resistencia cardiovascular"
+        ]
+    },
+    {
+        "id": "latino",
+        "name": "Latina",
+        "description": "Disfruta de los ritmos latinos más populares. Salsa, bachata, merengue y más en una clase llena de sabor y diversión.",
+        "level": "Principiante",
+        "duration": "60 min",
+        "schedule": "Martes 18:00, Jueves 18:00",
+        "price": "11000",
+        "image": "latino_je77i6",
+        "instructor": "Vanessa Mora",
+        "capacity": 18,
+        "ageGroup": "14+ años",
+        "category": "Latino",
+        "featured": true,
+        "benefits": [
+            "Ritmo y musicalidad latina",
+            "Coordinación en pareja",
+            "Diversión y socialización",
+            "Cardio y coordinación"
+        ],
+        "class_id": "latino",
+        "class_name": "Latina",
+        "age_group": ""
+    },
+    {
+        "id": "cardio-dance",
+        "name": "Cardio Dance",
+        "description": "Cardio divertido con coreografías de danza. La forma más alegre de ponerse en forma mientras bailas.",
+        "level": "Todos los niveles",
+        "duration": "60 min",
+        "schedule": "Martes 20:00, Miércoles 20:00, Jueves 20:00",
+        "price": 11000,
+        "image": "",
+        "instructor": "Vanessa Mora",
+        "capacity": 25,
+        "ageGroup": "14+ años",
+        "category": "Fitness",
+        "featured": true,
+        "benefits": [
+            "Cardio divertido",
+            "Quema de calorías",
+            "Coordinación y ritmo",
+            "Diversión y energía"
+        ]
+    },
+    {
+        "id": "pilates-step",
+        "name": "Pilates\/Step",
+        "description": "Combinación única de Pilates y step. Fortalecimiento, cardio y coordinación en una sola clase.",
+        "level": "Intermedio",
+        "duration": "60 min",
+        "schedule": "Jueves 19:00",
+        "price": 13000,
+        "image": "",
+        "instructor": "Vanessa Mora",
+        "capacity": 15,
+        "ageGroup": "16+ años",
+        "category": "Fitness",
+        "featured": false,
+        "benefits": [
+            "Combinación Pilates-cardio",
+            "Fortalecimiento integral",
+            "Coordinación avanzada",
+            "Resistencia y flexibilidad"
+        ]
+    },
+    {
+        "id": "kids",
+        "name": "Kids",
+        "description": "Clases de danza general para niños con variedad de estilos. Diversión, aprendizaje y desarrollo artístico integral.",
+        "level": "Principiante",
+        "duration": "60 min",
+        "schedule": "Viernes 18:00",
+        "price": 10000,
+        "image": "freecompress-CIRCUS-04_snaeru",
+        "instructor": "Vanessa Mora",
+        "capacity": 15,
+        "ageGroup": "6-12 años",
+        "category": "Infantil",
+        "featured": false,
+        "benefits": [
+            "Variedad de estilos de danza",
+            "Desarrollo integral",
+            "Diversión y aprendizaje",
+            "Expresión creativa"
+        ]
+    },
+    {
+        "id": "hip-hop-adultos",
+        "name": "Hip Hop Adultos",
+        "description": "Hip hop para adultos con movimientos urbanos auténticos. Desarrolla tu propio estilo y actitud.",
+        "level": "Intermedio",
+        "duration": "60 min",
+        "schedule": "Viernes 19:00",
+        "price": 13000,
+        "image": "freecompress-CIRCUS-33_s1kq2b",
+        "instructor": "Vanessa Mora",
+        "capacity": 20,
+        "ageGroup": "18+ años",
+        "category": "Urbano",
+        "featured": true,
+        "benefits": [
+            "Estilo urbano auténtico",
+            "Expresión de personalidad",
+            "Cardio y resistencia",
+            "Freestyle y actitud"
+        ]
+    },
+    {
+        "id": "afro-adultos",
+        "name": "Afro Adultos",
+        "description": "Danza afrocontemporánea que conecta con las raíces africanas. Movimientos potentes y expresión corporal intensa.",
+        "level": "Intermedio",
+        "duration": "60 min",
+        "schedule": "Viernes 20:00",
+        "price": 14000,
+        "image": "Wakanda_Lengend-06_gwzvcb",
+        "instructor": "Vanessa Mora",
+        "capacity": 16,
+        "ageGroup": "18+ años",
+        "category": "Contemporáneo",
+        "featured": true,
+        "benefits": [
+            "Conexión con raíces africanas",
+            "Movimientos potentes",
+            "Expresión corporal intensa",
+            "Liberación emocional"
+        ]
+    },
+    {
+        "id": "preballet",
+        "name": "Preballet",
+        "description": "Introducción al ballet para los más pequeños con ejercicios lúdicos, cuentos bailados y desarrollo psicomotor.",
+        "level": "Iniciación",
+        "duration": "60 min",
+        "schedule": "Sábado 10:30",
+        "price": 9000,
+        "image": "freecompress-CIRCUS-27_e8ypd6",
+        "instructor": "Vanessa Mora",
+        "capacity": 10,
+        "ageGroup": "3-5 años",
+        "category": "Infantil",
+        "featured": true,
+        "benefits": [
+            "Desarrollo psicomotor",
+            "Postura desde pequeños",
+            "Creatividad e imaginación",
+            "Socialización temprana"
+        ]
+    },
+    {
+        "id": "minikids",
+        "name": "Minikids",
+        "description": "Danza creativa para niños pequeños. Movimiento libre, expresión natural y diversión en un ambiente estimulante.",
+        "level": "Iniciación",
+        "duration": "60 min",
+        "schedule": "Sábado 11:30",
+        "price": 9000,
+        "image": "CIRCUS-31_iq6yzm",
+        "instructor": "Vanessa Mora",
+        "capacity": 12,
+        "ageGroup": "4-6 años",
+        "category": "Infantil",
+        "featured": true,
+        "benefits": [
+            "Movimiento libre y natural",
+            "Desarrollo de la creatividad",
+            "Coordinación básica",
+            "Diversión y autoestima"
+        ]
+    },
+    {
+        "id": "adulto-mayor",
+        "name": "Adulto Mayor",
+        "description": "Clase de ejercicio y danza adaptada especialmente para adultos mayores. Movimiento suave, socialización y bienestar.",
+        "level": "Suave",
+        "duration": "60 min",
+        "schedule": "Lunes 15:00",
+        "price": 8000,
+        "image": "freecompress-Legend_MJ-03_al6vzg",
+        "instructor": "Vanessa Mora",
+        "capacity": 15,
+        "ageGroup": "60+ años",
+        "category": "Fitness",
+        "featured": true,
+        "benefits": [
+            "Ejercicio adaptado a la edad",
+            "Socialización y compañía",
+            "Mantenimiento de movilidad",
+            "Bienestar emocional"
+        ]
+    },
+    {
+        "id": "compania",
+        "name": "Compañía",
+        "description": "Entrenamiento intensivo para bailarines avanzados. Técnica profesional, coreografías complejas y preparación para presentaciones.",
+        "level": "Avanzado",
+        "duration": "60 min",
+        "schedule": "Sábado 17:00, 18:00, 19:00, 20:00",
+        "price": 15000,
+        "image": "freecompress-CIRCUS-10_zekrne",
+        "instructor": "Vanessa Mora",
+        "capacity": 20,
+        "ageGroup": "14+ años",
+        "category": "Contemporáneo",
+        "featured": true,
+        "benefits": [
+            "Técnica profesional",
+            "Coreografías complejas",
+            "Preparación para shows",
+            "Desarrollo artístico avanzado"
+        ]
+    }
+]

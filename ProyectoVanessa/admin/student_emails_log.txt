@@ -1,0 +1,4 @@
+2025-10-23 23:57:52 - Email to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: 'Información sobre pagos - Academia Legend' - Type: payment - Sender: Vanessa Mora
+2025-11-07 07:09:24 - Email NOT_SENT to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: 'Actualización de tu orden #ORD-20251107-7E0739 - Aprobada' - Type: order-approved - Sender: Admin
+2025-11-07 07:22:10 - Email NOT_SENT to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: 'Actualización de tu orden #ORD-20251107-7E0739 - Completada' - Type: order-completed - Sender: Admin
+2025-11-07 07:22:13 - Email NOT_SENT to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: 'Actualización de tu orden #ORD-20251107-7E0739 - Completada' - Type: order-completed - Sender: Admin

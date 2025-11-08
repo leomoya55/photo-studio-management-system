@@ -1,0 +1,41 @@
+[
+    {
+        "id": "vanessa-mora",
+        "name": "Vanessa Mora",
+        "specialty": "Directora y Fundadora - Especialista en todos los estilos de danza",
+        "bio": "Con más de 15 años de experiencia profesional, Vanessa es la directora y fundadora de Academia Legend. Especializada en múltiples disciplinas de danza, desde ballet clásico hasta ritmos urbanos y latinos. Su pasión por la enseñanza y su dedicación han convertido a Legend en un referente de la danza en Costa Rica.",
+        "image": "",
+        "experience": "15+ años",
+        "certifications": [
+            "Formación en Ballet Clásico",
+            "Especialización en Danza Contemporánea",
+            "Certificación en Ritmos Latinos",
+            "Formación en Hip Hop y Danza Urbana",
+            "Técnicas de Jazz y Teatro Musical",
+            "Instructor Certificado en Pilates y Yoga"
+        ],
+        "achievements": [
+            "Fundadora de Academia Legend",
+            "Más de 200 estudiantes formados",
+            "Especialista en 9 disciplinas de danza",
+            "Reconocimiento como mejor academia de danza de la región"
+        ],
+        "specialties": [
+            "Ballet Clásico (todos los niveles)",
+            "Danza Contemporánea",
+            "Hip Hop y Danza Urbana",
+            "Salsa, Bachata y Ritmos Latinos",
+            "Jazz y Teatro Musical",
+            "Flamenco",
+            "Pilates y Yoga",
+            "Danza Infantil",
+            "Entrenamiento Pre-profesional"
+        ],
+        "social": {
+            "instagram": "https://instagram.com/vanessadora_legend",
+            "facebook": "https://facebook.com/vanessamoralegend",
+            "youtube": "https://youtube.com/academialegend",
+            "whatsapp": "+506 8411-8339"
+        }
+    }
+]
