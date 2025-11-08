@@ -168,22 +168,21 @@ function uploadPaymentProof($tmpPath, $orderNumber, $mime) {
     $folder = getPaymentProofFolder();
     try {
         $uploadApi = new UploadApi();
-        $mimeType = (is_string($mime) && trim($mime) !== '') ? trim($mime) : 'application/octet-stream';
-        $res = $uploadApi->upload($tmpPath, [
+        $options = [
             'folder' => $folder,
             'public_id' => $publicId,
             'resource_type' => $resourceType,
-            'overwrite' => true,
-            'file' => [
-                'tmp_name' => $tmpPath,
-                'filename' => basename($tmpPath),
-                'mime_type' => $mimeType
-            ]
-        ]);
-        if (!is_array($res) || empty($res['secure_url'])) {
-            throw new Exception('Respuesta de Cloudinary inválida para el comprobante.');
+            'overwrite' => true
+        ];
+        $res = $uploadApi->upload($tmpPath, $options);
+        $resData = json_decode(json_encode($res), true);
+        if (!is_array($resData)) {
+            throw new Exception('Respuesta de Cloudinary no legible: ' . gettype($res));
         }
-        return $res;
+        if (empty($resData['secure_url']) && empty($resData['url'])) {
+            throw new Exception('Respuesta de Cloudinary sin URL: ' . json_encode($resData));
+        }
+        return $resData;
     } catch (Exception $e) {
         throw new Exception('Cloudinary upload error (comprobante): ' . $e->getMessage());
     }
