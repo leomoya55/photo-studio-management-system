@@ -152,6 +152,10 @@ function uploadPaymentProof($tmpPath, $orderNumber, $mime) {
     if (!is_string($tmpPath) || !is_readable($tmpPath)) {
         throw new Exception('Archivo temporal del comprobante no accesible.');
     }
+    $fileData = @file_get_contents($tmpPath);
+    if ($fileData === false || $fileData === '') {
+        throw new Exception('No se pudo leer el comprobante para subirlo.');
+    }
     // Decide resource_type
     $resourceType = 'image';
     if (is_string($mime)) {
@@ -168,7 +172,9 @@ function uploadPaymentProof($tmpPath, $orderNumber, $mime) {
     $folder = getPaymentProofFolder();
     try {
         $uploadApi = new UploadApi();
-        $res = $uploadApi->upload($tmpPath, [
+        $mimeType = (is_string($mime) && trim($mime) !== '') ? trim($mime) : 'application/octet-stream';
+        $payload = 'data:' . $mimeType . ';base64,' . base64_encode($fileData);
+        $res = $uploadApi->upload($payload, [
             'folder' => $folder,
             'public_id' => $publicId,
             'resource_type' => $resourceType,
