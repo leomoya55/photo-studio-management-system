@@ -175,13 +175,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
 
             <hr class="my-4">
-            
-            <div class="alert alert-info" role="alert">
-                <strong>👑 Admin Access:</strong><br>
-                Email: vanessa@legenddance.com<br>
-                Password: admin123<br>
-                <small class="text-muted">Cambiar contraseña después del primer login</small>
-            </div>
         </div>
     </div>
 
