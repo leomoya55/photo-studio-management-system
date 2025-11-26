@@ -45,7 +45,7 @@ if ($conn) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redes Sociales - Legend Dance Academy</title>
+        <title>Redes Sociales - Vale V Photography</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -61,51 +61,51 @@ if ($conn) {
     
     <!-- Orange and Black Color Overrides to match index.html -->
     <style>
-        /* Orange and Black Color Overrides */
+        /* Brand color overrides for Vale V Photography */
         :root {
-            --bs-primary: #ff6600;
-            --bs-primary-rgb: 255, 102, 0;
-            --bs-btn-hover-bg: #e55a00;
-            --bs-btn-active-bg: #e55a00;
+            --bs-primary: #000000;
+            --bs-primary-rgb: 0, 0, 0;
+            --bs-btn-hover-bg: #111111;
+            --bs-btn-active-bg: #111111;
         }
         
-        /* Force our orange color */
+        /* Force our monochrome primary color */
         .btn-primary {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            background-image: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            background-image: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
         }
         
         .btn-primary:hover,
         .btn-primary:focus,
         .btn-primary:active {
-            background-color: #e55a00 !important;
-            border-color: #e55a00 !important;
-            background-image: linear-gradient(135deg, #e55a00 0%, #ff6600 100%) !important;
+            background-color: #111111 !important;
+            border-color: #111111 !important;
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%) !important;
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
         
         .btn-outline-primary {
-            color: #ff6600 !important;
-            border-color: #ff6600 !important;
+            color: #111111 !important;
+            border-color: #111111 !important;
         }
         
         .btn-outline-primary:hover,
         .btn-outline-primary:focus,
         .btn-outline-primary:active {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
             color: white !important;
         }
         
         .text-primary {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         .brand-text {
             font-family: 'Dancing Script', cursive !important;
-            color: #ff6600 !important;
+            color: var(--brand-color) !important;
             font-weight: 700;
         }
         
@@ -115,7 +115,7 @@ if ($conn) {
         }
         
         .navbar-nav .nav-link:hover {
-            color: #ff6600 !important;
+            color: #333333 !important;
         }
         
         body {
@@ -123,17 +123,17 @@ if ($conn) {
         }
         
         .bg-primary {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
         }
         
         /* Fix any remaining blue/sky blue elements */
         .badge {
-            background-color: #ff6600 !important;
+            background-color: #111111 !important;
             color: white !important;
         }
         
         .badge-primary {
-            background-color: #ff6600 !important;
+            background-color: #111111 !important;
             color: white !important;
         }
         
@@ -143,7 +143,7 @@ if ($conn) {
         }
         
         .badge-info {
-            background-color: #ff6600 !important;
+            background-color: #111111 !important;
             color: white !important;
         }
         
@@ -157,27 +157,27 @@ if ($conn) {
         
         /* Fix any sky blue colors */
         .text-info {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         .bg-info {
-            background-color: #ff6600 !important;
+            background-color: #111111 !important;
         }
         
         /* Icons and checks */
         .fas.fa-check,
         .fas.fa-check-circle {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         /* Any remaining blue accents */
         .text-secondary {
-            color: #333333 !important;
+            color: #555555 !important;
         }
         
         /* Additional styles for social media page */
         .hero-social {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #000000 0%, #3a3a3a 100%);
             color: white;
             padding: 100px 0 80px;
             margin-top: 76px;
@@ -213,14 +213,6 @@ if ($conn) {
             background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
         }
         
-        .social-platform.youtube::before {
-            background: #FF0000;
-        }
-        
-        .social-platform.tiktok::before {
-            background: linear-gradient(45deg, #000000 0%, #ff0050 50%, #00f2ea 100%);
-        }
-        
         .social-platform.facebook::before {
             background: #1877F2;
         }
@@ -239,14 +231,6 @@ if ($conn) {
         
         .instagram-icon {
             background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
-        }
-        
-        .youtube-icon {
-            background: #FF0000;
-        }
-        
-        .tiktok-icon {
-            background: #000000;
         }
         
         .facebook-icon {
@@ -495,12 +479,12 @@ if ($conn) {
         
         /* User welcome styling */
         .user-welcome {
-            color: #ff6600 !important;
+            color: #111111 !important;
             font-weight: 600;
             padding: 8px 16px;
             border-radius: 20px;
-            background: rgba(255, 102, 0, 0.1);
-            border: 1px solid #ff6600;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid #111111;
         }
         
         .dropdown-menu {
@@ -510,7 +494,7 @@ if ($conn) {
         }
         
         .dropdown-item:hover {
-            background-color: #ff6600;
+            background-color: #000000;
             color: white;
         }
         
@@ -530,8 +514,8 @@ if ($conn) {
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="index.php<?php echo $adminViewParam; ?>">
-                <span class="brand-text">Legend</span>
+            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>">
+                <span class="brand-text">Vale V Photography</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -541,22 +525,19 @@ if ($conn) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php<?php echo $adminViewParam; ?>#inicio">Inicio</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>#inicio">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="clases.php<?php echo $adminViewParam; ?>">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Sesiones</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="horarios.php<?php echo $adminViewParam; ?>">Horarios</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
+                        <a class="nav-link active" href="<?php echo VIEWS_URL; ?>/redes-sociales.php<?php echo $adminViewParam; ?>">Redes Sociales</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="redes-sociales.php<?php echo $adminViewParam; ?>">Redes Sociales</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="ubicacion.php<?php echo $adminViewParam; ?>">Ubicación</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/ubicacion.php<?php echo $adminViewParam; ?>">Ubicación</a>
                     </li>
                 </ul>
                 
@@ -574,15 +555,15 @@ if ($conn) {
                                     <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
                             </ul>
                         </li>
                     <?php else: ?>
-                        <li class="nav-item">
-                            <a class="nav-link btn-outline-primary px-3 me-2" href="register.php">Registrarse</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-outline-primary" href="<?php echo VIEWS_URL; ?>/register.php">Registrarse</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link btn-primary text-white px-3" href="login.php">Iniciar Sesión</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-primary" href="<?php echo VIEWS_URL; ?>/login.php">Iniciar Sesión</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -608,8 +589,8 @@ if ($conn) {
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-12 text-center">
-                    <h1 class="display-4 fw-bold mb-4">Síguenos en Redes</h1>
-                    <p class="lead mb-4">Mantente al día con las últimas coreografías, eventos especiales y momentos increíbles de nuestra comunidad Legend.</p>
+                    <h1 class="display-4 fw-bold mb-4 text-on-dark">Síguenos en Redes</h1>
+                    <p class="lead mb-4 text-on-dark-soft">Mantente al día con las últimas sesiones, lanzamientos especiales y momentos increíbles de nuestra comunidad creativa.</p>
                 </div>
             </div>
         </div>
@@ -628,7 +609,7 @@ if ($conn) {
                             </div>
                             <div class="ms-3">
                                 <h4 class="mb-1">Instagram</h4>
-                                <p class="mb-0 text-muted">@legendvm.cr</p>
+                                <p class="mb-0 text-muted">@valevphotography</p>
                             </div>
                         </div>
                         
@@ -672,57 +653,8 @@ if ($conn) {
                             <?php endif; ?>
                         </div>
                         
-                        <a href="https://www.instagram.com/legendvm.cr/" target="_blank" class="btn btn-primary w-100">
+                        <a href="https://www.instagram.com/valevphotography?igsh=MXZobjc0NWtod2gyMA%3D%3D&utm_source=qr" target="_blank" class="btn btn-primary w-100">
                             <i class="fab fa-instagram me-2"></i>Seguir en Instagram
-                        </a>
-                    </div>
-                </div>
-
-                <!-- YouTube -->
-                <div class="col-lg-6 col-md-12 mb-4">
-                    <div class="social-platform youtube">
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="social-icon youtube-icon">
-                                <i class="fab fa-youtube"></i>
-                            </div>
-                            <div class="ms-3">
-                                <h4 class="mb-1">YouTube</h4>
-                                <p class="mb-0 text-muted">Próximamente</p>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center py-4" id="youtubeVideos">
-                            <i class="fab fa-youtube fa-3x text-danger mb-3"></i>
-                            <p class="text-muted mb-0">Nuestro canal de YouTube estará disponible pronto</p>
-                        </div>
-                        
-                        <a href="#" class="btn btn-danger w-100 disabled">
-                            <i class="fab fa-youtube me-2"></i>Próximamente
-                        </a>
-                    </div>
-                </div>
-
-                <!-- TikTok -->
-                <div class="col-lg-6 col-md-12 mb-4">
-                    <div class="social-platform tiktok">
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="social-icon tiktok-icon">
-                                <i class="fab fa-tiktok"></i>
-                            </div>
-                            <div class="ms-3">
-                                <h4 class="mb-1">TikTok</h4>
-                                <p class="mb-0 text-muted">Próximamente</p>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center py-4" id="tiktokVideos">
-                            <i class="fab fa-tiktok fa-3x text-dark mb-3"></i>
-                            <p class="text-muted mb-0">¡Síguenos para ver nuestros videos de danza!</p>
-                            <p class="small text-muted">@studiolegend.cr</p>
-                        </div>
-                        
-                        <a href="https://www.tiktok.com/@studiolegend.cr" target="_blank" class="btn btn-dark w-100">
-                            <i class="fab fa-tiktok me-2"></i>Seguir en TikTok
                         </a>
                     </div>
                 </div>
@@ -736,7 +668,7 @@ if ($conn) {
                             </div>
                             <div class="ms-3">
                                 <h4 class="mb-1">Facebook</h4>
-                                <p class="mb-0 text-muted">Legend Dance Academy</p>
+                                <p class="mb-0 text-muted">Vale V Photography</p>
                             </div>
                         </div>
                         
@@ -753,7 +685,7 @@ if ($conn) {
                                                         </div>
                                                     </div>
                                                     <div class="flex-grow-1 ms-3">
-                                                        <h6 class="mb-1">Legend Dance Academy</h6>
+                                                        <h6 class="mb-1">Vale V Photography</h6>
                                                         <small class="text-muted"><?php echo date('d/m/Y', strtotime($post['post_date'])); ?></small>
                                                         <p class="mt-2 mb-2" style="font-size: 0.9rem;">
                                                             <?php echo nl2br(htmlspecialchars(substr($post['caption'], 0, 150))); ?>
@@ -781,7 +713,7 @@ if ($conn) {
                             <?php endif; ?>
                         </div>
                         
-                        <a href="https://www.facebook.com/profile.php?id=100068508182444" target="_blank" class="btn btn-primary w-100">
+                        <a href="https://www.facebook.com/share/1Czy4E7doQ/?mibextid=wwXIfr" target="_blank" class="btn btn-primary w-100">
                             <i class="fab fa-facebook me-2"></i>Seguir en Facebook
                         </a>
                     </div>
@@ -800,12 +732,9 @@ if ($conn) {
                     </div>
                     <h2 class="section-title">¿Tienes preguntas?</h2>
                     <p class="section-subtitle">Contáctanos directamente por WhatsApp para información sobre clases, horarios y promociones especiales.</p>
-                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <div class="d-flex justify-content-center flex-wrap">
                         <a href="https://wa.me/1234567890" class="btn btn-success btn-lg">
                             <i class="fab fa-whatsapp me-2"></i>Escribir por WhatsApp
-                        </a>
-                        <a href="horarios.php<?php echo $adminViewParam; ?>" class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-calendar-alt me-2"></i>Ver Horarios
                         </a>
                     </div>
                 </div>
@@ -819,13 +748,13 @@ if ($conn) {
             <div class="row">
                 <div class="col-12 text-center">
                     <h3 class="section-title">Únete a la Comunidad</h3>
-                    <p class="section-subtitle">Comparte tus momentos Legend usando nuestros hashtags oficiales</p>
+                    <p class="section-subtitle">Comparte tus momentos favoritos usando nuestros hashtags oficiales</p>
                     <div class="d-flex justify-content-center flex-wrap gap-3">
-                        <span class="badge bg-primary fs-6 p-3 text-white">#LegendDance</span>
-                        <span class="badge bg-secondary fs-6 p-3 text-white">#LegendAcademy</span>
-                        <span class="badge bg-success fs-6 p-3 text-white">#DanzaLegend</span>
-                        <span class="badge bg-warning fs-6 p-3 text-white">#LegendFamily</span>
-                        <span class="badge bg-info fs-6 p-3 text-white">#BailaConLegend</span>
+                        <span class="badge bg-primary fs-6 p-3 text-white">#ValeVPhotography</span>
+                        <span class="badge bg-secondary fs-6 p-3 text-white">#ValeVStudio</span>
+                        <span class="badge bg-success fs-6 p-3 text-white">#CapturaConValeV</span>
+                        <span class="badge bg-warning fs-6 p-3 text-white">#ValeVFamily</span>
+                        <span class="badge bg-info fs-6 p-3 text-white">#ValeVMoments</span>
                     </div>
                 </div>
             </div>
@@ -895,16 +824,14 @@ if ($conn) {
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h5 class="brand-text mb-0">Legend</h5>
-                    <p class="mb-0">Tu academia de danza de confianza</p>
+                    <h5 class="brand-text mb-0">Vale V Photography</h5>
+                    <p class="mb-0">Tu estudio de fotografía de confianza</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="social-links">
-                        <a href="https://www.facebook.com/profile.php?id=100068508182444" target="_blank"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/legendvm.cr/" target="_blank"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="disabled" title="Próximamente"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@studiolegend.cr" target="_blank"><i class="fab fa-tiktok"></i></a>
-                        <a href="https://wa.me/50684118339" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/share/1Czy4E7doQ/?mibextid=wwXIfr" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.instagram.com/valevphotography?igsh=MXZobjc0NWtod2gyMA%3D%3D&utm_source=qr" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://wa.me/50686764740" target="_blank"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
             </div>

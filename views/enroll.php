@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Configuration
 $config = [
     'data_file' => 'data/enrollments.json',
-    'admin_email' => 'admin@academialegend.com'
+    'admin_email' => 'admin@valevphotography.com'
 ];
 
 // Load classes data
@@ -127,16 +127,16 @@ function generateEnrollmentEmail($data, $class_info) {
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); color: white; padding: 20px; text-align: center; }
+            .header { background: linear-gradient(135deg, #000000 0%, #3a3a3a 100%); color: white; padding: 20px; text-align: center; }
             .content { padding: 20px; background: #f9f9f9; }
-            .class-info { background: white; padding: 15px; border-left: 4px solid #4ecdc4; margin: 15px 0; }
+            .class-info { background: white; padding: 15px; border-left: 4px solid #000000; margin: 15px 0; }
             .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
         </style>
     </head>
     <body>
         <div class='container'>
             <div class='header'>
-                <h1>¡Bienvenido/a a Academia Legend!</h1>
+                <h1>¡Bienvenido/a a Vale V Photography!</h1>
                 <p>Confirmación de Inscripción</p>
             </div>
             <div class='content'>
@@ -163,14 +163,15 @@ function generateEnrollmentEmail($data, $class_info) {
                 </ol>
                 
                 <p><strong>Información de contacto para dudas:</strong><br>
-                Teléfono: +1 (555) 123-4567<br>
-                Email: info@academialegend.com</p>
+                Teléfono: +506 8676-4740<br>
+                Email: info@valevphotography.com</p>
                 
                 <p>¡Esperamos verte pronto en nuestro estudio!</p>
             </div>
             <div class='footer'>
-                <p>Academia de Danza Legend<br>
-                Transformando vidas a través de la danza desde 2008</p>
+                <p>Vale V Photography<br>
+                75 metros norte de correos, Zapote, San José<br>
+                Capturando historias auténticas desde 2010</p>
             </div>
         </div>
     </body>
@@ -231,13 +232,13 @@ try {
         $headers = [
             'MIME-Version: 1.0',
             'Content-type: text/html; charset=UTF-8',
-            'From: Academia Legend <info@academialegend.com>',
-            'Reply-To: info@academialegend.com'
+            'From: Vale V Photography <info@valevphotography.com>',
+            'Reply-To: info@valevphotography.com'
         ];
         
         $email_sent = mail(
             $enrollment['email'],
-            "Confirmación de Inscripción - Academia Legend",
+            "Confirmación de Inscripción - Vale V Photography",
             $confirmation_email,
             implode("\r\n", $headers)
         );

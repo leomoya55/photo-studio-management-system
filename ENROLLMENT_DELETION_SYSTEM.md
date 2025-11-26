@@ -1,5 +1,5 @@
 # 🗑️ Enrollment Deletion System
-### Academia Legend - Safe Enrollment Management
+### Valeria Vega Studio - Safe Enrollment Management
 
 ---
 

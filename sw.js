@@ -1,9 +1,9 @@
 /**
- * Academia Legend - Service Worker
+ * Vale V Photography - Service Worker
  * Provides basic PWA functionality and offline support
  */
 
-const CACHE_NAME = 'academia-legend-v1';
+const CACHE_NAME = 'vale-v-photography-v1';
 const urlsToCache = [
     '/',
     '/index.html',

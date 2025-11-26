@@ -94,5 +94,5 @@ Si encuentras algún problema con esta funcionalidad:
 
 ---
 
-**🎭 Academia Legend - Panel de Administración**  
+**🎭 Valeria Vega Studio - Panel de Administración**  
 *Funcionalidad implementada: Octubre 2025*

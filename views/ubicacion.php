@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once '../config/db_connect.php';
+require_once __DIR__ . '/../config/paths.php';
+require_once __DIR__ . '/../config/db_connect.php';
 
 // Set up user session variables
 $isLoggedIn = isset($_SESSION['user_id']);
@@ -8,19 +9,24 @@ $userName = '';
 $userRole = '';
 
 if ($isLoggedIn) {
-    $userName = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
+    $userName = trim(($_SESSION['first_name'] ?? '') . ' ' . ($_SESSION['last_name'] ?? ''));
     $userRole = $_SESSION['role'] ?? 'customer';
 }
 
 // Check if this is admin view mode and preserve admin_view parameter
 $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '?admin_view=1' : '';
+
+if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn || $userRole !== 'admin')) {
+    header('Location: ' . VIEWS_URL . '/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ubicación - Legend Dance Academy</title>
+    <title>Ubicación - Vale V Photography</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -36,51 +42,51 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
     
     <!-- Orange and Black Color Overrides to match index.html -->
     <style>
-        /* Orange and Black Color Overrides */
+        /* Vale V Photography color overrides */
         :root {
-            --bs-primary: #ff6600;
-            --bs-primary-rgb: 255, 102, 0;
-            --bs-btn-hover-bg: #e55a00;
-            --bs-btn-active-bg: #e55a00;
+            --bs-primary: #000000;
+            --bs-primary-rgb: 0, 0, 0;
+            --bs-btn-hover-bg: #111111;
+            --bs-btn-active-bg: #111111;
         }
         
-        /* Force our orange color */
+        /* Force our monochrome accent */
         .btn-primary {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            background-image: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            background-image: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
         }
         
         .btn-primary:hover,
         .btn-primary:focus,
         .btn-primary:active {
-            background-color: #e55a00 !important;
-            border-color: #e55a00 !important;
-            background-image: linear-gradient(135deg, #e55a00 0%, #ff6600 100%) !important;
+            background-color: #111111 !important;
+            border-color: #111111 !important;
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%) !important;
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
         
         .btn-outline-primary {
-            color: #ff6600 !important;
-            border-color: #ff6600 !important;
+            color: #111111 !important;
+            border-color: #111111 !important;
         }
         
         .btn-outline-primary:hover,
         .btn-outline-primary:focus,
         .btn-outline-primary:active {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
             color: white !important;
         }
         
         .text-primary {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         .brand-text {
             font-family: 'Dancing Script', cursive !important;
-            color: #ff6600 !important;
+            color: var(--brand-color) !important;
             font-weight: 700;
         }
         
@@ -90,7 +96,7 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         }
         
         .navbar-nav .nav-link:hover {
-            color: #ff6600 !important;
+            color: #333333 !important;
         }
         
         body {
@@ -99,11 +105,11 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         
         /* Orange accents for location page elements */
         .address-icon {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
         }
         
         .schedule-table th {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
             color: white;
             font-weight: 600;
             padding: 15px;
@@ -111,17 +117,17 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         }
         
         .bg-primary {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
         }
         
         /* Fix any remaining blue/sky blue elements */
         .badge {
-            background-color: #ff6600 !important;
+            background-color: #111111 !important;
             color: white !important;
         }
         
         .badge-primary {
-            background-color: #ff6600 !important;
+            background-color: #111111 !important;
             color: white !important;
         }
         
@@ -131,7 +137,7 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         }
         
         .badge-info {
-            background-color: #ff6600 !important;
+            background-color: #111111 !important;
             color: white !important;
         }
         
@@ -145,27 +151,27 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         
         /* Fix any sky blue colors */
         .text-info {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         .bg-info {
-            background-color: #ff6600 !important;
+            background-color: #111111 !important;
         }
         
         /* Icons and checks */
         .fas.fa-check,
         .fas.fa-check-circle {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         /* Any remaining blue accents */
         .text-secondary {
-            color: #333333 !important;
+            color: #555555 !important;
         }
         
         /* Additional styles for location page */
         .hero-location {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(135deg, #000000 0%, #3a3a3a 100%);
         }
         
         .location-card {
@@ -443,12 +449,12 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         
         /* User welcome styling */
         .user-welcome {
-            color: #ff6600 !important;
+            color: #111111 !important;
             font-weight: 600;
             padding: 8px 16px;
             border-radius: 20px;
-            background: rgba(255, 102, 0, 0.1);
-            border: 1px solid #ff6600;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid #111111;
         }
         
         .dropdown-menu {
@@ -458,7 +464,7 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         }
         
         .dropdown-item:hover {
-            background-color: #ff6600;
+            background-color: #000000;
             color: white;
         }
     </style>
@@ -468,8 +474,8 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="index.php<?php echo $adminViewParam; ?>">
-                <span class="brand-text">Legend</span>
+            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>">
+                <span class="brand-text">Vale V Photography</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -479,22 +485,19 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php<?php echo $adminViewParam; ?>#inicio">Inicio</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>#inicio">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="clases.php<?php echo $adminViewParam; ?>">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Sesiones</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="horarios.php<?php echo $adminViewParam; ?>">Horarios</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/redes-sociales.php<?php echo $adminViewParam; ?>">Redes Sociales</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="redes-sociales.php<?php echo $adminViewParam; ?>">Redes Sociales</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="ubicacion.php<?php echo $adminViewParam; ?>">Ubicación</a>
+                        <a class="nav-link active" href="<?php echo VIEWS_URL; ?>/ubicacion.php<?php echo $adminViewParam; ?>">Ubicación</a>
                     </li>
                 </ul>
                 
@@ -507,20 +510,20 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <?php if ($userRole === 'admin'): ?>
-                                    <li><a class="dropdown-item" href="/ProyectoVanessa/admin/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo ADMIN_URL; ?>/admin.php"><i class="fas fa-cog me-2"></i>Panel Admin</a></li>
                                 <?php else: ?>
-                                    <li><a class="dropdown-item" href="dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                                    <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/dashboard.php"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
                                 <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="<?php echo VIEWS_URL; ?>/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
                             </ul>
                         </li>
                     <?php else: ?>
-                        <li class="nav-item">
-                            <a class="nav-link btn-outline-primary px-3 me-2" href="register.php">Registrarse</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-outline-primary" href="<?php echo VIEWS_URL; ?>/register.php">Registrarse</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link btn-primary text-white px-3" href="login.php">Iniciar Sesión</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-primary" href="<?php echo VIEWS_URL; ?>/login.php">Iniciar Sesión</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -534,7 +537,7 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         <div class="container">
             <i class="fas fa-eye me-2"></i>
             <strong>Vista de Administrador</strong> - Vanessa, estás viendo el sitio web sin opciones de inscripción
-            <a href="/ProyectoVanessa/admin/admin.php" class="btn btn-light btn-sm ms-3">
+            <a href="<?php echo ADMIN_URL; ?>/admin.php" class="btn btn-light btn-sm ms-3">
                 <i class="fas fa-arrow-left me-1"></i>Volver al Panel Admin
             </a>
         </div>
@@ -546,7 +549,7 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-12 text-center">
-                    <h1 class="display-4 fw-bold mb-4">Visítanos</h1>
+                    <h1 class="display-4 fw-bold mb-4 text-on-dark">Visítanos</h1>
                 </div>
             </div>
         </div>
@@ -568,7 +571,7 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
                             referrerpolicy="no-referrer-when-downgrade">
                         </iframe>
                         <div class="map-overlay">
-                            <strong>Legend Dance Academy</strong><br>
+                            <strong>Vale V Photography</strong><br>
                             <small>75 metros norte de correos<br>Zapote, San José, Costa Rica</small>
                         </div>
                     </div>
@@ -604,34 +607,13 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
                         <h5>Teléfonos</h5>
                         <p class="text-muted mb-3">
                             <strong>Principal:</strong><br>
-                            <a href="tel:+50684118339" class="text-decoration-none">+506 8411-8339</a><br><br>
+                            <a href="tel:+50686764740" class="text-decoration-none">+506 8676-4740</a><br><br>
                             <strong>WhatsApp:</strong><br>
-                            <a href="https://wa.me/50684118339" class="text-decoration-none">+506 8411-8339</a>
+                            <a href="https://wa.me/50686764740" class="text-decoration-none">+506 8676-4740</a>
                         </p>
                         <button class="btn btn-outline-success btn-sm" onclick="openWhatsApp()">
                             <i class="fab fa-whatsapp me-1"></i>WhatsApp
                         </button>
-                    </div>
-                </div>
-
-                <!-- Schedule -->
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="location-card">
-                        <div class="location-icon schedule-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <h5>Horarios</h5>
-                        <div class="small text-muted mb-3">
-                            <strong>Martes:</strong> 3:00 PM - 8:00 PM<br>
-                            <strong>Miércoles:</strong> 10:00 AM - 8:00 PM<br>
-                            <strong>Jueves:</strong> 6:00 PM - 8:00 PM<br>
-                            <strong>Viernes:</strong> 6:00 PM - 8:00 PM<br>
-                            <strong>Sábados:</strong> 10:30 AM - 3:00 PM<br><br>
-                            <small class="text-primary">*Horarios detallados disponibles</small>
-                        </div>
-                        <a href="clases.html#horarios" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-calendar me-1"></i>Ver horarios
-                        </a>
                     </div>
                 </div>
 
@@ -661,102 +643,13 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         </div>
     </section>
 
-    <!-- Parking Information -->
-    <section class="py-5 bg-light">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="parking-info">
-                        <h4 class="mb-4"><i class="fas fa-parking me-2"></i>Información de Estacionamiento</h4>
-                        
-                        <div class="parking-spot">
-                            <div class="parking-icon">
-                                <i class="fas fa-car"></i>
-                            </div>
-                            <div>
-                                <strong>Estacionamiento Propio</strong><br>
-                                <small class="text-muted">20 espacios disponibles • $20/hora • Entrada por Calle Lateral Norte</small>
-                            </div>
-                        </div>
-                        
-                        <div class="parking-spot">
-                            <div class="parking-icon">
-                                <i class="fas fa-motorcycle"></i>
-                            </div>
-                            <div>
-                                <strong>Motocicletas</strong><br>
-                                <small class="text-muted">10 espacios • $10/hora • Área techada</small>
-                            </div>
-                        </div>
-                        
-                        <div class="parking-spot">
-                            <div class="parking-icon">
-                                <i class="fas fa-bicycle"></i>
-                            </div>
-                            <div>
-                                <strong>Bicicletas</strong><br>
-                                <small class="text-muted">Estacionamiento gratuito • Área segura • 15 espacios</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4">
-                    <div class="landmarks">
-                        <h5 class="mb-4"><i class="fas fa-landmark me-2"></i>Referencias cercanas</h5>
-                        
-                        <div class="landmark-item">
-                            <div class="landmark-icon">
-                                <i class="fas fa-hospital"></i>
-                            </div>
-                            <div>
-                                <strong>Hospital General</strong><br>
-                                <small class="text-muted">2 cuadras al norte</small>
-                            </div>
-                        </div>
-                        
-                        <div class="landmark-item">
-                            <div class="landmark-icon">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <div>
-                                <strong>Centro Comercial Zapote</strong><br>
-                                <small class="text-muted">1 cuadra al sur</small>
-                            </div>
-                        </div>
-                        
-                        <div class="landmark-item">
-                            <div class="landmark-icon">
-                                <i class="fas fa-university"></i>
-                            </div>
-                            <div>
-                                <strong>Universidad Central</strong><br>
-                                <small class="text-muted">5 cuadras al este</small>
-                            </div>
-                        </div>
-                        
-                        <div class="landmark-item">
-                            <div class="landmark-icon">
-                                <i class="fas fa-tree"></i>
-                            </div>
-                            <div>
-                                <strong>Parque Central</strong><br>
-                                <small class="text-muted">3 cuadras al oeste</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Contact CTA -->
     <section class="py-5 bg-primary text-white">
         <div class="container text-center">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <h2 class="mb-4">¿Tienes dudas sobre cómo llegar?</h2>
-                    <p class="lead mb-4">Nuestro equipo está listo para ayudarte con indicaciones detalladas y resolver cualquier pregunta sobre nuestra ubicación.</p>
+                    <h2 class="mb-4 text-white">¿Tienes dudas sobre cómo llegar?</h2>
+                    <p class="lead mb-4 text-on-dark-soft">Nuestro equipo está listo para ayudarte con indicaciones detalladas y resolver cualquier pregunta sobre nuestra ubicación.</p>
                     <div class="d-flex justify-content-center gap-3 flex-wrap">
                         <button class="btn btn-light btn-lg" onclick="openWhatsApp()">
                             <i class="fab fa-whatsapp me-2"></i>WhatsApp
@@ -836,16 +729,14 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h5 class="brand-text mb-0">Legend</h5>
-                    <p class="mb-0">Tu academia de danza de confianza</p>
+                    <h5 class="brand-text mb-0">Vale V Photography</h5>
+                    <p class="mb-0">Tu estudio de fotografía de confianza</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="social-links">
-                        <a href="https://www.facebook.com/profile.php?id=100068508182444" target="_blank"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/legendvm.cr/" target="_blank"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@studiolegend.cr" target="_blank"><i class="fab fa-tiktok"></i></a>
-                        <a href="https://wa.me/50684118339" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/share/1Czy4E7doQ/?mibextid=wwXIfr" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.instagram.com/valevphotography?igsh=MXZobjc0NWtod2gyMA%3D%3D&utm_source=qr" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://wa.me/50686764740" target="_blank"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
             </div>
@@ -865,7 +756,7 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
             latitude: 9.918461,
             longitude: -84.054269,
             address: "75 metros norte de correos de Costa Rica, Zapote, San José, Costa Rica",
-            name: "Legend Dance Academy"
+            name: "Vale V Photography"
         };
 
         // Copy to clipboard function
@@ -904,14 +795,14 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
             
             if (isMobile) {
                 // On mobile, use the app deep link
-                const destination = encodeURIComponent("Legend Dance Academy, 75 metros norte de correos, Zapote, San José, Costa Rica");
+                const destination = encodeURIComponent("Vale V Photography, 75 metros norte de correos, Zapote, San José, Costa Rica");
                 const lat = academyLocation.latitude;
                 const lng = academyLocation.longitude;
                 const mobileUrl = `uber://?action=setPickup&pickup=my_location&dropoff[formatted_address]=${destination}&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}`;
                 window.location.href = mobileUrl;
             } else {
                 // On desktop, show instructions and copy address
-                const address = "Legend Dance Academy, 75 metros norte de correos, Zapote, San José, Costa Rica";
+                const address = "Vale V Photography, 75 metros norte de correos, Zapote, San José, Costa Rica";
                 copyToClipboard(address);
                 showNotification('Dirección copiada al portapapeles. Abre Uber y pega la dirección como destino.', 'success');
                 
@@ -924,15 +815,15 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
 
         // Open WhatsApp
         function openWhatsApp() {
-            const phoneNumber = '50684118339';
-            const message = encodeURIComponent('Hola, me gustaría obtener información sobre Legend Dance Academy y cómo llegar.');
+            const phoneNumber = '50686764740';
+            const message = encodeURIComponent('Hola, me gustaría obtener información sobre Vale V Photography y cómo llegar.');
             const url = `https://wa.me/${phoneNumber}?text=${message}`;
             window.open(url, '_blank');
         }
 
         // Call phone
         function callPhone() {
-            window.location.href = 'tel:+50684118339';
+            window.location.href = 'tel:+50686764740';
         }
 
         // Show schedule details
@@ -957,7 +848,7 @@ $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '
                     const userLon = position.coords.longitude;
                     const distance = calculateDistance(userLat, userLon, academyLocation.latitude, academyLocation.longitude);
                     
-                    showNotification(`Estás a ${distance.toFixed(1)} km de Legend Dance Academy`, 'info');
+                    showNotification(`Estás a ${distance.toFixed(1)} km de Vale V Photography`, 'info');
                 }, function(error) {
                     showNotification('No se pudo obtener tu ubicación', 'warning');
                 });

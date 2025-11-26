@@ -58,7 +58,7 @@ $items_stmt->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedido Confirmado - Legend Dance Academy</title>
+    <title>Pedido Confirmado - Vale V Photography</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -75,78 +75,78 @@ $items_stmt->close();
     <style>
         /* Orange and Black Color Overrides */
         :root {
-            --bs-primary: #ff6600;
-            --bs-primary-rgb: 255, 102, 0;
-            --bs-btn-hover-bg: #e55a00;
-            --bs-btn-active-bg: #e55a00;
+            --bs-primary: #000000;
+            --bs-primary-rgb: 0, 0, 0;
+            --bs-btn-hover-bg: #111111;
+            --bs-btn-active-bg: #111111;
         }
         
         .brand-text {
             font-family: 'Dancing Script', cursive;
             font-weight: 700;
             font-size: 2.2rem;
-            color: #ff6b35 !important;
+            color: var(--brand-color) !important;
             text-decoration: none;
         }
         .brand-text:hover {
-            color: #e55a2b !important;
+            color: var(--brand-color) !important;
             text-decoration: none;
         }
         
-        /* Force our orange color */
+        /* Force our monochrome color */
         .btn-primary {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            background-image: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            background-image: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
             color: white !important;
         }
         
         .btn-primary:hover,
         .btn-primary:focus,
         .btn-primary:active {
-            background-color: #e55a00 !important;
-            border-color: #e55a00 !important;
-            background-image: linear-gradient(135deg, #e55a00 0%, #ff6600 100%) !important;
+            background-color: #111111 !important;
+            border-color: #111111 !important;
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%) !important;
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             color: white !important;
         }
         
         .btn-outline-primary {
-            border-color: #ff6600 !important;
-            color: #ff6600 !important;
+            border-color: #111111 !important;
+            color: #111111 !important;
         }
         
         .btn-outline-primary:hover,
         .btn-outline-primary:focus,
         .btn-outline-primary:active {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
             color: white !important;
         }
         
         .text-primary {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         .brand-text {
             font-family: 'Dancing Script', cursive !important;
-            color: #ff6600 !important;
+            color: var(--brand-color) !important;
             font-weight: 700;
         }
         
         .navbar-nav .nav-link:hover {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         /* User welcome styling */
         .user-welcome {
-            color: #ff6600 !important;
+            color: #111111 !important;
             font-weight: 600;
             padding: 8px 16px;
             border-radius: 20px;
-            background: rgba(255, 102, 0, 0.1);
-            border: 1px solid #ff6600;
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.2);
         }
         
         .dropdown-menu {
@@ -156,7 +156,7 @@ $items_stmt->close();
         }
         
         .dropdown-item:hover {
-            background-color: #ff6600;
+            background-color: #000000;
             color: white;
         }
         
@@ -244,7 +244,7 @@ $items_stmt->close();
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
         <div class="container">
             <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php">
-                <span class="brand-text">Legend</span>
+                <span class="brand-text">Vale V Photography</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -257,7 +257,7 @@ $items_stmt->close();
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Sesiones</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php">Catálogo</a>
@@ -340,12 +340,21 @@ $items_stmt->close();
                             <div class="d-flex align-items-center">
                                 <?php 
                                     // Normalize image paths: handle backslashes, absolute URLs, root-relative or local
-                                    $img = $item['product_image'] ?? '';
-                                    if (!empty($img)) { $img = str_replace('\\', '/', $img); }
-                                    $isHttp = preg_match('/^https?:\/\//i', $img);
-                                    $isRoot = (strlen($img) > 0 && $img[0] === '/');
-                                    if (!$isHttp && !$isRoot && !empty($img)) { $img = '../' . ltrim($img, '/'); }
-                                    if (empty($img)) { $img = 'https://via.placeholder.com/60x60?text=IMG'; }
+                                    $img = isset($item['product_image']) ? (string)$item['product_image'] : '';
+                                    if ($img !== '') { $img = str_replace('\\', '/', trim($img)); }
+                                    if ($img === '') {
+                                        $img = 'https://via.placeholder.com/60x60?text=IMG';
+                                    } elseif (!preg_match('#^(https?:)?//#i', $img)) {
+                                        if (strpos($img, '../') === 0) {
+                                            // already relative to views/
+                                        } elseif (strpos($img, './') === 0) {
+                                            $img = '../' . ltrim(substr($img, 2), '/');
+                                        } elseif ($img[0] === '/') {
+                                            // root-relative path as-is
+                                        } else {
+                                            $img = '../' . ltrim($img, '/');
+                                        }
+                                    }
                                 ?>
                                 <img src="<?php echo htmlspecialchars($img); ?>" alt="<?php echo htmlspecialchars($item['product_name']); ?>" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
                                 <div>
@@ -379,14 +388,14 @@ $items_stmt->close();
                                 <div class="col-md-6">
                                     <p><strong>Número de teléfono:</strong></p>
                                     <div class="d-flex align-items-center">
-                                        <code id="sinpe-phone">+506 8411-8339</code>
+                                        <code id="sinpe-phone">+506 8676-4740</code>
                                         <button class="copy-button" onclick="copyToClipboard('sinpe-phone')">Copiar</button>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <p><strong>Beneficiario:</strong></p>
                                     <div class="d-flex align-items-center">
-                                        <code id="sinpe-name">Vanessa Mora</code>
+                                        <code id="sinpe-name">Valeria Vega</code>
                                         <button class="copy-button" onclick="copyToClipboard('sinpe-name')">Copiar</button>
                                     </div>
                                 </div>
@@ -542,23 +551,23 @@ $items_stmt->close();
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <h5 class="text-primary mb-3">Legend Dance Academy</h5>
+                    <h5 class="brand-text mb-3">Vale V Photography</h5>
                     <p>Transformando vidas a través de la danza desde 2008</p>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5 class="text-primary mb-3">Enlaces Rápidos</h5>
+                    <h5 class="text-white mb-3">Enlaces Rápidos</h5>
                     <ul class="list-unstyled">
                         <li><a href="<?php echo VIEWS_URL; ?>/index.php" class="text-white-50">Inicio</a></li>
-                        <li><a href="<?php echo VIEWS_URL; ?>/clases.php" class="text-white-50">Clases</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/clases.php" class="text-white-50">Sesiones</a></li>
                         <li><a href="<?php echo VIEWS_URL; ?>/catalogo.php" class="text-white-50">Catálogo</a></li>
                         <li><a href="<?php echo VIEWS_URL; ?>/contact.php" class="text-white-50">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5 class="text-primary mb-3">Contacto</h5>
+                    <h5 class="text-white mb-3">Contacto</h5>
                     <p><i class="fas fa-map-marker-alt me-2"></i>Calle Principal 123, Ciudad</p>
-                    <p><i class="fas fa-phone me-2"></i>+506 8411-8339</p>
-                    <p><i class="fas fa-envelope me-2"></i>info@legenddanceacademy.com</p>
+                    <p><i class="fas fa-phone me-2"></i>+506 8676-4740</p>
+                    <p><i class="fas fa-envelope me-2"></i>info@valevphotography.com</p>
                 </div>
             </div>
         </div>

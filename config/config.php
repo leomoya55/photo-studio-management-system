@@ -5,20 +5,20 @@
  */
 
 return [
-    // Academy Information
+    // Studio Information
     'academy' => [
-        'name' => 'Academia de Danza Legend',
-        'tagline' => 'Transformando vidas a través de la danza desde 2008',
-        'description' => 'Con más de 15 años de experiencia, Academia Legend se ha convertido en el referente de la danza en nuestra ciudad.',
-        'founded_year' => 2008,
+        'name' => 'Vale V Photography',
+        'tagline' => 'Luz cálida, historias reales desde 2010',
+        'description' => 'Vale V Photography es un estudio creativo dedicado a producir imágenes emotivas y profesionales para personas, marcas y eventos.',
+        'founded_year' => 2010,
         'total_students' => 500
     ],
     
     // Contact Information
     'contact' => [
-        'address' => 'Calle Principal 123, Ciudad, País',
-        'phone' => '+1 (555) 123-4567',
-        'email' => 'info@academialegend.com',
+        'address' => '75 metros norte de correos, Zapote, San José, Costa Rica',
+        'phone' => '+506 8676-4740',
+        'email' => 'info@valevphotography.com',
         'hours' => [
             'monday_friday' => '09:00 - 21:00',
             'saturday' => '09:00 - 18:00',
@@ -28,10 +28,10 @@ return [
     
     // Social Media
     'social' => [
-        'facebook' => 'https://facebook.com/academialegend',
-        'instagram' => 'https://instagram.com/academialegend',
-        'youtube' => 'https://youtube.com/academialegend',
-        'tiktok' => 'https://tiktok.com/@academialegend'
+        'facebook' => 'https://www.facebook.com/share/1Czy4E7doQ/?mibextid=wwXIfr',
+        'instagram' => 'https://www.instagram.com/valevphotography?igsh=MXZobjc0NWtod2gyMA%3D%3D&utm_source=qr',
+        'youtube' => 'https://youtube.com/@valevphotography',
+        'tiktok' => 'https://tiktok.com/@valevstudio'
     ],
     
     // Email Configuration
@@ -39,16 +39,16 @@ return [
         'smtp_host' => 'smtp.gmail.com',
         'smtp_port' => 587,
         'smtp_encryption' => 'tls',
-        'smtp_username' => 'info@academialegend.com',
+        'smtp_username' => 'info@valevphotography.com',
         'smtp_password' => 'your_app_password_here',
-        'from_email' => 'info@academialegend.com',
-        'from_name' => 'Academia Legend',
-        'admin_email' => 'admin@academialegend.com'
+        'from_email' => 'info@valevphotography.com',
+        'from_name' => 'Vale V Photography',
+        'admin_email' => 'admin@valevphotography.com'
     ],
     
     // Website Settings
     'website' => [
-        'url' => 'https://www.academialegend.com',
+        'url' => 'https://www.valevphotography.com',
         'timezone' => 'America/Mexico_City',
         'language' => 'es',
         'charset' => 'UTF-8'
@@ -134,9 +134,9 @@ return [
     
     // SEO Settings
     'seo' => [
-        'meta_title' => 'Academia de Danza Legend - Clases de Danza Profesionales',
-        'meta_description' => 'Aprende danza con los mejores instructores. Ballet, jazz, hip hop, salsa y más. ¡Únete a nuestra familia de danza!',
-        'meta_keywords' => 'academia danza, clases ballet, hip hop, jazz, salsa, instructores profesionales',
+        'meta_title' => 'Vale V Photography - Estudio Fotográfico en Costa Rica',
+        'meta_description' => 'Sesiones fotográficas profesionales para retratos, marcas y eventos. Reserva tu experiencia con Vale V Photography y captura tus momentos más auténticos.',
+        'meta_keywords' => 'fotografía profesional, estudio fotográfico, retratos, fotografía comercial, sesiones creativas',
         'og_image' => 'assets/images/og-image.jpg',
         'twitter_card' => 'summary_large_image'
     ]

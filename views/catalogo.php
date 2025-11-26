@@ -75,7 +75,7 @@ if (empty($products)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo - Legend Dance Academy</title>
+    <title>Catálogo - Vale V Photography</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -89,187 +89,203 @@ if (empty($products)) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     
-    <!-- Orange and Black Color Overrides -->
+    <!-- Vale V Photography monochrome overrides -->
     <style>
         :root {
-            --bs-primary: #ff6600;
-            --bs-primary-rgb: 255, 102, 0;
+            --bs-primary: #000000;
+            --bs-primary-rgb: 0, 0, 0;
+            --bs-btn-hover-bg: #111111;
+            --bs-btn-active-bg: #111111;
         }
-        
+
+        .brand-text {
+            font-family: 'Dancing Script', cursive !important;
+            color: var(--brand-color) !important;
+            font-weight: 700;
+        }
+
+        .brand-text:hover {
+            color: var(--brand-color) !important;
+        }
+
         .btn-primary {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            background-image: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            background-image: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
         }
-        
+
         .btn-primary:hover,
         .btn-primary:focus,
         .btn-primary:active {
-            background-color: #e55a00 !important;
-            border-color: #e55a00 !important;
-            background-image: linear-gradient(135deg, #e55a00 0%, #ff6600 100%) !important;
+            background-color: #111111 !important;
+            border-color: #111111 !important;
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%) !important;
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
-        
+
+        .btn-outline-primary {
+            color: #111111 !important;
+            border-color: #111111 !important;
+        }
+
+        .btn-outline-primary:hover,
+        .btn-outline-primary:focus,
+        .btn-outline-primary:active {
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            color: #ffffff !important;
+        }
+
         .text-primary {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
-        
+
         .hero-catalog {
-            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-            color: white;
+            background: linear-gradient(135deg, #fff3e5 0%, #f6caa5 100%);
+            color: #3d2b28;
             padding: 100px 0 80px;
             margin-top: 76px;
         }
-        
+
+        .hero-catalog .text-on-dark {
+            color: #3d2b28 !important;
+            text-shadow: none;
+        }
+
+        .hero-catalog .text-on-dark-soft {
+            color: #6f4b3a !important;
+            text-shadow: none;
+        }
+
         .category-filter {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.2);
             border-radius: 25px;
-            color: white;
+            color: #111111;
             padding: 8px 20px;
             margin: 5px;
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        
+
         .category-filter.active,
         .category-filter:hover {
-            background: rgba(255,255,255,0.3);
-            border-color: rgba(255,255,255,0.5);
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
+            border-color: #000000;
+            color: #ffffff;
         }
-        
+
         .search-catalog {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(0, 0, 0, 0.15);
             border-radius: 50px;
-            color: white;
+            color: #111111;
             padding: 12px 25px;
         }
-        
+
         .search-catalog::placeholder {
-            color: rgba(255,255,255,0.7);
+            color: rgba(0, 0, 0, 0.45);
         }
-        
+
         .search-catalog:focus {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.5);
-            color: white;
-            box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
+            background: rgba(255, 255, 255, 0.98);
+            border-color: rgba(0, 0, 0, 0.35);
+            color: #111111;
+            box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.1);
         }
-        
-        .product-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        
-        .size-option, .color-option {
-            display: inline-block;
-            margin: 2px;
-            cursor: pointer;
-        }
-        
-        .size-option {
-            padding: 4px 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-        
-        .size-option:hover,
-        .size-option.active {
-            background-color: #ff6600;
-            color: white;
-            border-color: #ff6600;
-        }
-        
-        .color-option {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid #ddd;
-            position: relative;
-        }
-        
-        .color-option:hover,
-        .color-option.active {
-            border-color: #ff6600;
-            transform: scale(1.1);
-        }
-        
-        body {
-            background-color: #fafafa;
-        }
-        
-        .bg-primary {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
-        }
-        
-        /* Fix any remaining blue/sky blue elements */
-        .badge {
-            background-color: #ff6600 !important;
-            color: white !important;
-        }
-        
-        .badge-primary {
-            background-color: #ff6600 !important;
-            color: white !important;
-        }
-        
-        .badge-secondary {
-            background-color: #333333 !important;
-            color: white !important;
-        }
-        
-        .badge-info {
-            background-color: #ff6600 !important;
-            color: white !important;
-        }
-        
-        /* Additional styles for catalog page */
+
         .product-card {
             transition: all 0.3s ease;
             height: 100%;
             border: none;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 5px 15px rgba(61, 43, 40, 0.08);
             position: relative;
             overflow: hidden;
         }
-        
+
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 30px rgba(61, 43, 40, 0.15);
         }
-        
-        /* User welcome styling */
+
+        .size-option,
+        .color-option {
+            display: inline-block;
+            margin: 2px;
+            cursor: pointer;
+        }
+
+        .size-option {
+            padding: 4px 8px;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .size-option:hover,
+        .size-option.active {
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .color-option {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #cccccc;
+            position: relative;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .color-option:hover,
+        .color-option.active {
+            border-color: #000000;
+            transform: scale(1.1);
+        }
+
+        body {
+            background-color: #fafafa;
+        }
+
+        .bg-primary {
+            background: linear-gradient(135deg, #000000 0%, #2d2d2d 100%) !important;
+        }
+
+        .badge,
+        .badge-primary,
+        .badge-info {
+            background-color: #111111 !important;
+            color: white !important;
+        }
+
+        .badge-secondary {
+            background-color: #444444 !important;
+            color: white !important;
+        }
+
         .user-welcome {
-            color: #ff6600 !important;
+            color: #111111 !important;
             font-weight: 600;
             padding: 8px 16px;
             border-radius: 20px;
-            background: rgba(255, 102, 0, 0.1);
-            border: 1px solid #ff6600;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid #111111;
         }
-        
+
         .dropdown-menu {
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             border: none;
         }
-        
+
         .dropdown-item:hover {
-            background-color: #ff6600;
+            background-color: #000000;
             color: white;
         }
-        
-        /* Toast Notifications */
+
         .toast-notification {
             position: fixed;
             top: 100px;
@@ -277,7 +293,7 @@ if (empty($products)) {
             background: white;
             border-radius: 10px;
             padding: 15px 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -286,31 +302,30 @@ if (empty($products)) {
             z-index: 9999;
             min-width: 300px;
         }
-        
+
         .toast-notification.show {
             transform: translateX(0);
         }
-        
+
         .toast-notification.success {
-            border-left: 4px solid #28a745;
-            color: #28a745;
+            border-left: 4px solid #198754;
+            color: #198754;
         }
-        
+
         .toast-notification.error {
             border-left: 4px solid #dc3545;
             color: #dc3545;
         }
-        
+
         .toast-notification i {
             font-size: 18px;
         }
-        
-        /* Floating Cart */
+
         .floating-cart {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
             color: white;
             width: 60px;
             height: 60px;
@@ -319,39 +334,41 @@ if (empty($products)) {
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
             transition: all 0.3s ease;
             z-index: 1000;
             font-size: 24px;
         }
-        
+
         .floating-cart:hover {
             color: white;
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(255, 102, 0, 0.5);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
         }
-        
+
         .floating-cart .cart-count {
             position: absolute;
-            top: -5px;
-            right: -5px;
+            top: -8px;
+            right: -8px;
             background: #dc3545;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
+            color: #ffffff;
+            border-radius: 999px;
+            min-width: 26px;
+            height: 26px;
+            padding: 0 6px;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
             display: none;
         }
-        
+
         .floating-cart.cart-animate {
             animation: cartBounce 0.3s ease;
         }
-        
+
         @keyframes cartBounce {
             0% { transform: scale(1); }
             50% { transform: scale(1.2); }
@@ -364,7 +381,7 @@ if (empty($products)) {
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>">
-                <span class="brand-text">Legend</span>
+                <span class="brand-text">Vale V Photography</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -377,10 +394,7 @@ if (empty($products)) {
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Clases</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/horarios.php<?php echo $adminViewParam; ?>">Horarios</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Sesiones</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="<?php echo VIEWS_URL; ?>/catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
@@ -411,11 +425,11 @@ if (empty($products)) {
                             </ul>
                         </li>
                     <?php else: ?>
-                        <li class="nav-item">
-                            <a class="nav-link btn-outline-primary px-3 me-2" href="<?php echo VIEWS_URL; ?>/register.php">Registrarse</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-outline-primary" href="<?php echo VIEWS_URL; ?>/register.php" role="button">Registrarse</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link btn-primary text-white px-3" href="<?php echo VIEWS_URL; ?>/login.php">Iniciar Sesión</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-primary" href="<?php echo VIEWS_URL; ?>/login.php" role="button">Iniciar Sesión</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -429,7 +443,7 @@ if (empty($products)) {
         <div class="container">
             <i class="fas fa-eye me-2"></i>
             <strong>Vista de Administrador</strong> - Vanessa, estás viendo el sitio web sin opciones de inscripción
-            <a href="../admin/admin.php" class="btn btn-light btn-sm ms-3">
+            <a href="<?php echo ADMIN_URL; ?>/admin.php" class="btn btn-light btn-sm ms-3">
                 <i class="fas fa-arrow-left me-1"></i>Volver al Panel Admin
             </a>
         </div>
@@ -441,8 +455,8 @@ if (empty($products)) {
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-8">
-                    <h1 class="display-4 fw-bold mb-4">Catálogo Legend</h1>
-                    <p class="lead mb-4">Descubre nuestra colección exclusiva de ropa de danza, calzado, accesorios y más. Todo lo que necesitas para brillar en cada paso.</p>
+                    <h1 class="display-4 fw-bold mb-4 text-on-dark">Catálogo del Estudio</h1>
+                    <p class="lead mb-4 text-on-dark-soft">Descubre productos que complementan tus sesiones fotográficas: vestuario editorial, props de styling, impresiones fine art y kits para luces y cuidado de tus imágenes.</p>
                 </div>
                 <div class="col-lg-4">
                     <div class="position-relative">
@@ -576,16 +590,14 @@ if (empty($products)) {
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h5 class="brand-text mb-0">Legend</h5>
-                    <p class="mb-0">Tu academia de danza de confianza</p>
+                    <h5 class="brand-text mb-0">Vale V Photography</h5>
+                    <p class="mb-0">Estudio fotográfico donde cada imagen cuenta una historia.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="social-links">
-                        <a href="https://www.facebook.com/profile.php?id=100068508182444" target="_blank"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/legendvm.cr/" target="_blank"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="disabled" title="Próximamente"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@studiolegend.cr" target="_blank"><i class="fab fa-tiktok"></i></a>
-                        <a href="https://wa.me/50684118339" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/share/1Czy4E7doQ/?mibextid=wwXIfr" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.instagram.com/valevphotography?igsh=MXZobjc0NWtod2gyMA%3D%3D&utm_source=qr" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://wa.me/50686764740" target="_blank"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
             </div>
@@ -797,7 +809,7 @@ if (empty($products)) {
             const cartBadge = document.querySelector('.cart-count');
             if (cartBadge) {
                 cartBadge.textContent = count;
-                cartBadge.style.display = count > 0 ? 'block' : 'none';
+                cartBadge.style.display = count > 0 ? 'flex' : 'none';
                 
                 // Animate cart icon
                 const cartIcon = document.querySelector('.floating-cart');

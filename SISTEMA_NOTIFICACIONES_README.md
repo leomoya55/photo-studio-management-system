@@ -1,4 +1,4 @@
-# 🎯 Sistema de Notificaciones de Usuario - Legend Dance Academy
+# 🎯 Sistema de Notificaciones de Usuario - Valeria Vega Studio
 
 ## 📋 Resumen del Sistema
 

@@ -93,14 +93,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Legend Dance Academy</title>
+    <title>Registro - Vale V Photography</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         .register-container {
             min-height: 100vh;
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             margin-bottom: 2rem;
         }
         .brand-logo h2 {
-            color: #ff6600;
+            color: #000000;
             font-weight: bold;
             margin-bottom: 0.5rem;
         }
@@ -127,14 +127,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border-radius: 10px;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
             border: none;
             border-radius: 10px;
             padding: 0.75rem;
             font-weight: 600;
         }
         .btn-primary:hover {
-            background: linear-gradient(135deg, #e55a00 0%, #ff6600 100%);
+            background: linear-gradient(135deg, #111111 0%, #444444 100%);
             transform: translateY(-2px);
         }
         .form-control {
@@ -143,8 +143,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             padding: 0.75rem 1rem;
         }
         .form-control:focus {
-            border-color: #ff6600;
-            box-shadow: 0 0 0 0.2rem rgba(255, 102, 0, 0.25);
+            border-color: #000000;
+            box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
         }
     </style>
 </head>
@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="register-container">
         <div class="register-card">
             <div class="brand-logo">
-                <h2><i class="fas fa-star"></i> Legend Dance Academy</h2>
+                <h2><i class="fas fa-star"></i> Vale V Photography</h2>
                 <p class="text-muted">Crea tu cuenta para inscribirte en nuestras clases</p>
             </div>
 

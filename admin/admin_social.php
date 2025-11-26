@@ -139,18 +139,18 @@ $posts_result = $conn->query($posts_query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion de Redes Sociales - Legend Admin</title>
+    <title>Gestión de Redes Sociales - Vale V Photography Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .social-post-card { transition: transform 0.2s ease; }
         .social-post-card:hover { transform: translateY(-2px); }
         .social-post-card img { height: 200px; object-fit: cover; }
-        .card-header { background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important; color: white !important; border: none; }
-        .btn-primary { background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%); border: none; }
-        .btn-primary:hover { background: linear-gradient(135deg, #e55500 0%, #e56f00 100%); border: none; }
-        .text-primary { color: #ff6600 !important; }
-        .form-control:focus, .form-select:focus { border-color: #ff6600; box-shadow: 0 0 0 0.2rem rgba(255, 102, 0, 0.25); }
+        .card-header { background: linear-gradient(135deg, #000000 0%, #333333 100%) !important; color: white !important; border: none; }
+        .btn-primary { background: linear-gradient(135deg, #000000 0%, #222222 100%); border: none; }
+        .btn-primary:hover { background: linear-gradient(135deg, #111111 0%, #333333 100%); border: none; }
+        .text-primary { color: #111111 !important; }
+        .form-control:focus, .form-select:focus { border-color: #111111; box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.3); }
     </style>
 </head>
 <body class="bg-light">

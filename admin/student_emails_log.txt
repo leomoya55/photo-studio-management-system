@@ -1,4 +1,6 @@
-2025-10-23 23:57:52 - Email to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: 'Información sobre pagos - Academia Legend' - Type: payment - Sender: Vanessa Mora
-2025-11-07 07:09:24 - Email NOT_SENT to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: 'Actualización de tu orden #ORD-20251107-7E0739 - Aprobada' - Type: order-approved - Sender: Admin
-2025-11-07 07:22:10 - Email NOT_SENT to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: 'Actualización de tu orden #ORD-20251107-7E0739 - Completada' - Type: order-completed - Sender: Admin
-2025-11-07 07:22:13 - Email NOT_SENT to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: 'Actualización de tu orden #ORD-20251107-7E0739 - Completada' - Type: order-completed - Sender: Admin
+2025-11-26 00:00:00 - Log reiniciado para Valeria Vega Studio - motivo: actualización de branding
+2025-11-26 05:10:24 - Email to: vanessa@legenddance.com (Valeria Vega) - Subject: '¡Tu sesión está confirmada! - Vale V Photography' - Type: enrollment-approved - Result: NOT_SENT - Sender: Admin
+2025-11-26 05:23:22 - Email to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: '¡Tu sesión está confirmada! - Vale V Photography' - Type: enrollment-approved - Result: NOT_SENT - Sender: Admin
+2025-11-26 05:28:15 | ORDER_EMAIL | ORD-20251126-5E740F | customer=leomoyawr300@gmail.com sent=0 | admin=admin@valevphotography.com sent=0
+2025-11-26 05:49:31 - Email NOT_SENT to: leomoyawr300@gmail.com (Leonardo Moya) - Subject: 'Actualización de tu orden #ORD-20251126-5E740F - Aprobada' - Type: order-approved-customer - Sender: Admin
+2025-11-26 05:49:33 - Email NOT_SENT to: admin@valevphotography.com (Admin) - Subject: 'Orden #ORD-20251126-5E740F cambiada a Aprobada' - Type: order-approved-admin - Sender: System

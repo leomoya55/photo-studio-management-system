@@ -150,15 +150,15 @@ try {
         $enrollment_id = $conn->insert_id;
         
         // Send notification email to admin (optional)
-        $admin_email = "admin@academialegend.com"; // Configure this
-        $subject = "Nueva Solicitud de Inscripción - Academia Legend";
+        $admin_email = "admin@valevphotography.com"; // Configure this
+        $subject = "Nueva Solicitud de Inscripción - Vale V Photography";
         $message = "
         <h3>Nueva Solicitud de Inscripción</h3>
         <p><strong>Estudiante:</strong> {$user_info['first_name']} {$user_info['last_name']} ({$user_info['email']})</p>
         <p><strong>Clase:</strong> {$class_info['name']}</p>
         <p><strong>Nivel:</strong> {$class_info['level']}</p>
         <p><strong>Horarios Disponibles:</strong> {$class_info['schedule']}</p>" . 
-        ($selected_schedule ? "<p><strong>Horario Elegido por el Estudiante:</strong> <span style='color: #ff6600; font-weight: bold;'>{$selected_schedule}</span></p>" : "") . "
+        ($selected_schedule ? "<p><strong>Horario Elegido por el Estudiante:</strong> <span style='color: #000000; font-weight: bold;'>{$selected_schedule}</span></p>" : "") . "
         <p><strong>Precio:</strong> ₡{$class_info['price']}/mes</p>
         <p><strong>Fecha de Solicitud:</strong> " . date('Y-m-d H:i:s') . "</p>
         <p><strong>ID de Inscripción:</strong> {$enrollment_id}</p>
@@ -169,7 +169,7 @@ try {
         $headers = [
             'MIME-Version: 1.0',
             'Content-type: text/html; charset=UTF-8',
-            'From: Academia Legend <noreply@academialegend.com>',
+            'From: Vale V Photography <noreply@valevphotography.com>',
         ];
         
         // Send email (uncomment when ready)

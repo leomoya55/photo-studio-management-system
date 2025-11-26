@@ -20,19 +20,22 @@ class ImageUploader {
         echo "=== UPLOADING CLASS IMAGES ===\n";
         
         $classImagesPath = __DIR__ . '/assets/images/classes/';
-        $classImages = [
-            'CIRCUS-04.jpg' => 'classes/circus-04',
-            'CIRCUS-10.jpg' => 'classes/circus-10',  
-            'CIRCUS-27.jpg' => 'classes/circus-27',
-            'CIRCUS-31.jpg' => 'classes/circus-31',
-            'CIRCUS-33.jpg' => 'classes/circus-33',
-            'latino.jpg' => 'classes/latino',
-            'Legend MJ-03.jpg' => 'classes/legend-mj-03',
-            'Wakanda Lengend-06.jpg' => 'classes/wakanda-legend-06'
-        ];
+        $classImages = glob($classImagesPath . '*.{jpg,jpeg,png,gif,webp}', GLOB_BRACE) ?: [];
 
-        foreach ($classImages as $filename => $publicId) {
-            $filePath = $classImagesPath . $filename;
+        if (empty($classImages)) {
+            echo "No se encontraron imágenes de clases en {$classImagesPath}.\n";
+            return;
+        }
+
+        foreach ($classImages as $filePath) {
+            $filename = basename($filePath);
+            $slug = strtolower(pathinfo($filename, PATHINFO_FILENAME));
+            $slug = preg_replace('/[^a-z0-9]+/i', '-', $slug);
+            $slug = trim($slug, '-');
+            if ($slug === '') {
+                $slug = 'class-' . substr(md5($filename), 0, 8);
+            }
+            $publicId = 'classes/' . $slug;
             $this->uploadSingleImage($filePath, $publicId, $filename);
         }
     }

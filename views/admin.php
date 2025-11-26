@@ -45,24 +45,37 @@ if (isset($conn) && $conn) {
 <html lang="es">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Panel de Administración - Legend Academy</title>
+  <title>Panel de Administración - Vale V Photography</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
   <style>
     body { background:#f6f7fb; }
-    .brand-gradient { background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%); }
-    .nav-pills .nav-link.active { background:#ff6600; }
-    .nav-pills .nav-link { color:#ff6600; }
+    .brand-gradient { background: linear-gradient(135deg, #000000 0%, #333333 100%); }
+    .nav-pills .nav-link.active { background:#000000; }
+    .nav-pills .nav-link { color:#111111; }
     .card { border:none; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06); }
     .card-stat { box-shadow:0 8px 24px rgba(0,0,0,.08); border:0; border-radius:16px; }
     .stat-icon { width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:12px; }
     .table thead th { background:#fafafa; }
     .badge-status { border-radius:20px; }
     .sticky-toolbar { position:sticky; top:0; z-index:2; background:#fff; padding:.75rem; border-bottom:1px solid #eee; }
-    .btn-gradient { background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%); border:0; }
-    .btn-gradient:hover { background: linear-gradient(135deg, #e55500 0%, #e56f00 100%); }
+    .btn-gradient { background: linear-gradient(135deg, #000000 0%, #333333 100%); border:0; }
+    .btn-gradient:hover { background: linear-gradient(135deg, #111111 0%, #444444 100%); }
     .search-input { max-width:360px; }
+    .support-thread { min-height: 280px; max-height: 420px; overflow-y: auto; background: linear-gradient(180deg,#fbfbfc 0%,#f5f5f5 100%); }
+    .support-thread .message-bubble { max-width: 80%; padding: 1rem 1.25rem; border-radius: 16px; margin-bottom: 1rem; box-shadow: 0 12px 26px rgba(17,24,39,0.08); position: relative; }
+    .support-thread .message-bubble.from-admin { background:#ffffff; border:1px solid rgba(17,24,39,0.08); color:#1f2937; border-bottom-left-radius:6px; }
+    .support-thread .message-bubble.from-user { margin-left:auto; background:#111827; color:rgba(255,255,255,0.9); border-bottom-right-radius:6px; }
+    .support-thread .message-meta { font-size: .7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: .35rem; opacity:.7; }
+    .support-thread .message-subject { font-weight:600; margin-bottom: .35rem; }
+    .support-status { display:inline-flex; align-items:center; gap:.35rem; border-radius:999px; padding:.35rem .85rem; font-size:.8rem; }
+    .support-status-muted { background: rgba(148,163,184,0.2); color:#475569; }
+    .support-status-success { background: rgba(34,197,94,0.2); color:#166534; }
+    .support-status-warning { background: rgba(250,204,21,0.25); color:#854d0e; }
+    .support-status-error { background: rgba(248,113,113,0.25); color:#b91c1c; }
+    .support-loading { display:flex; align-items:center; gap:.5rem; }
+    .support-empty { color:#94a3b8; }
   </style>
   <!-- PWA/service worker (optional) -->
   <link rel="manifest" href="<?php echo BASE_URL; ?>/manifest.json">
@@ -74,7 +87,7 @@ if (isset($conn) && $conn) {
       });
     }
   </script>
-  <meta name="theme-color" content="#ff6600" />
+  <meta name="theme-color" content="#000000" />
 </head>
 <body>
   <!-- Top bar -->
@@ -83,7 +96,7 @@ if (isset($conn) && $conn) {
       <div class="d-flex align-items-center gap-3">
         <i class="fas fa-crown fa-lg"></i>
         <div>
-          <div class="fw-semibold">Legend Dance Academy</div>
+          <div class="fw-semibold">Vale V Photography</div>
           <small>Panel de Administración</small>
         </div>
       </div>
@@ -100,17 +113,16 @@ if (isset($conn) && $conn) {
         <div class="card p-2" style="position:sticky; top:1rem;">
           <div class="nav flex-column nav-pills" id="adminTabs" role="tablist" aria-orientation="vertical">
             <button class="nav-link text-start active" id="tab-dashboard" data-bs-toggle="pill" data-bs-target="#pane-dashboard" type="button" role="tab"><i class="fas fa-chart-line me-2"></i> Dashboard</button>
-            <button class="nav-link text-start" id="tab-clientes" data-bs-toggle="pill" data-bs-target="#pane-clientes" type="button" role="tab"><i class="fas fa-users me-2"></i> Gestión de clientes</button>
+            <button class="nav-link text-start" id="tab-clientes" data-bs-toggle="pill" data-bs-target="#pane-clientes" type="button" role="tab"><i class="fas fa-users me-2"></i> Gestión de Clientes</button>
             <button class="nav-link text-start" id="tab-inscripciones" data-bs-toggle="pill" data-bs-target="#pane-inscripciones" type="button" role="tab"><i class="fas fa-list-check me-2"></i> Inscripciones</button>
-            <button class="nav-link text-start" id="tab-clases" data-bs-toggle="pill" data-bs-target="#pane-clases" type="button" role="tab"><i class="fas fa-dumbbell me-2"></i> Clases</button>
+            <button class="nav-link text-start" id="tab-clases" data-bs-toggle="pill" data-bs-target="#pane-clases" type="button" role="tab"><i class="fas fa-dumbbell me-2"></i> Sesiones</button>
             <button class="nav-link text-start" id="tab-productos" data-bs-toggle="pill" data-bs-target="#pane-productos" type="button" role="tab"><i class="fas fa-bag-shopping me-2"></i> Productos</button>
             <button class="nav-link text-start" id="tab-redes" data-bs-toggle="pill" data-bs-target="#pane-redes" type="button" role="tab"><i class="fas fa-share-alt me-2"></i> Redes sociales</button>
-            <button class="nav-link text-start" id="tab-sesiones" data-bs-toggle="pill" data-bs-target="#pane-sesiones" type="button" role="tab"><i class="fas fa-calendar-day me-2"></i> Sesiones de clase</button>
-            <button class="nav-link text-start" id="tab-asistencia" data-bs-toggle="pill" data-bs-target="#pane-asistencia" type="button" role="tab"><i class="fas fa-clipboard-check me-2"></i> Asistencia</button>
-            <button class="nav-link text-start" id="tab-feedback" data-bs-toggle="pill" data-bs-target="#pane-feedback" type="button" role="tab"><i class="fas fa-comment-dots me-2"></i> Feedback estudiantes</button>
+            <button class="nav-link text-start" id="tab-sesiones" data-bs-toggle="pill" data-bs-target="#pane-sesiones" type="button" role="tab"><i class="fas fa-calendar-day me-2"></i> Registrar Sesiones</button>
+            <button class="nav-link text-start" id="tab-feedback" data-bs-toggle="pill" data-bs-target="#pane-feedback" type="button" role="tab"><i class="fas fa-comment-dots me-2"></i> Feedback Sesiones</button>
             <button class="nav-link text-start" id="tab-ordenes" data-bs-toggle="pill" data-bs-target="#pane-ordenes" type="button" role="tab"><i class="fas fa-box-open me-2"></i> Órdenes</button>
             <button class="nav-link text-start" id="tab-pagos" data-bs-toggle="pill" data-bs-target="#pane-pagos" type="button" role="tab"><i class="fas fa-receipt me-2"></i> Registro de Pagos</button>
-            <button class="nav-link text-start" id="tab-progreso" data-bs-toggle="pill" data-bs-target="#pane-progreso" type="button" role="tab"><i class="fas fa-chart-simple me-2"></i> Progreso</button>
+            <button class="nav-link text-start d-flex align-items-center justify-content-between" id="tab-mensajes" data-bs-toggle="pill" data-bs-target="#pane-mensajes" type="button" role="tab"><span><i class="fas fa-inbox me-2"></i> Mensajes</span><span class="badge rounded-pill bg-danger ms-2 d-none" data-admin-message-count>0</span></button>
             <button class="nav-link text-start" id="tab-reportes" data-bs-toggle="pill" data-bs-target="#pane-reportes" type="button" role="tab"><i class="fas fa-file-export me-2"></i> Reportes</button>
           </div>
         </div>
@@ -139,7 +151,7 @@ if (isset($conn) && $conn) {
             <div class="card card-stat p-3 h-100">
               <h5 class="mb-3"><i class="fas fa-clipboard-list me-2 text-success"></i>Atajos</h5>
               <div class="d-grid gap-2">
-                <a href="#pane-clases" class="btn btn-outline-secondary" onclick="document.getElementById('tab-clases')?.click(); return false;"><i class="fas fa-dumbbell me-2"></i>Gestionar Clases</a>
+                <a href="#pane-clases" class="btn btn-outline-secondary" onclick="document.getElementById('tab-clases')?.click(); return false;"><i class="fas fa-dumbbell me-2"></i>Gestionar Sesiones</a>
                 <a href="<?php echo ADMIN_URL; ?>/admin_products.php" class="btn btn-outline-secondary"><i class="fas fa-bag-shopping me-2"></i>Gestionar Productos</a>
                 <a href="<?php echo ADMIN_URL; ?>/admin_social.php" class="btn btn-outline-secondary"><i class="fas fa-share-alt me-2"></i>Gestionar Redes Sociales</a>
               </div>
@@ -297,50 +309,23 @@ if (isset($conn) && $conn) {
         </div>
       </div>
 
-      <!-- Asistencia -->
-      <div class="tab-pane fade" id="pane-asistencia" role="tabpanel">
-        <div class="row g-3">
-          <div class="col-lg-4">
-            <div class="card p-3 h-100">
-              <h6 class="mb-2">Seleccionar sesión</h6>
-              <select id="attendanceSession" class="form-select mb-2"></select>
-              <div class="small text-muted">Elige una sesión para registrar asistencia.</div>
-            </div>
-          </div>
-          <div class="col-lg-8">
-            <div class="card p-3">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0">Marcar asistencia</h6>
-                <button class="btn btn-sm btn-outline-secondary" onclick="reloadAttendance()"><i class="fas fa-rotate"></i></button>
-              </div>
-              <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                  <thead><tr><th>Estudiante</th><th>Asistió</th><th>Notas</th><th class="text-end">Guardar</th></tr></thead>
-                  <tbody id="attendanceTableBody"><tr><td colspan="4" class="text-center text-muted py-4">Selecciona una sesión</td></tr></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Feedback estudiantes -->
+      <!-- Feedback sesiones -->
       <div class="tab-pane fade" id="pane-feedback" role="tabpanel">
         <div class="card p-3">
           <div class="row g-3">
-            <div class="col-md-3"><label class="form-label">Estudiante</label><select id="feedbackUser" class="form-select"></select></div>
-            <div class="col-md-3"><label class="form-label">Inscripción</label><select id="feedbackEnrollment" class="form-select"></select></div>
-            <div class="col-md-3"><label class="form-label">Fecha de clase</label><input type="date" id="feedbackDate" class="form-control" value="<?php echo date('Y-m-d'); ?>"></div>
-            <div class="col-md-3"><label class="form-label">Calificación (1-10)</label><input type="number" id="feedbackRating" class="form-control" min="1" max="10" value="8"></div>
-            <div class="col-md-4"><label class="form-label">Fortalezas</label><textarea id="feedbackStrengths" class="form-control" rows="2"></textarea></div>
-            <div class="col-md-4"><label class="form-label">A mejorar</label><textarea id="feedbackImprovements" class="form-control" rows="2"></textarea></div>
-            <div class="col-md-4"><label class="form-label">Tarea</label><textarea id="feedbackHomework" class="form-control" rows="2"></textarea></div>
+            <div class="col-md-3"><label class="form-label">Cliente</label><select id="feedbackUser" class="form-select"></select></div>
+            <div class="col-md-3"><label class="form-label">Reserva / Inscripción</label><select id="feedbackEnrollment" class="form-select"></select></div>
+            <div class="col-md-3"><label class="form-label">Fecha de sesión</label><input type="date" id="feedbackDate" class="form-control" value="<?php echo date('Y-m-d'); ?>"></div>
+            <div class="col-md-3"><label class="form-label">Valoración (1-10)</label><input type="number" id="feedbackRating" class="form-control" min="1" max="10" value="8"></div>
+            <div class="col-md-4"><label class="form-label">Momentos destacados</label><textarea id="feedbackStrengths" class="form-control" rows="2" placeholder="¿Qué le encantó al cliente?"></textarea></div>
+            <div class="col-md-4"><label class="form-label">Oportunidades para mejorar</label><textarea id="feedbackImprovements" class="form-control" rows="2" placeholder="Ajustes para próximas sesiones"></textarea></div>
+            <div class="col-md-4"><label class="form-label">Entregables pendientes</label><textarea id="feedbackHomework" class="form-control" rows="2" placeholder="Galerías, impresiones, recordatorios"></textarea></div>
           </div>
           <div class="text-end mt-3"><button class="btn btn-gradient text-white" onclick="submitFeedback()"><i class="fas fa-paper-plane me-1"></i> Guardar feedback</button></div>
         </div>
         <div class="card mt-3">
           <div class="table-responsive">
-            <table class="table align-middle mb-0"><thead><tr><th>Fecha</th><th>Estudiante</th><th>Clase</th><th>Calificación</th><th>Notas</th></tr></thead><tbody id="feedbackTableBody"><tr><td colspan="5" class="text-center text-muted py-4">Cargando...</td></tr></tbody></table>
+            <table class="table align-middle mb-0"><thead><tr><th>Fecha</th><th>Cliente</th><th>Sesión</th><th>Valoración</th><th>Comentarios</th></tr></thead><tbody id="feedbackTableBody"><tr><td colspan="5" class="text-center text-muted py-4">Cargando...</td></tr></tbody></table>
           </div>
         </div>
       </div>
@@ -349,22 +334,84 @@ if (isset($conn) && $conn) {
       <div class="tab-pane fade" id="pane-pagos" role="tabpanel">
         <div class="card p-3">
           <div class="row g-3">
-            <div class="col-md-3"><label class="form-label">Estudiante</label><select id="paymentUser" class="form-select"></select></div>
+            <div class="col-md-3"><label class="form-label">Usuario</label><select id="paymentUser" class="form-select"></select></div>
             <div class="col-md-3"><label class="form-label">Inscripción (opcional)</label><select id="paymentEnrollment" class="form-select"></select></div>
             <div class="col-md-2"><label class="form-label">Monto (₡)</label><input type="number" id="paymentAmount" class="form-control" min="0" step="1000" placeholder="15000"></div>
             <div class="col-md-2"><label class="form-label">Método</label><select id="paymentMethod" class="form-select"><option value="sinpe" selected>SINPE</option><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option></select></div>
             <div class="col-md-2"><label class="form-label">Fecha</label><input type="date" id="paymentDate" class="form-control" value="<?php echo date('Y-m-d'); ?>"></div>
-            <div class="col-md-4"><label class="form-label">Referencia</label><input type="text" id="paymentRef" class="form-control" placeholder="SINPE 123456"></div>
-            <div class="col-md-8"><label class="form-label">Notas</label><input type="text" id="paymentNotes" class="form-control" placeholder="Detalle del pago (opcional)"></div>
           </div>
           <div class="text-end mt-3"><button class="btn btn-gradient text-white" onclick="submitPayment()"><i class="fas fa-check me-1"></i> Registrar pago</button></div>
         </div>
-        <div class="card mt-3"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Fecha</th><th>Estudiante</th><th>Clase</th><th>Método</th><th>Monto</th><th>Grabado por</th></tr></thead><tbody id="paymentsTableBody"><tr><td colspan="6" class="text-center text-muted py-4">Cargando...</td></tr></tbody></table></div></div>
+        <div class="card mt-3">
+          <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center p-3 pb-0">
+            <h6 class="mb-0">Historial de Pagos</h6>
+            <button type="button" class="btn btn-outline-dark btn-sm" onclick="downloadPaymentsPdf()"><i class="fas fa-file-pdf me-1"></i> Descargar PDF</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle mb-0"><thead><tr><th>Fecha</th><th>Usuario</th><th>Tipo</th><th>Método</th><th>Monto</th><th class="text-end">Acciones</th></tr></thead><tbody id="paymentsTableBody"><tr><td colspan="6" class="text-center text-muted py-4">Cargando...</td></tr></tbody></table>
+          </div>
+        </div>
       </div>
 
-      <!-- Progreso estudiantes (placeholder) -->
-      <div class="tab-pane fade" id="pane-progreso" role="tabpanel">
-        <div class="card p-4 text-center text-muted"><i class="fas fa-person-running fa-2x mb-2"></i><p>Aún estamos definiendo este módulo. Próximamente podrás ver y actualizar el progreso de cada estudiante.</p></div>
+      <!-- Mensajes -->
+      <div class="tab-pane fade" id="pane-mensajes" role="tabpanel">
+        <div class="row g-3" data-support-messages data-role="admin" data-api="<?php echo url_join(BASE_URL, 'api/support_messages.php'); ?>">
+          <div class="col-lg-4">
+            <div class="card h-100" data-overview-panel>
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="mb-0"><i class="fas fa-inbox me-2 text-primary"></i> Bandeja</h5>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" data-refresh-threads title="Actualizar bandeja"><i class="fas fa-rotate"></i></button>
+                </div>
+                <p class="small text-muted">Selecciona una conversación para responder desde el panel.</p>
+                <ul class="list-group list-group-flush flex-grow-1 overflow-auto" data-thread-list style="max-height: 420px;"></ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-8">
+            <div class="card h-100">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="mb-0">Mensajes seleccionados</h5>
+                  <small class="text-muted" data-selected-user>Selecciona una conversación para ver los mensajes</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="btn btn-outline-danger btn-sm d-none" data-close-thread title="Finalizar conversación">
+                    <i class="fas fa-comment-slash me-1"></i> Finalizar chat
+                  </button>
+                  <div class="support-loading d-none" data-loading>
+                    <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+                    <span class="small text-muted ms-2">Actualizando</span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <div class="support-thread p-3" data-message-list></div>
+                <div class="support-empty text-center py-4" data-empty-state>
+                  <i class="fas fa-comments mb-2 text-muted" style="font-size:1.6rem;"></i>
+                  <p class="text-muted mb-0 small">No hay mensajes para mostrar.</p>
+                </div>
+              </div>
+              <div class="card-footer bg-light">
+                <form data-support-form class="d-grid gap-3">
+                  <input type="hidden" name="user_id" value="">
+                  <div>
+                    <label class="form-label" for="adminSupportSubject">Asunto</label>
+                    <input type="text" id="adminSupportSubject" name="subject" class="form-control" placeholder="Resumen del mensaje" maxlength="140">
+                  </div>
+                  <div>
+                    <label class="form-label" for="adminSupportMessage">Mensaje</label>
+                    <textarea id="adminSupportMessage" name="message" class="form-control" rows="4" maxlength="2000" placeholder="Escribe la respuesta para el cliente" required></textarea>
+                  </div>
+                  <div class="d-flex flex-wrap align-items-center gap-3">
+                    <button type="submit" class="btn btn-gradient text-white"><i class="fas fa-paper-plane me-2"></i>Enviar respuesta</button>
+                    <div class="support-status support-status-muted d-none" data-support-status></div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Reportes -->
@@ -377,6 +424,52 @@ if (isset($conn) && $conn) {
             <button class="btn btn-outline-secondary" onclick="exportCSV('payment_records')"><i class="fas fa-download me-1"></i> Pagos</button>
             <button class="btn btn-outline-secondary" onclick="exportCSV('orders')"><i class="fas fa-download me-1"></i> Órdenes</button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Session Images -->
+  <div class="modal fade" id="modalSessionImages" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-images me-2"></i>Fotos de sesiones de <span id="sessionImagesUserName"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted">Sube las galerías finales de cada clienta. Las imágenes se almacenan en Cloudinary y se compartirán en el panel del cliente.</p>
+          <form id="sessionImagesForm" class="border rounded-3 p-3 mb-3 bg-light">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-5">
+                <label class="form-label" for="sessionImageLabel">Nombre de la sesión</label>
+                <input type="text" id="sessionImageLabel" class="form-control" placeholder="Ej. Sesión familiar" maxlength="120">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label" for="sessionImageDate">Fecha</label>
+                <input type="date" id="sessionImageDate" class="form-control">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="sessionImageFile">Imagen o carpeta (.zip)</label>
+                <input type="file" id="sessionImageFile" class="form-control" accept="image/*,.zip" required>
+              </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+              <button type="submit" class="btn btn-gradient text-white"><i class="fas fa-upload me-1"></i>Subir foto</button>
+            </div>
+            <p class="small text-muted mb-0">Puedes subir imágenes individuales o un archivo .zip con la galería completa. El enlace se comparte automáticamente en el panel del cliente.</p>
+          </form>
+          <div id="sessionImagesLoading" class="text-center text-muted py-4 d-none">
+            <div class="spinner-border text-dark" role="status" aria-hidden="true"></div>
+            <div class="mt-2">Cargando fotos...</div>
+          </div>
+          <div id="sessionImagesEmpty" class="text-center text-muted py-4 d-none">
+            Aún no se han subido fotos para esta clienta.
+          </div>
+          <div id="sessionImagesList" class="row g-3"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
         </div>
       </div>
     </div>
@@ -409,20 +502,17 @@ if (isset($conn) && $conn) {
         <div class="row g-3">
           <div class="col-md-6"><label class="form-label">Nombre</label><input type="text" id="newClassName" class="form-control" required></div>
           <div class="col-md-6"><label class="form-label">Instructor</label><input type="text" id="newClassInstructor" class="form-control" required></div>
-          <div class="col-md-4"><label class="form-label">Nivel</label><input type="text" id="newClassLevel" class="form-control" placeholder="Principiante"></div>
           <div class="col-md-4"><label class="form-label">Duración</label><input type="text" id="newClassDuration" class="form-control" placeholder="60 min"></div>
-          
           <div class="col-md-4"><label class="form-label">Precio (₡)</label><input type="number" id="newClassPrice" class="form-control" min="0" step="500" placeholder="15000"></div>
           <div class="col-md-4"><label class="form-label">Categoría</label>
             <select id="newClassCategory" class="form-select">
-              <option value="Contemporaneo">Contemporaneo</option>
-              <option value="Urbano">Urbano</option>
-              <option value="Latino">Latino</option>
-              <option value="Fitness">Fitness</option>
-              <option value="Infantil">Infantil</option>
+              <option value="bebes">Bebes</option>
+              <option value="familiares navidenos">Familiares Navidenos</option>
+              <option value="familiares">Familiares</option>
+              <option value="eventos">Eventos</option>
+              <option value="gender reveal">Gender Reveal</option>
             </select>
           </div>
-          <div class="col-md-4"><label class="form-label">Horario</label><input type="text" id="newClassSchedule" class="form-control" placeholder="Lun 6-7pm"></div>
           <div class="col-12"><label class="form-label">Descripción</label><textarea id="newClassDesc" class="form-control" rows="2"></textarea></div>
           <div class="col-12"><label class="form-label">Imagen (opcional)</label><input type="file" id="newClassImageFile" class="form-control" accept="image/*"></div>
           <div class="col-12 form-check ms-2"><input class="form-check-input" type="checkbox" id="newClassFeatured"> <label class="form-check-label" for="newClassFeatured">Destacar clase</label></div>
@@ -431,8 +521,15 @@ if (isset($conn) && $conn) {
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-gradient text-white" onclick="createClassFromAdmin()">Crear</button></div>
     </div></div>
   </div>
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script>
+    if (window.jspdf && window.jspdf.jsPDF) {
+      window.jsPDF = window.jspdf.jsPDF;
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="<?php echo ASSETS_URL; ?>/js/support-messages.js"></script>
   <script>
     // Cloudinary cloud name for building public-id URLs on the client
     const CLOUDINARY_CLOUD = '<?php echo htmlspecialchars(getCloudName(), ENT_QUOTES); ?>';
@@ -444,18 +541,55 @@ if (isset($conn) && $conn) {
       enrollments: ADMIN_BASE + '/users_api.php?endpoint=enrollments',
       payments: ADMIN_BASE + '/payments_api.php',
       sessions: ADMIN_BASE + '/sessions_api.php',
-      attendance: ADMIN_BASE + '/attendance_api.php',
       feedback: ADMIN_BASE + '/feedback_api.php',
       classes: ADMIN_BASE + '/get_classes.php',
       products: ADMIN_BASE + '/products_api.php',
       social: ADMIN_BASE + '/social_api.php',
       orders: ADMIN_BASE + '/users_api.php?endpoint=orders',
       deleteEnrollment: ADMIN_BASE + '/delete_enrollment.php',
-      updateEnrollmentStatus: ADMIN_BASE + '/update_enrollment_status.php'
+      updateEnrollmentStatus: ADMIN_BASE + '/update_enrollment_status.php',
+      sessionImages: ADMIN_BASE + '/session_images_api.php',
+      uploadSessionImage: ADMIN_BASE + '/upload_session_image.php'
     };
 
     const fmtMoney = v => new Intl.NumberFormat('es-CR').format(Number(v||0));
+    const sanitizeForPdf = (value) => {
+      try {
+        return String(value ?? '')
+          .replace(/[\u00A0]/g, ' ')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .trim();
+      } catch (_) {
+        return String(value ?? '').replace(/[\u00A0]/g, ' ');
+      }
+    };
+    const formatDateTimeForPdf = (date) => {
+      try {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+      } catch (_) {
+        return new Date(date).toISOString().slice(0,16).replace('T', ' ');
+      }
+    };
+    const formatDateForFilename = (date) => {
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
     const el = id => document.getElementById(id);
+    const escapeHtml = (str) => String(str||'').replace(/[&<>"']/g, (c) => {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      return map[c] || c;
+    });
+    const escapeAttr = (str) => escapeHtml(str);
     const isImageUrl = (u) => /\.(png|jpe?g|gif|webp)$/i.test(u||'');
     const isPdfUrl = (u) => /\.pdf$/i.test(u||'') || String(u||'').toLowerCase().includes('application/pdf');
     const extractUrlFromNotes = (notes) => {
@@ -471,9 +605,26 @@ if (isset($conn) && $conn) {
       }
       return '';
     };
+    const computeOrderTotal = (order) => {
+      const subtotal = Number(order && order.items_subtotal || 0);
+      const delivery = Number(order && order.delivery_cost || 0);
+      const recorded = Number(order && order.total_amount || 0);
+      if (subtotal > 0) {
+        const withDelivery = subtotal + delivery;
+        return recorded > 0 ? Math.max(recorded, withDelivery) : withDelivery;
+      }
+      if (recorded > 0) { return recorded; }
+      if (delivery > 0) { return delivery; }
+      return 0;
+    };
 
-    // Simple caches
-    let sessionsCache = [];
+  // Simple caches
+  let sessionsCache = [];
+  let paymentsCache = [];
+  let paymentEnrollmentList = [];
+  let sessionImagesCache = [];
+  let currentSessionImagesUserId = null;
+  let currentSessionImagesUserName = '';
 
     // Map status (English/Spanish) to canonical keys
     function normalizeStatus(st){
@@ -498,7 +649,7 @@ if (isset($conn) && $conn) {
         (enrs||[]).slice(0,10).forEach(e=>events.push({t:'inscripción', ts: e.enrollment_date, msg: `${e.full_name || (e.first_name+" "+e.last_name)} → ${e.class_name} (${e.status})`}));
         (pays||[]).slice(0,10).forEach(p=>events.push({t:'pago', ts: p.payment_date, msg: `${p.student_name} ₡${fmtMoney(p.amount)} via ${p.payment_method}`}));
         (ords||[]).slice(0,10).forEach(o=>{
-          const total = Number(o.total_amount||0) + Number(o.delivery_cost||0);
+          const total = computeOrderTotal(o);
           events.push({ t:'orden', ts: o.created_at, msg: `#${o.order_number} ${o.customer_name||''} ₡${fmtMoney(total)} (${normalizeStatus(o.status)})` });
         });
         events.sort((a,b)=> (b.ts||'').localeCompare(a.ts||''));
@@ -516,20 +667,33 @@ if (isset($conn) && $conn) {
     }
     function renderUsers(list){
       const tbody = el('usersTableBody');
-      if (!Array.isArray(list) || !list.length) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Sin usuarios</td></tr>`; return; }
-      tbody.innerHTML = list.map(u=>`<tr>
-        <td>${(u.full_name||'').trim() || (u.first_name||'')+' '+(u.last_name||'')}</td>
-        <td>${u.email||''}</td>
-        <td>${u.phone||''}</td>
-        <td><span class="badge rounded-pill bg-light text-dark">${u.role||'customer'}</span></td>
-        <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('es-CR') : ''}</td>
-        <td class="text-end">
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-danger" title="Desactivar usuario" onclick="deleteUser(${u.id})"><i class="fas fa-user-slash"></i></button>
-            <button class="btn btn-outline-dark" title="Eliminar permanentemente" onclick="hardDeleteUser(${u.id})"><i class="fas fa-skull"></i></button>
-          </div>
-        </td>
-      </tr>`).join('');
+      if (!Array.isArray(list) || !list.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Sin usuarios</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map((u)=>{
+        const displayName = (u.full_name || `${u.first_name||''} ${u.last_name||''}`).trim();
+        const safeName = escapeHtml(displayName);
+        const attrName = escapeAttr(displayName);
+        const email = escapeHtml(u.email||'');
+        const phone = escapeHtml(u.phone||'');
+        const role = escapeHtml(u.role || 'customer');
+        const created = u.created_at ? new Date(u.created_at).toLocaleDateString('es-CR') : '';
+        return `<tr>
+          <td>${safeName}</td>
+          <td>${email}</td>
+          <td>${phone}</td>
+          <td><span class="badge rounded-pill bg-light text-dark">${role}</span></td>
+          <td>${created}</td>
+          <td class="text-end">
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-primary" title="Agregar fotos o carpetas para la clienta" data-user-id="${u.id}" data-user-name="${attrName}" onclick="openSessionImagesModalFromButton(this)"><i class="fas fa-images"></i></button>
+              <button class="btn btn-outline-danger" title="Desactivar usuario" onclick="deleteUser(${u.id})"><i class="fas fa-user-slash"></i></button>
+              <button class="btn btn-outline-dark" title="Eliminar permanentemente" onclick="hardDeleteUser(${u.id})"><i class="fas fa-skull"></i></button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
       el('usersCount').textContent = `${list.length} usuario${list.length!==1?'s':''}`;
     }
     async function deleteUser(id){
@@ -553,6 +717,221 @@ if (isset($conn) && $conn) {
         await loadEnrollments();
       }catch(e){ alert('No se pudo eliminar permanentemente: '+e.message); }
     }
+
+    function openSessionImagesModalFromButton(btn){
+      if (!btn) return;
+      const userId = Number(btn.dataset.userId || 0);
+      const userName = btn.dataset.userName || '';
+      if (!userId) {
+        alert('Cliente no válido para gestionar fotos.');
+        return;
+      }
+      openSessionImagesModal(userId, userName);
+    }
+
+    async function openSessionImagesModal(userId, userName, defaultLabel = '', defaultDate = ''){
+      currentSessionImagesUserId = userId;
+      currentSessionImagesUserName = userName || '';
+      const titleEl = el('sessionImagesUserName');
+      if (titleEl) {
+        titleEl.textContent = userName || `ID ${userId}`;
+      }
+      const form = el('sessionImagesForm');
+      if (form) {
+        form.reset();
+      }
+      const fileInput = el('sessionImageFile');
+      if (fileInput) {
+        fileInput.value = '';
+      }
+      const labelInput = el('sessionImageLabel');
+      if (labelInput) {
+        labelInput.value = defaultLabel || '';
+      }
+      const dateInput = el('sessionImageDate');
+      if (dateInput && defaultDate) {
+        dateInput.value = defaultDate;
+      }
+      sessionImagesCache = [];
+      renderSessionImages({ loading: true });
+      const modalEl = document.getElementById('modalSessionImages');
+      if (modalEl) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+      }
+      await loadSessionImages(userId);
+    }
+
+    async function loadSessionImages(userId){
+      renderSessionImages({ loading: true });
+      try {
+        const qs = new URLSearchParams({ user_id: String(userId||'') });
+        const response = await fetch(`${api.sessionImages}?${qs.toString()}`);
+        if (!response.ok) {
+          throw new Error('No se pudo obtener la galería de este cliente');
+        }
+        const payload = await response.json();
+        let list = [];
+        if (Array.isArray(payload)) {
+          list = payload;
+        } else if (payload && Array.isArray(payload.images)) {
+          list = payload.images;
+        } else if (payload && Array.isArray(payload.data)) {
+          list = payload.data;
+        } else if (payload && payload.success === false) {
+          throw new Error(payload.message || 'No se pudieron cargar las fotos');
+        }
+        sessionImagesCache = list;
+        renderSessionImages();
+      } catch (error) {
+        console.error('No se pudieron cargar las fotos de sesión', error);
+        sessionImagesCache = [];
+        renderSessionImages();
+        alert('No se pudieron cargar las fotos de esta clienta. Intenta nuevamente.');
+      }
+    }
+
+    function renderSessionImages(options = {}){
+      const { loading = false } = options;
+      const listEl = el('sessionImagesList');
+      const emptyEl = el('sessionImagesEmpty');
+      const loadingEl = el('sessionImagesLoading');
+      if (!listEl) return;
+      if (loadingEl) {
+        loadingEl.classList.toggle('d-none', !loading);
+      }
+      if (loading) {
+        listEl.innerHTML = '';
+        if (emptyEl) emptyEl.classList.add('d-none');
+        return;
+      }
+      if (!Array.isArray(sessionImagesCache) || !sessionImagesCache.length) {
+        listEl.innerHTML = '';
+        if (emptyEl) emptyEl.classList.remove('d-none');
+        return;
+      }
+      if (emptyEl) emptyEl.classList.add('d-none');
+      listEl.innerHTML = sessionImagesCache.map((img)=>{
+        const rawUrl = img.image_url || '';
+        const imageUrl = escapeAttr(rawUrl);
+        const label = img.session_label ? escapeHtml(img.session_label) : 'Sesión sin título';
+        const sessionDate = img.session_date ? new Date(img.session_date).toLocaleDateString('es-CR') : '';
+        const createdAt = img.created_at ? new Date(img.created_at).toLocaleString('es-CR') : '';
+        const meta = [sessionDate ? `Fecha: ${sessionDate}` : '', createdAt ? `Registrada: ${createdAt}` : ''].filter(Boolean).join('<br>');
+        const isPhoto = isImageUrl(rawUrl);
+        const preview = isPhoto
+          ? `<img src="${imageUrl}" class="card-img-top" alt="${label}">`
+          : `<div class="card-img-top bg-light d-flex flex-column align-items-center justify-content-center text-center" style="height:180px;">
+                <i class="fas fa-folder-open fa-2x text-dark mb-2"></i>
+                <span class="fw-semibold text-dark">Carpeta lista</span>
+             </div>`;
+        const actionIcon = isPhoto ? 'fa-eye' : 'fa-download';
+        const actionLabel = isPhoto ? 'Ver' : 'Descargar';
+        const downloadAttr = isPhoto ? '' : ' download';
+        const actionBtn = imageUrl
+          ? `<a class="btn btn-sm btn-outline-secondary flex-grow-1" href="${imageUrl}" target="_blank" rel="noopener"${downloadAttr}><i class="fas ${actionIcon} me-1"></i>${actionLabel}</a>`
+          : '';
+        return `<div class="col-sm-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            ${preview}
+            <div class="card-body p-3">
+              <h6 class="mb-1">${label}</h6>
+              ${meta ? `<p class="small text-muted mb-3">${meta}</p>` : ''}
+              <div class="d-flex gap-2">
+                ${actionBtn || '<span class="text-muted small">Sin enlace disponible</span>'}
+                <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="deleteSessionImage(${img.id})"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function handleSessionImagesSubmit(event){
+      event.preventDefault();
+      if (!currentSessionImagesUserId) {
+        alert('Selecciona primero a una clienta.');
+        return;
+      }
+      const fileInput = el('sessionImageFile');
+      if (!fileInput || !fileInput.files || !fileInput.files.length) {
+        alert('Selecciona una imagen para subir.');
+        return;
+      }
+      const submitBtn = event.submitter || event.target.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.setAttribute('disabled', 'disabled');
+      }
+      try {
+        const file = fileInput.files[0];
+        const label = el('sessionImageLabel')?.value?.trim() || '';
+        const sessionDate = el('sessionImageDate')?.value || '';
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('user_id', currentSessionImagesUserId);
+        formData.append('prefix', label || currentSessionImagesUserName || `cliente-${currentSessionImagesUserId}`);
+
+        const uploadRes = await fetch(api.uploadSessionImage, {
+          method: 'POST',
+          body: formData
+        }).then(r=>r.json());
+        if (!uploadRes || !uploadRes.success || !uploadRes.image_url) {
+          throw new Error(uploadRes?.message || 'No se pudo subir la imagen');
+        }
+
+        const payload = {
+          action: 'add',
+          user_id: currentSessionImagesUserId,
+          session_label: label,
+          session_date: sessionDate,
+          image_url: uploadRes.image_url
+        };
+
+        const saveRes = await fetch(api.sessionImages, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r=>r.json());
+
+        if (!saveRes || !saveRes.success) {
+          throw new Error(saveRes?.message || 'No se pudo registrar la foto');
+        }
+
+        if (el('sessionImagesForm')) {
+          el('sessionImagesForm').reset();
+        }
+        fileInput.value = '';
+        await loadSessionImages(currentSessionImagesUserId);
+      } catch (error) {
+        alert(error.message || 'Error al guardar la foto de sesión');
+      } finally {
+        if (submitBtn) {
+          submitBtn.removeAttribute('disabled');
+        }
+      }
+    }
+
+    async function deleteSessionImage(id){
+      if (!id) return;
+      if (!currentSessionImagesUserId) {
+        alert('Selecciona primero a una clienta.');
+        return;
+      }
+      if (!confirm('¿Eliminar esta foto de sesión de forma permanente?')) return;
+      try {
+        const res = await fetch(api.sessionImages, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', id })
+        }).then(r=>r.json());
+        if (!res || !res.success) {
+          throw new Error(res?.message || 'No se pudo eliminar la foto');
+        }
+        await loadSessionImages(currentSessionImagesUserId);
+      } catch (error) {
+        alert(error.message || 'Error al eliminar la foto');
+      }
+    }
+
     el('searchUsers').addEventListener('input', (e)=>{
       const q = e.target.value.toLowerCase();
       renderUsers(usersCache.filter(u=> (`${u.full_name||u.first_name||''} ${u.last_name||''}`.toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)) ));
@@ -571,17 +950,23 @@ if (isset($conn) && $conn) {
     }
   // Normalize enrollment statuses: map DB values to UI canonical and localize labels
   function normalizeEnrollmentStatus(st){
-    const s = String(st||'').toLowerCase();
-    if (['approved','aprobada','aprobado','active'].includes(s)) return 'approved';
-    if (['pending','pendiente'].includes(s)) return 'pending';
-    if (['rejected','rechazada','rechazado'].includes(s)) return 'rejected';
-    return s || 'pending';
+    const s = String(st ?? '').toLowerCase().trim();
+    if (['approved','aprobada','aprobado','active','activo','activa'].includes(s)) return 'approved';
+    if (['rejected','rechazada','rechazado','denied','denegada','denegado','inactive','inactiva','inactivo','cancelled','canceled'].includes(s)) return 'rejected';
+    if (['pending','pendiente',''].includes(s)) return 'pending';
+    return 'pending';
   }
   function statusBadge(st){
     const key = normalizeEnrollmentStatus(st);
-    const m = { pending:'secondary', approved:'primary', rejected:'danger' };
-    const es = key==='pending' ? 'Pendiente' : key==='approved' ? 'Aprobada' : key==='rejected' ? 'Rechazada' : key;
-    return `<span class="badge badge-status bg-${m[key]||'light'} ${m[key]?'text-white':'text-dark'}">${es}</span>`;
+    const styleMap = { pending:'secondary', approved:'primary', rejected:'danger' };
+    let label = 'Pendiente';
+    if (key === 'approved') {
+      label = 'Aprobada';
+    } else if (key === 'rejected') {
+      label = 'Rechazada';
+    }
+    const badgeClass = styleMap[key] ? `bg-${styleMap[key]} text-white` : 'bg-light text-dark';
+    return `<span class="badge badge-status ${badgeClass}">${label}</span>`;
   }
     function renderEnrollments(){
       const filter = (el('enrollmentStatusFilter').value||'').toLowerCase();
@@ -589,20 +974,31 @@ if (isset($conn) && $conn) {
       const list = enrollmentsCache.filter(e=> !filter || normalizeEnrollmentStatus(e.status)===filter);
       el('enrollmentsCount').textContent = `${list.length} inscripción${list.length!==1?'es':''}`;
       if(!list.length){ tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Sin inscripciones</td></tr>`; return; }
-      tbody.innerHTML = list.map(e=>`<tr>
-        <td>${e.full_name || (e.first_name+" "+e.last_name)}</td>
-        <td>${e.class_name||''}</td>
-        <td class="small">${e.class_schedule||e.selected_schedule||''}</td>
-        <td>${e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString('es-CR') : ''}</td>
+      tbody.innerHTML = list.map(e=>{
+        const displayNameRaw = e.full_name || `${e.first_name||''} ${e.last_name||''}`;
+        const displayName = escapeHtml(displayNameRaw.trim());
+        const attrName = escapeAttr(displayNameRaw.trim());
+        const className = escapeHtml(e.class_name || '');
+        const attrClass = escapeAttr(e.class_name || '');
+        const enrollmentDate = e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString('es-CR') : '';
+        const enrollmentDateIso = e.enrollment_date ? new Date(e.enrollment_date).toISOString().slice(0,10) : '';
+        const schedule = escapeHtml(e.class_schedule || e.selected_schedule || '');
+        return `<tr>
+        <td>${displayName}</td>
+        <td>${className}</td>
+        <td class="small">${schedule}</td>
+        <td>${enrollmentDate}</td>
         <td>${statusBadge(e.status)}</td>
         <td class="text-end">
           <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-primary" title="Compartir carpeta" data-user-id="${e.user_id}" data-user-name="${attrName}" data-class-name="${attrClass}" data-session-date="${escapeAttr(enrollmentDateIso)}" onclick="openGalleryFromEnrollmentButton(this)"><i class="fas fa-folder-plus"></i></button>
             <button type="button" class="btn btn-outline-success" title="Aprobar" onclick="updateEnrollmentStatus(${e.id}, 'approved')"><i class="fas fa-check"></i></button>
             <button type="button" class="btn btn-outline-danger" title="Rechazar" onclick="updateEnrollmentStatus(${e.id}, 'rejected')"><i class="fas fa-xmark"></i></button>
             <button type="button" class="btn btn-outline-dark" title="Eliminar" onclick="deleteEnrollment(${e.id})"><i class="fas fa-trash"></i></button>
           </div>
         </td>
-      </tr>`).join('');
+      </tr>`;
+      }).join('');
     }
     async function updateEnrollmentStatus(id, status){
       try{
@@ -610,21 +1006,35 @@ if (isset($conn) && $conn) {
         if(!r.success) throw new Error(r.message||'Error');
         // Optimistic update in cache
         const idx = enrollmentsCache.findIndex(e=> String(e.id) === String(id));
-        if (idx >= 0) enrollmentsCache[idx].status = status;
+        if (idx >= 0) {
+          const dbStatus = r.db_status || status;
+          enrollmentsCache[idx].status = dbStatus;
+        }
         await loadEnrollments();
-        // Refresh attendance list for selected session so newly approved students appear
-        reloadAttendance();
         // Refresh recent activity widget
         reloadRecent();
         // Surface email/notification info to admin (best-effort)
         try {
           if (typeof r.notification_sent !== 'undefined') {
             const msg = r.notification_sent ? 'Correo de aprobación enviado al estudiante.' : 'Aprobada (correo no enviado).';
-            // Non-intrusive toast using alert() as a minimal fallback
             console.log(msg);
           }
-        } catch(_){}
+        } catch(_){ }
       }catch(e){ alert('No se pudo actualizar: '+e.message); }
+    }
+
+    function openGalleryFromEnrollmentButton(btn){
+      if (!btn) return;
+      const userId = Number(btn.dataset.userId || 0);
+      if (!userId) {
+        alert('No se pudo identificar a la clienta.');
+        return;
+      }
+      const userName = btn.dataset.userName || '';
+      const className = btn.dataset.className || '';
+      const sessionDate = btn.dataset.sessionDate || '';
+      const defaultLabel = className ? `Galería ${className}` : '';
+      openSessionImagesModal(userId, userName, defaultLabel, sessionDate);
     }
     async function deleteEnrollment(id){ if(!confirm('¿Eliminar inscripción? Esta acción no se puede deshacer.')) return; try{ const r=await fetch(api.deleteEnrollment,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({enrollment_id:id})}).then(r=>r.json()); if(!r.success) throw new Error(r.message||'Error'); await loadEnrollments(); }catch(e){ alert('No se pudo eliminar: '+e.message);} }
 
@@ -664,7 +1074,7 @@ if (isset($conn) && $conn) {
         const proofBtn = proof
           ? `<button class="btn btn-sm btn-outline-info" onclick="viewProof('${(proof||'').replace(/'/g,"&#39;")}')"><i class="fas fa-eye"></i> Ver</button>`
           : `<button class="btn btn-sm btn-outline-secondary" onclick="attachProofUrl(${o.id})"><i class="fas fa-paperclip"></i> Adjuntar URL</button>`;
-        const total = Number(o.total_amount||0) + Number(o.delivery_cost||0);
+        const total = computeOrderTotal(o);
         const st = normalizeStatus(o.status);
         const canApprove = st==='pending';
         const canComplete = st==='approved' || st==='pending';
@@ -879,7 +1289,7 @@ if (isset($conn) && $conn) {
             + `</div></div>`
             + `<div class="card-body">`
             + `<h6 class="mb-1">${c.name}</h6>`
-            + `<div class="text-muted small">${c.level||''} • ₡${fmtMoney(c.price)}</div>`
+            + `<div class="text-muted small">${escapeHtml(c.category||'')} • ₡${fmtMoney(c.price)}</div>`
             + `${c.featured? '<span class="badge bg-warning text-dark mt-2"><i class="fas fa-star me-1"></i>Destacada</span>':''}`
             + `</div></div></div>`;
         }).join('');
@@ -908,7 +1318,6 @@ if (isset($conn) && $conn) {
       el('editClassId').value = cls.id;
       el('editClassName').value = cls.name||'';
       el('editClassInstructor').value = cls.instructor||'';
-      el('editClassLevel').value = cls.level||'';
       el('editClassDuration').value = cls.duration||'';
       
       el('editClassPrice').value = cls.price||0;
@@ -919,8 +1328,7 @@ if (isset($conn) && $conn) {
         const opt = document.createElement('option');
         opt.value = currentCat; opt.textContent = currentCat; catSel.appendChild(opt);
       }
-      catSel.value = currentCat || 'Contemporaneo';
-      el('editClassSchedule').value = cls.schedule||'';
+      catSel.value = currentCat || 'bebes';
       el('editClassDesc').value = cls.description||'';
       el('editClassFeatured').checked = !!cls.featured;
       new bootstrap.Modal(document.getElementById('modalEditClass')).show();
@@ -931,12 +1339,10 @@ if (isset($conn) && $conn) {
       const payload = { action: 'edit', id, class: {
         name: el('editClassName').value.trim(),
         instructor: el('editClassInstructor').value.trim(),
-        level: el('editClassLevel').value.trim() || 'Principiante',
         duration: el('editClassDuration').value.trim() || '60 min',
         
         price: Number(el('editClassPrice').value||0),
-  category: el('editClassCategory').value.trim() || 'Contemporaneo',
-        schedule: el('editClassSchedule').value.trim() || '',
+        category: el('editClassCategory').value.trim() || 'bebes',
         description: el('editClassDesc').value.trim() || '',
         featured: el('editClassFeatured').checked,
         benefits: []
@@ -1099,8 +1505,6 @@ if (isset($conn) && $conn) {
         sessionsCache = list;
         if(!list.length){ tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Sin sesiones</td></tr>`; return; }
         tbody.innerHTML = list.map(s=>`<tr><td>${s.session_date ? new Date(s.session_date).toLocaleDateString('es-CR'): ''}</td><td>${s.class_name||''}</td><td>${(s.start_time||'').slice(0,5)} - ${(s.end_time||'').slice(0,5)}</td><td><span class="badge bg-light text-dark text-capitalize">${s.status}</span></td><td class="text-end"><div class="btn-group btn-group-sm"><button class="btn btn-outline-secondary" title="Completar" onclick="updateSession(${s.id}, 'completed')"><i class="fas fa-flag-checkered"></i></button><button class="btn btn-outline-danger" title="Eliminar" onclick="deleteSession(${s.id})"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');
-        const sel=el('attendanceSession');
-        sel.innerHTML='<option value="">Seleccionar...</option>'+list.map(s=>`<option value="${s.id}">${(s.session_date||'').slice(0,10)} - ${s.class_name||''} ${(s.start_time||'').slice(0,5)}</option>`).join('');
       }catch(e){ tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Error al cargar sesiones</td></tr>`; }
     }
   async function createSession(){ const payload={ action:'add', class_id: (el('newSessionClass').value||'').trim(), session_date: el('newSessionDate').value, start_time: el('newSessionStart').value, end_time: el('newSessionEnd').value, status: el('newSessionStatus').value, notes: el('newSessionNotes').value || ''}; if(!payload.class_id||!payload.session_date||!payload.start_time||!payload.end_time){ alert('Completa Clase, Fecha, Inicio y Fin'); return; } try{ const r=await fetch(api.sessions,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).then(r=>r.json()); if(!r.success) throw new Error(r.message||'Error'); bootstrap.Modal.getInstance(document.getElementById('modalAddSession')).hide(); await loadSessions(); }catch(e){ alert('No se pudo crear la sesión: '+e.message);} }
@@ -1172,72 +1576,6 @@ if (isset($conn) && $conn) {
       if (end) el('newSessionEnd').value = end;
     }
 
-    // Attendance
-    el('attendanceSession').addEventListener('change', async (e)=>{
-      const sessionId = e.target.value;
-      const tbody = el('attendanceTableBody');
-      if(!sessionId){ tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Selecciona una sesión</td></tr>`; return; }
-      try{
-        // Find selected session to determine class name
-        const sess = (sessionsCache||[]).find(s=> String(s.id) === String(sessionId));
-        const className = (sess?.class_name || '').trim().toLowerCase();
-        // Ensure we have enrollments cached
-        if (!Array.isArray(enrollmentsCache) || !enrollmentsCache.length) {
-          const data = await fetch(api.enrollments).then(r=>r.json());
-          enrollmentsCache = Array.isArray(data)? data: [];
-        }
-        // Filter to currently registered students for this class
-        const allowed = new Set(['active','approved','accepted']);
-        const enrolled = (enrollmentsCache||[]).filter(e=>{
-          const cls = String(e.class_name||'').trim().toLowerCase();
-          const st = String(e.status||'').trim().toLowerCase();
-          return cls === className && allowed.has(st);
-        });
-        // Deduplicate by user_id
-        const byUser = new Map();
-        for (const eRec of enrolled){ if(!byUser.has(eRec.user_id)) byUser.set(eRec.user_id, eRec); }
-        const list = Array.from(byUser.values());
-        if (!list.length){
-          tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">No hay estudiantes inscritos en esta clase. Aprueba inscripciones para registrar asistencia.</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = list.map(eRec=>{
-          const full = (eRec.full_name || ((eRec.first_name||'')+' '+(eRec.last_name||''))).trim();
-          const rowId = `att_${eRec.user_id}`;
-          return `<tr id="${rowId}">
-            <td>${full}</td>
-            <td><input type="checkbox" class="form-check-input" /></td>
-            <td><input type="text" class="form-control form-control-sm" placeholder="Notas"></td>
-            <td class="text-end">
-              <div class="d-flex justify-content-end align-items-center gap-2">
-                <small class="text-danger d-none" id="${rowId}_err"></small>
-                <button class="btn btn-sm btn-outline-primary" onclick="saveAttendance(${sessionId}, ${eRec.user_id}, '${rowId}')"><i class="fas fa-save"></i></button>
-              </div>
-            </td>
-          </tr>`;
-        }).join('');
-      }catch(e){
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">Error al cargar inscritos</td></tr>`;
-      }
-    });
-    async function saveAttendance(sessionId,userId,rowId){
-      const row=document.getElementById(rowId);
-      const errEl=document.getElementById(`${rowId}_err`);
-      if(errEl){ errEl.textContent=''; errEl.classList.add('d-none'); }
-      const attended=row.querySelector('input[type=checkbox]').checked?1:0;
-      const notes=row.querySelector('input[type=text]').value||'';
-      try{
-        const r=await fetch(api.attendance,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'add', session_id:Number(sessionId), user_id:Number(userId), attended, notes })}).then(r=>r.json());
-        if(!r.success) throw new Error(r.message||'Error');
-        row.classList.add('table-success');
-        setTimeout(()=> row.classList.remove('table-success'), 1200);
-      }catch(e){
-        if(errEl){ errEl.textContent = e.message; errEl.classList.remove('d-none'); setTimeout(()=>{ errEl.classList.add('d-none'); }, 5000); }
-        else { alert('No se pudo guardar asistencia: '+e.message); }
-      }
-    }
-    function reloadAttendance(){ const ev=new Event('change'); el('attendanceSession').dispatchEvent(ev); }
-
     // Feedback
     async function loadFeedback(){
       const tbody=el('feedbackTableBody');
@@ -1268,12 +1606,202 @@ if (isset($conn) && $conn) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Error al cargar feedback</td></tr>`;
       }
     }
-    async function populateUsersAndEnrollmentsForForms(){ try{ const [users,enrs]=await Promise.all([ fetch(api.users).then(r=>r.json()), fetch(api.enrollments).then(r=>r.json()) ]); const usersSel=el('feedbackUser'); const payUserSel=el('paymentUser'); usersSel.innerHTML=(users||[]).map(u=>`<option value="${u.id}">${(u.full_name||'').trim() || (u.first_name||'')+' '+(u.last_name||'')}</option>`).join(''); payUserSel.innerHTML=usersSel.innerHTML; const enrSel=el('feedbackEnrollment'); const payEnrSel=el('paymentEnrollment'); const options=['<option value="">(Opcional)</option>'].concat((enrs||[]).map(e=>`<option value="${e.id}">${(e.class_name||'')} - ${(e.full_name||e.first_name+' '+e.last_name)} (${(e.status||'')})</option>`)); enrSel.innerHTML=options.join(''); payEnrSel.innerHTML=options.join(''); }catch(e){} }
+    async function populateUsersAndEnrollmentsForForms(){
+      try{
+        const [users,enrs]=await Promise.all([
+          fetch(api.users).then(r=>r.json()),
+          fetch(api.enrollments).then(r=>r.json())
+        ]);
+        const usersSel=el('feedbackUser');
+        const payUserSel=el('paymentUser');
+        const userOptions=(users||[]).map(u=>`<option value="${u.id}">${(u.full_name||'').trim() || (u.first_name||'')+' '+(u.last_name||'')}</option>`).join('');
+        if(usersSel){ usersSel.innerHTML=userOptions; }
+        if(payUserSel){
+          const placeholder='<option value="">Selecciona usuario</option>';
+          payUserSel.innerHTML = placeholder + userOptions;
+        }
+
+        const enrSel=el('feedbackEnrollment');
+        const payEnrSel=el('paymentEnrollment');
+        paymentEnrollmentList = Array.isArray(enrs) ? enrs : [];
+        const feedbackOptions=['<option value="">(Opcional)</option>'].concat(paymentEnrollmentList.map(e=>`<option value="${e.id}">${escapeHtml(e.class_name||'')} - ${escapeHtml((e.full_name||((e.first_name||'')+' '+(e.last_name||''))))} (${escapeHtml(e.status||'')})</option>`));
+        if(enrSel){ enrSel.innerHTML=feedbackOptions.join(''); }
+        if(payEnrSel){ renderPaymentEnrollmentOptions(); }
+      }catch(e){}
+    }
     async function submitFeedback(){ try{ const payload={ action:'add', user_id:Number(el('feedbackUser').value||0), enrollment_id:Number(el('feedbackEnrollment').value||0), class_date: el('feedbackDate').value, performance_rating:Number(el('feedbackRating').value||0), strengths: el('feedbackStrengths').value||'', areas_for_improvement: el('feedbackImprovements').value||'', general_notes:'', homework_assigned: el('feedbackHomework').value||'' }; const r=await fetch(api.feedback,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).then(r=>r.json()); if(!r.success) throw new Error(r.message||'Error'); await loadFeedback(); alert('Feedback guardado'); }catch(e){ alert('No se pudo guardar feedback: '+e.message);} }
 
+    function renderPaymentEnrollmentOptions(){
+      const payEnrSel = el('paymentEnrollment');
+      if(!payEnrSel){ return; }
+      const userId = Number(el('paymentUser')?.value || 0);
+      const baseOption = ['<option value="">(Pago general - opcional)</option>'];
+      if(!userId){
+        payEnrSel.innerHTML = baseOption.join('');
+        return;
+      }
+      const userEnrollments = (paymentEnrollmentList||[]).filter(enr => Number(enr.user_id || 0) === userId);
+      if(!userEnrollments.length){
+        payEnrSel.innerHTML = baseOption.join('');
+        return;
+      }
+      const options = baseOption.concat(userEnrollments.map(e=>{
+        const className = escapeHtml(e.class_name || 'Clase sin nombre');
+        const statusLabel = escapeHtml(e.status || '');
+        return `<option value="${e.id}">${className}${statusLabel ? ` (${statusLabel})` : ''}</option>`;
+      }));
+      payEnrSel.innerHTML = options.join('');
+    }
+
     // Payments
-    async function loadPayments(){ const tbody=el('paymentsTableBody'); tbody.innerHTML = `<tr><td colspan=\"6\" class=\"text-center text-muted py-4\">Cargando...</td></tr>`; try{ const data=await fetch(api.payments).then(r=>r.json()); const list=Array.isArray(data)? data: []; if(!list.length){ tbody.innerHTML = `<tr><td colspan=\"6\" class=\"text-center text-muted py-4\">Sin pagos</td></tr>`; return; } tbody.innerHTML=list.map(p=>`<tr><td>${p.payment_date?new Date(p.payment_date).toLocaleDateString('es-CR'):''}</td><td>${p.student_name||''}</td><td>${p.class_name||'Pago General'}</td><td class="text-capitalize">${p.payment_method||''}</td><td>₡${fmtMoney(p.amount)}</td><td>${p.recorded_by_name||''}</td></tr>`).join(''); }catch(e){ tbody.innerHTML = `<tr><td colspan=\"6\" class=\"text-center text-danger py-4\">Error al cargar pagos</td></tr>`; } }
-    async function submitPayment(){ try{ const payload={ action:'add', enrollment_id:Number(el('paymentEnrollment').value||0), user_id:Number(el('paymentUser').value||0), amount:Number(el('paymentAmount').value||0), payment_method: el('paymentMethod').value, payment_status:'completed', payment_date: el('paymentDate').value, reference_number: el('paymentRef').value||'', notes: el('paymentNotes').value||'' }; if(!payload.user_id || !payload.amount){ alert('Selecciona estudiante y monto'); return; } const r=await fetch(api.payments,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).then(r=>r.json()); if(!r.success) throw new Error(r.message||'Error'); await loadPayments(); alert('Pago registrado'); }catch(e){ alert('No se pudo registrar el pago: '+e.message);} }
+    async function loadPayments(){ const tbody=el('paymentsTableBody'); if(!tbody){ return; } tbody.innerHTML = `<tr><td colspan=\"6\" class=\"text-center text-muted py-4\">Cargando...</td></tr>`; try{ const data=await fetch(api.payments).then(r=>r.json()); const list=Array.isArray(data)? data: []; paymentsCache = list; if(!list.length){ tbody.innerHTML = `<tr><td colspan=\"6\" class=\"text-center text-muted py-4\">Sin pagos</td></tr>`; return; } tbody.innerHTML=list.map(p=>{ const method = (p.payment_method||'').toString().toUpperCase(); return `<tr data-payment-id="${p.id}"><td>${p.payment_date?new Date(p.payment_date).toLocaleDateString('es-CR'):''}</td><td>${p.student_name||''}</td><td>${p.class_name||'Pago General'}</td><td>${method}</td><td>₡${fmtMoney(p.amount)}</td><td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger" data-action="delete-payment" data-id="${p.id}"><i class="fas fa-trash-alt me-1"></i>Eliminar</button></td></tr>`; }).join(''); }catch(e){ tbody.innerHTML = `<tr><td colspan=\"6\" class=\"text-center text-danger py-4\">Error al cargar pagos</td></tr>`; } }
+    async function downloadPaymentsPdf(){
+      const JsPdfCtor = window.jsPDF || (window.jspdf && window.jspdf.jsPDF);
+      if (!JsPdfCtor) {
+        alert('La librería para generar PDF todavía no está disponible. Recarga la página e inténtalo de nuevo.');
+        return;
+      }
+      try {
+        if (!Array.isArray(paymentsCache) || !paymentsCache.length) {
+          const data = await fetch(api.payments).then(r=>r.json());
+          paymentsCache = Array.isArray(data) ? data : [];
+        }
+        if (!paymentsCache.length) {
+          alert('No hay pagos registrados para exportar.');
+          return;
+        }
+        const now = new Date();
+        const doc = new JsPdfCtor('p', 'pt', 'letter');
+        if (typeof doc.setCharSpace === 'function') {
+          doc.setCharSpace(0);
+        }
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text('Registro de Pagos - Vale V Photography', 40, 50);
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.text(`Generado: ${formatDateTimeForPdf(now)}`, 40, 70);
+
+        const headers = ['Fecha', 'Usuario', 'Tipo', 'Método', 'Monto (CRC)'];
+        const rows = paymentsCache.map((p)=>[
+          p.payment_date ? new Date(p.payment_date).toLocaleDateString('es-CR') : '',
+          sanitizeForPdf(p.student_name || ''),
+          sanitizeForPdf(p.class_name || 'Pago General'),
+          sanitizeForPdf((p.payment_method || '').toUpperCase()),
+          sanitizeForPdf(`CRC ${fmtMoney(p.amount)}`)
+        ]);
+
+        let finalY = 90;
+        const tableConfig = {
+          startY: 90,
+          head: [headers],
+          body: rows,
+          theme: 'grid',
+          styles: { font: 'helvetica', fontSize: 10, cellPadding: 6, overflow: 'linebreak' },
+          headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold' },
+          bodyStyles: { textColor: [0, 0, 0] },
+          alternateRowStyles: { fillColor: [245, 245, 245] },
+          columnStyles: {
+            0: { cellWidth: 70 },
+            1: { cellWidth: 130 },
+            2: { cellWidth: 150 },
+            3: { cellWidth: 80 },
+            4: { cellWidth: 80, halign: 'right' }
+          },
+          margin: { left: 40, right: 40 }
+        };
+
+        if (typeof doc.autoTable === 'function') {
+          doc.autoTable(tableConfig);
+          finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : tableConfig.startY;
+        } else if (JsPdfCtor && JsPdfCtor.API && typeof JsPdfCtor.API.autoTable === 'function') {
+          JsPdfCtor.API.autoTable.call(doc, tableConfig);
+          finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : tableConfig.startY;
+        } else {
+          let y = 110;
+          const columnX = [40, 120, 240, 420, 500];
+          doc.setFont('Helvetica', 'bold');
+          headers.forEach((header, idx)=> doc.text(header, columnX[idx], y));
+          doc.setFont('Helvetica', 'normal');
+          y += 18;
+          rows.forEach((row) => {
+            row.forEach((cell, idx)=> doc.text(cell, columnX[idx], y));
+            y += 18;
+            if (y > 720) {
+              doc.addPage();
+              y = 60;
+            }
+          });
+          finalY = y;
+        }
+
+        const totalAmount = paymentsCache.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+        const totalLabel = sanitizeForPdf(`Total cobrado: CRC ${fmtMoney(totalAmount)}`);
+        let totalY = finalY + 28;
+        if (totalY > 750) {
+          doc.addPage();
+          totalY = 60;
+        }
+        doc.setFontSize(12);
+        doc.setFont('Helvetica', 'bold');
+        if (typeof doc.setCharSpace === 'function') {
+          doc.setCharSpace(0);
+        }
+        doc.setTextColor(0, 0, 0);
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.5);
+        doc.line(40, totalY - 12, 555, totalY - 12);
+        doc.text(totalLabel, 40, totalY);
+
+        doc.save(`registro-pagos-${formatDateForFilename(now)}.pdf`);
+      } catch (error) {
+        alert('No se pudo generar el PDF de pagos: ' + (error?.message || error));
+      }
+    }
+
+
+    async function deletePayment(paymentId, triggerButton){
+      if(!paymentId){ return; }
+      if(!confirm('¿Eliminar este registro de pago? Esta acción no se puede deshacer.')){ return; }
+      try{
+        if (triggerButton) {
+          triggerButton.disabled = true;
+          triggerButton.classList.add('disabled');
+        }
+        const response = await fetch(api.payments,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'delete', id: paymentId }) }).then(r=>r.json());
+        if(!response.success){ throw new Error(response.message||'Error al eliminar'); }
+        paymentsCache = paymentsCache.filter(p=> Number(p.id)!== Number(paymentId));
+        await loadPayments();
+        alert('Pago eliminado');
+      }catch(error){
+        alert('No se pudo eliminar el pago: ' + (error?.message || error));
+      }finally{
+        if (triggerButton) {
+          triggerButton.disabled = false;
+          triggerButton.classList.remove('disabled');
+        }
+      }
+    }
+    async function submitPayment(){
+      try{
+        const enrollmentValue = el('paymentEnrollment').value;
+        const payload={
+          action:'add',
+          enrollment_id: enrollmentValue ? Number(enrollmentValue) : null,
+          user_id:Number(el('paymentUser').value||0),
+          amount:Number(el('paymentAmount').value||0),
+          payment_method: el('paymentMethod').value,
+          payment_status:'completed',
+          payment_date: el('paymentDate').value,
+          reference_number: '',
+          notes: ''
+        };
+        if(!payload.user_id || !payload.amount){ alert('Selecciona estudiante y monto'); return; }
+        const r=await fetch(api.payments,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}).then(r=>r.json());
+        if(!r.success) throw new Error(r.message||'Error');
+        await loadPayments();
+        alert('Pago registrado');
+      }catch(e){ alert('No se pudo registrar el pago: '+e.message);} }
 
     // CSV export
   async function exportCSV(type){ let url; if(type==='users') url=api.users; else if(type==='enrollments') url=api.enrollments; else if(type==='payment_records') url=api.payments; else if(type==='orders') url=ADMIN_BASE + '/users_api.php?endpoint=orders'; else return; try{ const data=await fetch(url).then(r=>r.json()); if(!Array.isArray(data)||!data.length){ alert('Sin datos para exportar'); return; } const cols=Object.keys(data[0]); const csv=[cols.join(',')].concat(data.map(row=> cols.map(k=> (`${(row[k]??'')}`.replaceAll('"','""')) ).map(v=>`"${v}"`).join(','))).join('\n'); const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${type}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); }catch(e){ alert('No se pudo exportar: '+e.message);} }
@@ -1296,6 +1824,17 @@ if (isset($conn) && $conn) {
         cleanupModalArtifacts();
       });
 
+      el('paymentsTableBody')?.addEventListener('click', (event)=>{
+        const trigger = event.target.closest('[data-action="delete-payment"]');
+        if(!trigger){ return; }
+        const paymentId = Number(trigger.dataset.id || 0);
+        if(paymentId){ deletePayment(paymentId, trigger); }
+      });
+
+      el('paymentUser')?.addEventListener('change', ()=>{
+        renderPaymentEnrollmentOptions();
+      });
+
       // Activate tab if hash or ?tab= is provided
       try {
         const params = new URLSearchParams(window.location.search);
@@ -1309,11 +1848,9 @@ if (isset($conn) && $conn) {
           '#pane-productos': 'tab-productos',
           '#pane-redes': 'tab-redes',
           '#pane-sesiones': 'tab-sesiones',
-          '#pane-asistencia': 'tab-asistencia',
           '#pane-feedback': 'tab-feedback',
           '#pane-ordenes': 'tab-ordenes',
           '#pane-pagos': 'tab-pagos',
-          '#pane-progreso': 'tab-progreso',
           '#pane-reportes': 'tab-reportes'
         };
         if (tabParam) {
@@ -1364,6 +1901,25 @@ if (isset($conn) && $conn) {
         addSessionModal.addEventListener('shown.bs.modal', ()=>{
           const sel = document.getElementById('newSessionClass');
           if (sel && sel.value) prefillSessionFromClassId(sel.value);
+        });
+      }
+
+      const sessionImagesForm = document.getElementById('sessionImagesForm');
+      if (sessionImagesForm) {
+        sessionImagesForm.addEventListener('submit', handleSessionImagesSubmit);
+      }
+      const sessionImagesModal = document.getElementById('modalSessionImages');
+      if (sessionImagesModal) {
+        sessionImagesModal.addEventListener('hidden.bs.modal', ()=>{
+          currentSessionImagesUserId = null;
+          currentSessionImagesUserName = '';
+          sessionImagesCache = [];
+          const listEl = document.getElementById('sessionImagesList');
+          if (listEl) listEl.innerHTML = '';
+          const emptyEl = document.getElementById('sessionImagesEmpty');
+          if (emptyEl) emptyEl.classList.add('d-none');
+          const loadingEl = document.getElementById('sessionImagesLoading');
+          if (loadingEl) loadingEl.classList.add('d-none');
         });
       }
     });
@@ -1479,20 +2035,17 @@ if (isset($conn) && $conn) {
         <div class="row g-3">
           <div class="col-md-6"><label class="form-label">Nombre</label><input type="text" id="editClassName" class="form-control" required></div>
           <div class="col-md-6"><label class="form-label">Instructor</label><input type="text" id="editClassInstructor" class="form-control" required></div>
-          <div class="col-md-4"><label class="form-label">Nivel</label><input type="text" id="editClassLevel" class="form-control"></div>
           <div class="col-md-4"><label class="form-label">Duración</label><input type="text" id="editClassDuration" class="form-control"></div>
-          
           <div class="col-md-4"><label class="form-label">Precio (₡)</label><input type="number" id="editClassPrice" class="form-control" min="0" step="500"></div>
           <div class="col-md-4"><label class="form-label">Categoría</label>
             <select id="editClassCategory" class="form-select">
-              <option value="Contemporaneo">Contemporaneo</option>
-              <option value="Urbano">Urbano</option>
-              <option value="Latino">Latino</option>
-              <option value="Fitness">Fitness</option>
-              <option value="Infantil">Infantil</option>
+              <option value="bebes">Bebes</option>
+              <option value="familiares navidenos">Familiares Navidenos</option>
+              <option value="familiares">Familiares</option>
+              <option value="eventos">Eventos</option>
+              <option value="gender reveal">Gender Reveal</option>
             </select>
           </div>
-          <div class="col-md-4"><label class="form-label">Horario</label><input type="text" id="editClassSchedule" class="form-control"></div>
           <div class="col-12"><label class="form-label">Descripción</label><textarea id="editClassDesc" class="form-control" rows="2"></textarea></div>
           <div class="col-12 form-check ms-2"><input class="form-check-input" type="checkbox" id="editClassFeatured"> <label class="form-check-label" for="editClassFeatured">Destacar clase</label></div>
         </div>
@@ -1524,12 +2077,10 @@ if (isset($conn) && $conn) {
         class: {
           name,
           instructor,
-          level: el('newClassLevel').value.trim() || 'Principiante',
           duration: el('newClassDuration').value.trim() || '60 min',
           
           price: Number(el('newClassPrice').value||0),
-          category: el('newClassCategory').value.trim() || 'Contemporaneo',
-          schedule: el('newClassSchedule').value.trim() || '',
+          category: el('newClassCategory').value.trim() || 'bebes',
           description: el('newClassDesc').value.trim() || '',
           featured: el('newClassFeatured').checked,
           benefits: [],

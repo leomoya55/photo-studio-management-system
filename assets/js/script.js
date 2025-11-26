@@ -1,10 +1,10 @@
 /* ===================================
-   Legend - Main JavaScript
+    Vale V Photography - Main JavaScript
    =================================== */
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Legend website loaded successfully!');
+    console.log('Vale V Photography website loaded successfully!');
     
     // Initialize all components
     initializeNavbar();
@@ -179,7 +179,7 @@ function handleLogin(e) {
         const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
         modal.hide();
         
-        showNotification('¡Bienvenido a Legend!', 'success');
+        showNotification('¡Bienvenido a Vale V Photography!', 'success');
         
         // Here you would typically redirect or update UI for logged-in state
     }, 2000);
@@ -234,7 +234,7 @@ function handleRegister(e) {
         const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
         modal.hide();
         
-        showNotification('¡Registro exitoso! Bienvenido a Legend!', 'success');
+        showNotification('¡Registro exitoso! Bienvenido a Vale V Photography!', 'success');
         
         // Here you would typically redirect or update UI for logged-in state
     }, 2000);
@@ -439,6 +439,6 @@ document.head.appendChild(notificationStyles);
 
 // Console log for development
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log('%c🎭 Legend Dance Academy', 'color: #ff6b6b; font-size: 20px; font-weight: bold;');
+    console.log('%c📸 Vale V Photography', 'color: #7a4a2d; font-size: 20px; font-weight: bold;');
     console.log('%cWebsite loaded successfully!', 'color: #4ecdc4; font-size: 14px;');
 }

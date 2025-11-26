@@ -187,21 +187,17 @@ try {
             o.order_number,
             o.status,
             o.updated_at,
-            (o.total_amount + IFNULL(o.delivery_cost,0)) AS total
+            o.total_amount,
+            o.delivery_cost,
+            COALESCE(SUM(oi.product_price * oi.quantity), 0) AS items_subtotal
         FROM orders o
-        WHERE o.user_id = ? AND o.updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND o.status IN ('approved','completed','canceled','cancelled')
+        LEFT JOIN order_items oi ON oi.order_id = o.id
+        WHERE o.user_id = ? 
+          AND o.updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
+          AND o.status IN ('approved','completed','canceled','cancelled','paid','processing','delivered','shipped')
+        GROUP BY o.id
         ORDER BY o.updated_at DESC
     ");
-        $stmt = $conn->prepare("
-            SELECT 
-                o.order_number,
-                o.status,
-                o.updated_at,
-                (o.total_amount + IFNULL(o.delivery_cost,0)) AS total
-            FROM orders o
-            WHERE o.user_id = ? AND o.updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND o.status IN ('approved','completed','canceled','cancelled','paid','processing','delivered','shipped')
-            ORDER BY o.updated_at DESC
-        ");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -211,11 +207,17 @@ try {
         if ($st === 'cancelled') { $st = 'canceled'; }
         if (in_array($st, ['paid','processing'])) { $st = 'approved'; }
         if (in_array($st, ['delivered','shipped'])) { $st = 'completed'; }
+        $baseTotal = (float)($row['total_amount'] ?? 0);
+        $deliveryCost = (float)($row['delivery_cost'] ?? 0);
+        $itemsSubtotal = (float)($row['items_subtotal'] ?? 0);
+        $grandTotal = $itemsSubtotal > 0
+            ? max($baseTotal, $itemsSubtotal + $deliveryCost)
+            : ($baseTotal > 0 ? $baseTotal : $deliveryCost);
         $order_updates[] = [
             'order_number' => $row['order_number'],
             'status' => $st,
             'updated_at' => $row['updated_at'],
-            'total' => (float)$row['total']
+            'total' => $grandTotal
         ];
     }
     if (!empty($order_updates)) {

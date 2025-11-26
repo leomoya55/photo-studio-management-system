@@ -29,7 +29,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
 // Get schedules from database (for now we'll use sample data, later we'll create the database structure)
 $schedules = [];
 
-// Real schedule data from Legend Academy
+// Demo agenda data for Vale V Photography
 $sampleSchedules = [
     'Lunes' => [
         ['time' => '10:00 - 11:00', 'class' => 'Pilates/Funcional', 'instructor' => 'Vanessa Mora'],
@@ -73,7 +73,7 @@ $sampleSchedules = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horarios - Legend Dance Academy</title>
+    <title>Agenda - Vale V Photography</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -87,76 +87,75 @@ $sampleSchedules = [
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     
-    <!-- Orange and Black Color Overrides to match other pages -->
+    <!-- Vale V Photography warm overrides -->
     <style>
-        /* Orange and Black Color Overrides */
+        /* Monochrome palette */
         :root {
-            --bs-primary: #ff6600;
-            --bs-primary-rgb: 255, 102, 0;
-            --bs-btn-hover-bg: #e55a00;
-            --bs-btn-active-bg: #e55a00;
+            --bs-primary: #000000;
+            --bs-primary-rgb: 0, 0, 0;
+            --bs-btn-hover-bg: #111111;
+            --bs-btn-active-bg: #111111;
         }
-        
-        /* Force our orange color */
+
         .btn-primary {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            background-image: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            background-image: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
         }
-        
+
         .btn-primary:hover,
         .btn-primary:focus,
         .btn-primary:active {
-            background-color: #e55a00 !important;
-            border-color: #e55a00 !important;
-            background-image: linear-gradient(135deg, #e55a00 0%, #ff6600 100%) !important;
+            background-color: #111111 !important;
+            border-color: #111111 !important;
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%) !important;
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
-        
+
         .btn-outline-primary {
-            color: #ff6600 !important;
-            border-color: #ff6600 !important;
+            color: #111111 !important;
+            border-color: #111111 !important;
         }
-        
+
         .btn-outline-primary:hover,
         .btn-outline-primary:focus,
         .btn-outline-primary:active {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
             color: white !important;
         }
-        
+
         .text-primary {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
-        
+
         .brand-text {
             font-family: 'Dancing Script', cursive !important;
-            color: #ff6600 !important;
+            color: var(--brand-color) !important;
             font-weight: 700;
         }
-        
+
         .section-title {
             color: #000000 !important;
             font-weight: 700;
         }
-        
+
         .navbar-nav .nav-link:hover {
-            color: #ff6600 !important;
+            color: #333333 !important;
         }
-        
+
         body {
             background-color: #fafafa;
         }
-        
+
         .bg-primary {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
         }
         
         /* Schedule specific styles */
         .schedule-hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #000000 0%, #3a3a3a 100%);
             color: white;
             padding: 100px 0 80px;
             margin-top: 76px;
@@ -172,7 +171,7 @@ $sampleSchedules = [
         }
         
         .day-header {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
             color: white;
             padding: 15px;
             text-align: center;
@@ -220,7 +219,7 @@ $sampleSchedules = [
         
         .class-name {
             font-weight: 500;
-            color: #ff6600;
+            color: #111111;
             margin: 5px 0;
         }
         
@@ -239,7 +238,7 @@ $sampleSchedules = [
 
         
         .register-btn {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
             border: none;
             color: white;
             padding: 5px 12px;
@@ -250,7 +249,7 @@ $sampleSchedules = [
         }
         
         .register-btn:hover {
-            background: linear-gradient(135deg, #e55a00 0%, #ff6600 100%);
+            background: linear-gradient(135deg, #111111 0%, #444444 100%);
             transform: scale(1.05);
             color: white;
         }
@@ -263,12 +262,12 @@ $sampleSchedules = [
         
         /* User welcome styling */
         .user-welcome {
-            color: #ff6600 !important;
+            color: #111111 !important;
             font-weight: 600;
             padding: 8px 16px;
             border-radius: 20px;
-            background: rgba(255, 102, 0, 0.1);
-            border: 1px solid #ff6600;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid #111111;
         }
         
         .dropdown-menu {
@@ -278,7 +277,7 @@ $sampleSchedules = [
         }
         
         .dropdown-item:hover {
-            background-color: #ff6600;
+            background-color: #000000;
             color: white;
         }
         
@@ -306,7 +305,7 @@ $sampleSchedules = [
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>">
-                <span class="brand-text">Legend</span>
+                <span class="brand-text">Vale V Photography</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -319,10 +318,7 @@ $sampleSchedules = [
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Clases</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="<?php echo VIEWS_URL; ?>/horarios.php<?php echo $adminViewParam; ?>">Horarios</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Sesiones</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
@@ -353,11 +349,11 @@ $sampleSchedules = [
                             </ul>
                         </li>
                     <?php else: ?>
-                        <li class="nav-item">
-                            <a class="nav-link btn-outline-primary px-3 me-2" href="<?php echo VIEWS_URL; ?>/register.php">Registrarse</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-outline-primary" href="<?php echo VIEWS_URL; ?>/register.php">Registrarse</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link btn-primary text-white px-3" href="<?php echo VIEWS_URL; ?>/login.php">Iniciar Sesión</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-primary" href="<?php echo VIEWS_URL; ?>/login.php">Iniciar Sesión</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -383,8 +379,8 @@ $sampleSchedules = [
         <div class="container">
             <div class="row">
                 <div class="col-12 text-center">
-                    <h1 class="display-4 fw-bold mb-4">Horarios de Clases</h1>
-                    <p class="lead mb-4">Descubre nuestros horarios semanales y reserva tu lugar en las clases que más te gusten. ¡Haz clic en cualquier clase para registrarte!</p>
+                    <h1 class="display-4 fw-bold mb-4 text-on-dark">Disponibilidad de Sesiones</h1>
+                    <p class="lead mb-4 text-on-dark-soft">Consulta la agenda semanal del estudio y reserva el momento ideal para tu sesión creativa. Selecciona un espacio para solicitar tu cita personalizada.</p>
                 </div>
 
             </div>
@@ -437,9 +433,9 @@ $sampleSchedules = [
                         <div class="card-body text-center">
                             <h5 class="card-title"><i class="fas fa-exclamation-circle me-2"></i>Información Importante</h5>
                             <p class="card-text">
-                                • Las reservas deben realizarse con al menos 2 horas de anticipación<br>
-                                • Cancellaciones gratuitas hasta 4 horas antes de la clase<br>
-                                • Para más información sobre las clases, visita nuestra sección de <a href="clases.php<?php echo $adminViewParam; ?>" class="text-primary">Clases</a>
+                                • Agenda tu sesión con al menos 24 horas de anticipación<br>
+                                • Cancelaciones sin costo hasta 12 horas antes de la cita<br>
+                                • Para conocer cada experiencia fotográfica, visita nuestra sección de <a href="clases.php<?php echo $adminViewParam; ?>" class="text-primary">Servicios</a>
                             </p>
                             <?php if (!isset($_SESSION['user_id'])): ?>
                                 <div class="mt-3">
@@ -459,16 +455,16 @@ $sampleSchedules = [
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h5 class="brand-text mb-0">Legend</h5>
-                    <p class="mb-0">Tu academia de danza de confianza</p>
+                    <h5 class="brand-text mb-0">Vale V Photography</h5>
+                    <p class="mb-0">Tu estudio de fotografía de confianza</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="social-links">
-                        <a href="https://www.facebook.com/profile.php?id=100068508182444" target="_blank"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/legendvm.cr/" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.facebook.com/share/1Czy4E7doQ/?mibextid=wwXIfr" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.instagram.com/valevphotography?igsh=MXZobjc0NWtod2gyMA%3D%3D&utm_source=qr" target="_blank"><i class="fab fa-instagram"></i></a>
                         <a href="#" class="disabled" title="Próximamente"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@studiolegend.cr" target="_blank"><i class="fab fa-tiktok"></i></a>
-                        <a href="https://wa.me/50684118339" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.tiktok.com/@valevstudio" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <a href="https://wa.me/50686764740" target="_blank"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
             </div>
@@ -501,7 +497,7 @@ $sampleSchedules = [
             
             classSlots.forEach(slot => {
                 slot.addEventListener('mouseenter', function() {
-                    this.style.borderLeft = '4px solid #ff6600';
+                    this.style.borderLeft = '4px solid #000000';
                 });
                 
                 slot.addEventListener('mouseleave', function() {

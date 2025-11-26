@@ -42,7 +42,7 @@ if (!$input || !isset($input['enrollment_id']) || !isset($input['status'])) {
 }
 
 $enrollment_id = (int)$input['enrollment_id'];
-$new_status = trim($input['status']);
+$new_status = strtolower(trim($input['status']));
 
 // Validate status from UI (canonical keys)
 $valid_statuses = ['pending', 'approved', 'rejected'];
@@ -53,6 +53,34 @@ if (!in_array($new_status, $valid_statuses)) {
     ]);
     exit;
 }
+
+// Determine allowed enum values in DB for defensive mapping
+$allowed_db_statuses = ['pending', 'approved', 'active', 'inactive', 'rejected'];
+try {
+    $columnResult = $conn->query("SHOW COLUMNS FROM enrollments LIKE 'status'");
+    if ($columnResult && $columnRow = $columnResult->fetch_assoc()) {
+        if (!empty($columnRow['Type']) && preg_match("/enum\\((.*)\\)/i", $columnRow['Type'], $matches)) {
+            $enumValues = array_map(function($value){
+                return strtolower(trim(str_replace("'", '', $value)));
+            }, explode(',', $matches[1] ?? ''));
+            if (!empty($enumValues)) {
+                $allowed_db_statuses = $enumValues;
+            }
+        }
+    }
+} catch (Exception $ignore) {
+    // If introspection fails we keep default fallback list
+}
+
+// Helper to select the first allowed status from a preference list
+$pickDbStatus = function(array $preferred) use ($allowed_db_statuses) {
+    foreach ($preferred as $candidate) {
+        if (in_array($candidate, $allowed_db_statuses, true)) {
+            return $candidate;
+        }
+    }
+    return $allowed_db_statuses[0] ?? 'pending';
+};
 
 try {
     // Check database connection
@@ -82,14 +110,17 @@ try {
     // Preserve old status for logging
     $old_status = $enrollment['status'];
 
-    // Map UI status to DB status (legacy schema uses 'active' for approved)
-    $db_status = $new_status;
-    if ($new_status === 'approved') {
-        $db_status = 'active';
-    } else if ($new_status === 'pending') {
-        $db_status = 'pending';
-    } else if ($new_status === 'rejected') {
-        $db_status = 'rejected';
+    // Map UI status to DB status using available enum values
+    switch ($new_status) {
+        case 'approved':
+            $db_status = $pickDbStatus(['active', 'approved']);
+            break;
+        case 'rejected':
+            $db_status = $pickDbStatus(['rejected', 'inactive', 'denied']);
+            break;
+        default:
+            $db_status = $pickDbStatus(['pending']);
+            break;
     }
 
     // Update enrollment status in DB
@@ -110,91 +141,97 @@ try {
         $log_stmt->bind_param("issi", $enrollment_id, $old_status, $new_status, $admin_id);
         $log_stmt->execute();
         
-    // Prepare and send notification email to user based on status
-    $notification_sent = false;
+        // Prepare and send notification email to user based on status
+        $notification_sent = false;
         $user_email = $enrollment['email'];
-        $user_name = $enrollment['first_name'] . ' ' . $enrollment['last_name'];
-        $class_name = $enrollment['class_name'];
-        
-        $email_subject = "Actualización de tu Inscripción - Academia Legend";
-        $email_body = "";
-        
+        $user_name = trim(($enrollment['first_name'] ?? '') . ' ' . ($enrollment['last_name'] ?? ''));
+        $class_name = $enrollment['class_name'] ?? '';
+
+        $escape = static function ($value) {
+            return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+        };
+
+        $emailMeta = [
+            'subject' => 'Actualización de tu sesión - Vale V Photography',
+            'headline' => 'Actualización de tu sesión',
+            'body' => '',
+            'statusLabel' => '',
+            'accent' => '#111827'
+        ];
+
         switch ($new_status) {
             case 'approved':
-                $email_subject = "¡Inscripción Aprobada! - Academia Legend";
-                $email_body = "
-                <h3>¡Felicitaciones {$user_name}!</h3>
-                <p>Tu inscripción en la clase <strong>{$class_name}</strong> ha sido aprobada por nuestra instructora Vanessa.</p>
-                <p><strong>Próximos pasos:</strong></p>
-                <ul>
-                    <li>Te contactaremos en las próximas 24 horas para coordinar tu primera clase</li>
-                    <li>Te enviaremos información sobre el horario y preparación</li>
-                    <li>Recibirás detalles sobre el método de pago</li>
-                </ul>
-                <p>¡Esperamos verte pronto en nuestro estudio!</p>
-                ";
+                $emailMeta['subject'] = '¡Tu sesión está confirmada! - Vale V Photography';
+                $emailMeta['headline'] = '¡Tu sesión está confirmada!';
+                $emailMeta['statusLabel'] = 'Sesión confirmada';
+                $emailMeta['accent'] = '#0f172a';
+                $emailMeta['body'] = '<p>Hola ' . $escape($user_name) . ',</p>'
+                    . '<p>Confirmamos tu sesión <strong>' . $escape($class_name) . '</strong>. Nuestro equipo te contactará en las próximas 24 horas para coordinar locación, horario y vestuario.</p>'
+                    . '<p><strong>Próximos pasos:</strong></p>'
+                    . '<ul>'
+                    . '<li>Recibirás un moodboard con recomendaciones de estilo y maquillaje.</li>'
+                    . '<li>Coordinaremos logística final (tiempos, dirección, integrantes).</li>'
+                    . '<li>Te compartiremos opciones de inversión y métodos de pago seguros.</li>'
+                    . '</ul>'
+                    . '<p>Si deseas ajustar algún detalle, responde este correo o escríbenos al <a href="tel:+50686764740" style="color:#0f172a;">+506 8676-4740</a>.</p>'
+                    . '<p>Gracias por confiar en Vale V Photography para narrar tu historia.</p>';
                 break;
-                
             case 'rejected':
-                $email_subject = "Actualización de tu Inscripción - Academia Legend";
-                $email_body = "
-                <h3>Hola {$user_name},</h3>
-                <p>Lamentamos informarte que tu inscripción en <strong>{$class_name}</strong> no pudo ser procesada en este momento.</p>
-                <p>Esto puede deberse a:</p>
-                <ul>
-                    <li>Cupo completo en la clase</li>
-                    <li>Requisitos específicos no cumplidos</li>
-                    <li>Horarios no disponibles</li>
-                </ul>
-                <p>Te invitamos a contactarnos para explorar otras opciones de clases que puedan interesarte.</p>
-                <p>Teléfono: +1 (555) 123-4567</p>
-                ";
+                $emailMeta['subject'] = 'Actualización de tu sesión - Vale V Photography';
+                $emailMeta['headline'] = 'Tu solicitud requiere un ajuste';
+                $emailMeta['statusLabel'] = 'Seguimiento requerido';
+                $emailMeta['accent'] = '#b91c1c';
+                $emailMeta['body'] = '<p>Hola ' . $escape($user_name) . ',</p>'
+                    . '<p>Por el momento no podemos confirmar la sesión <strong>' . $escape($class_name) . '</strong>. Queremos revisar contigo la mejor alternativa antes de avanzar.</p>'
+                    . '<p>Los motivos más comunes son:</p>'
+                    . '<ul>'
+                    . '<li>Disponibilidad limitada para la fecha solicitada.</li>'
+                    . '<li>Requerimientos de producción especiales (locación, horarios, permisos).</li>'
+                    . '<li>Solapamiento con otra sesión previamente reservada.</li>'
+                    . '</ul>'
+                    . '<p>Escríbenos a <a href="mailto:info@valevphotography.com" style="color:#b91c1c;">info@valevphotography.com</a> o al <a href="tel:+50686764740" style="color:#b91c1c;">+506 8676-4740</a> para proponerte nuevas fechas o alternativas personalizadas.</p>'
+                    . '<p>Gracias por tu comprensión, estaremos encantados de ayudarte a reprogramar.</p>';
                 break;
             case 'pending':
-                // No email on revert to pending
+                // No email when reverting to pending
                 break;
         }
-        
-        // Send notification email (best-effort) and log
-        if ($email_body) {
-            $full_email = "
-            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                <div style='background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); color: white; padding: 20px; text-align: center;'>
-                    <h1>Academia Legend</h1>
-                    <p>Actualización de tu Inscripción</p>
-                </div>
-                <div style='padding: 20px; background: #f9f9f9;'>
-                    {$email_body}
-                </div>
-                <div style='padding: 20px; text-align: center; font-size: 12px; color: #666;'>
-                    <p>Academia de Danza Legend<br>
-                    Transformando vidas a través de la danza desde 2008</p>
-                </div>
-            </div>";
 
-            // Try SendGrid first (if configured), fallback to PHP mail()
-            $notification_sent = send_best_effort_email($user_email, $email_subject, $full_email, 'Academia Legend', 'info@legenddanceacademy.com');
+        if ($emailMeta['body'] !== '' && filter_var($user_email, FILTER_VALIDATE_EMAIL)) {
+            $notification_sent = send_branded_email(
+                $user_email,
+                $emailMeta['subject'],
+                $emailMeta['headline'],
+                $emailMeta['body'],
+                $emailMeta['statusLabel'],
+                $emailMeta['accent'],
+                [],
+                'Vale V Photography',
+                'info@valevphotography.com'
+            );
 
-            // Always log to file for audit
             try {
                 $logLine = sprintf(
                     "%s - Email to: %s (%s) - Subject: '%s' - Type: enrollment-%s - Result: %s - Sender: %s\n",
                     date('Y-m-d H:i:s'),
                     $user_email,
                     $user_name,
-                    $email_subject,
+                    $emailMeta['subject'],
                     $new_status,
                     $notification_sent ? 'SENT' : 'NOT_SENT',
                     'Admin'
                 );
                 @file_put_contents(__DIR__ . '/student_emails_log.txt', $logLine, FILE_APPEND);
-            } catch (Throwable $t) { /* ignore */ }
+            } catch (Throwable $t) {
+                // ignore log failures
+            }
         }
         
         echo json_encode([
             'success' => true,
             'message' => 'Estado de inscripción actualizado exitosamente.',
             'new_status' => $new_status,
+            'db_status' => $db_status,
             'enrollment_id' => $enrollment_id,
             'notification_sent' => $notification_sent
         ]);

@@ -112,15 +112,17 @@ function initGallery() {
 function initContactForm() {
     const form = document.getElementById('contactForm');
     
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (validateForm()) {
-                submitForm();
-            }
-        });
+    if (!form) {
+        return;
     }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (validateForm()) {
+            submitForm();
+        }
+    });
     
     // Real-time validation
     const inputs = form.querySelectorAll('input, select, textarea');
@@ -216,6 +218,7 @@ function submitForm() {
     const form = document.getElementById('contactForm');
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
+    const endpoint = form.dataset.endpoint || 'api/contact_submit.php';
     
     // Show loading state
     submitBtn.innerHTML = '<span class="loading-spinner"></span> Enviando...';
@@ -225,7 +228,7 @@ function submitForm() {
     const formData = new FormData(form);
     
     // Submit form via fetch
-    fetch('contact.php', {
+    fetch(endpoint, {
         method: 'POST',
         body: formData
     })

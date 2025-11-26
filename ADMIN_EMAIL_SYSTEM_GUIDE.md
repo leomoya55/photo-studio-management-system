@@ -20,25 +20,25 @@ Se ha implementado un sistema completo de email personalizado que permite a Vane
 
 ### 📝 **1. Email General**
 ```
-Asunto: Mensaje de Academia Legend para [Nombre]
+Asunto: Mensaje de Valeria Vega Studio para [Nombre]
 Contenido: Mensaje personalizable con formato profesional
 ```
 
 ### 🎉 **2. Email de Bienvenida**
 ```
-Asunto: ¡Bienvenida a Academia Legend, [Nombre]!
+Asunto: ¡Bienvenida a Valeria Vega Studio, [Nombre]!
 Contenido: Mensaje cálido de bienvenida con el toque personal de Vanessa
 ```
 
 ### 💰 **3. Recordatorio de Pago**
 ```
-Asunto: Información sobre pagos - Academia Legend
+Asunto: Información sobre pagos - Valeria Vega Studio
 Contenido: Comunicación amigable sobre pagos pendientes
 ```
 
 ### 📚 **4. Actualización de Inscripción**
 ```
-Asunto: Actualización sobre tu inscripción - Academia Legend
+Asunto: Actualización sobre tu inscripción - Valeria Vega Studio
 Contenido: Información específica sobre cambios en inscripciones
 ```
 
@@ -52,7 +52,7 @@ Contenido: Información específica sobre cambios en inscripciones
 
 ### 📊 **Información Automática**
 - **Destinatario**: Se llena automáticamente con nombre y email
-- **Remitente**: Legend Academy con respuesta a admin@legendacademy.com
+- **Remitente**: Valeria Vega Studio con respuesta a admin@valevphotography.com
 - **Formato**: HTML profesional con los colores y diseño de la academia
 
 ### 🎯 **Personalización**

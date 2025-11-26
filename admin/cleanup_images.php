@@ -8,7 +8,6 @@ echo "<h1>🧹 Image Cleanup Script</h1>";
 
 // Files to remove (confirmed migrated to Cloudinary)
 $filesToRemove = [
-    '../assets/images/LegendCR.png',
     '../assets/images/vanessainicio.jpg'
 ];
 

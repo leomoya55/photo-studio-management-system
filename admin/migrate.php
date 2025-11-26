@@ -3,7 +3,7 @@ require_once '../config/db_connect.php';
 
 // Migration script to transfer JSON data to database and set up the system
 echo "<!DOCTYPE html><html><head><title>Database Migration</title></head><body>";
-echo "<h1>Legend Academy Database Migration</h1>";
+echo "<h1>Vale V Photography Database Migration</h1>";
 
 try {
     if (!$conn) {
@@ -112,7 +112,7 @@ try {
     }
 
     echo "<h3>Database Migration Complete!</h3>";
-    echo "<p style='color: green; font-size: 18px;'><strong>✓ Your Legend Academy system is now fully database-powered!</strong></p>";
+    echo "<p style='color: green; font-size: 18px;'><strong>✓ Your Vale V Photography system is now fully database-powered!</strong></p>";
     echo "<p><a href='admin.php' style='background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Go to Admin Panel</a></p>";
 
 } catch (Exception $e) {

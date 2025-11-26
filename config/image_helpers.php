@@ -16,10 +16,28 @@ function getClassImageUrl($publicId, $width = 400, $height = 300) {
     }
 
     $cloudName = getCloudName();
-    $transformations = "w_{$width},h_{$height},c_fill,f_auto,q_auto,dpr_auto";
-    
-    // Images are in root with unique IDs, no folder needed
-    return "https://res.cloudinary.com/{$cloudName}/image/upload/{$transformations}/{$publicId}";
+    $publicId = trim($publicId);
+
+    $encodedId = implode('/', array_map('rawurlencode', explode('/', $publicId)));
+
+    if ($width <= 0 && $height <= 0) {
+        $transformations = 'f_auto,q_auto,dpr_auto';
+    } else {
+        $pieces = [];
+        if ($width > 0) {
+            $pieces[] = "w_{$width}";
+        }
+        if ($height > 0) {
+            $pieces[] = "h_{$height}";
+        }
+        $pieces[] = ($width > 0 && $height > 0) ? 'c_fill' : 'c_limit';
+        $pieces[] = 'f_auto';
+        $pieces[] = 'q_auto';
+        $pieces[] = 'dpr_auto';
+        $transformations = implode(',', $pieces);
+    }
+
+    return "https://res.cloudinary.com/{$cloudName}/image/upload/{$transformations}/{$encodedId}";
 }
 
 /**
@@ -31,10 +49,28 @@ function getProfileImageUrl($publicId, $width = 400, $height = 300) {
     }
 
     $cloudName = getCloudName();
-    $transformations = "w_{$width},h_{$height},c_fill,f_auto,q_auto,dpr_auto";
-    
-    // Images can be in root or inicio folder
-    return "https://res.cloudinary.com/{$cloudName}/image/upload/{$transformations}/{$publicId}";
+    $publicId = trim($publicId);
+
+    $encodedId = implode('/', array_map('rawurlencode', explode('/', $publicId)));
+
+    if ($width <= 0 && $height <= 0) {
+        $transformations = 'f_auto,q_auto,dpr_auto';
+    } else {
+        $pieces = [];
+        if ($width > 0) {
+            $pieces[] = "w_{$width}";
+        }
+        if ($height > 0) {
+            $pieces[] = "h_{$height}";
+        }
+        $pieces[] = ($width > 0 && $height > 0) ? 'c_fill' : 'c_limit';
+        $pieces[] = 'f_auto';
+        $pieces[] = 'q_auto';
+        $pieces[] = 'dpr_auto';
+        $transformations = implode(',', $pieces);
+    }
+
+    return "https://res.cloudinary.com/{$cloudName}/image/upload/{$transformations}/{$encodedId}";
 }
 
 /**

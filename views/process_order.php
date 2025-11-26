@@ -408,9 +408,9 @@ function clearUserCart($user_id) {
 
 function sendOrderNotifications($order_number, $customer_name, $customer_email, $cart_items, $total_amount, $payment_method, $shipping_address, $notes, $customer_phone, $sinpe_proof_data = null) {
     try {
-        $admin_email = 'vanessa@legenddanceacademy.com';
-        $from_email = 'noreply@legenddanceacademy.com';
-        $from_name = 'Legend Dance Academy';
+        $admin_email = 'admin@valevphotography.com';
+        $from_email = 'noreply@valevphotography.com';
+        $from_name = 'Vale V Photography';
 
         // Items table fragment
         $rows = '';
@@ -443,7 +443,7 @@ function sendOrderNotifications($order_number, $customer_name, $customer_email, 
             .'</div>'
             .'<p style="margin-top:18px"><strong>Entrega:</strong> '.htmlspecialchars($shipping_address).'<br><strong>Teléfono:</strong> '.htmlspecialchars($customer_phone).'<br><strong>Método de pago:</strong> '.$payment_display.'</p>'
             .$notes_block
-            .'<p style="margin-top:20px">Gracias por comprar en Legend Dance Academy.</p>';
+            .'<p style="margin-top:20px">Gracias por confiar en Vale V Photography.</p>';
 
         $attachments = [];
         if ($sinpe_proof_data) {

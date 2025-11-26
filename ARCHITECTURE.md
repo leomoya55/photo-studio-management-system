@@ -1,4 +1,4 @@
-# Legend Academy - Layered Architecture
+# Valeria Vega Studio - Layered Architecture
 
 ## 🏗️ Project Structure
 

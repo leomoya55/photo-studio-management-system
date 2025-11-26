@@ -1,6 +1,6 @@
 <?php
 /**
- * Path Configuration for Legend Academy
+ * Path Configuration for Vale V Photography
  * Defines paths for the new layered architecture
  */
 
@@ -42,11 +42,56 @@ function normalize_base_url($val) {
 if ($envBaseUrl !== false && $envBaseUrl !== '') {
     define('BASE_URL', normalize_base_url($envBaseUrl));
 } else {
-    // Default heuristics: on Heroku use site root; on local XAMPP fall back to /ProyectoVanessa
     if ($isHeroku) {
         define('BASE_URL', '');
     } else {
-        define('BASE_URL', normalize_base_url('/ProyectoVanessa'));
+        $documentRoot = isset($_SERVER['DOCUMENT_ROOT']) ? str_replace('\\', '/', rtrim($_SERVER['DOCUMENT_ROOT'], '/')) : '';
+        $appRoot = str_replace('\\', '/', rtrim(ROOT_PATH, '/'));
+
+        $docLower = strtolower($documentRoot);
+        $appLower = strtolower($appRoot);
+
+        if ($documentRoot && strncmp($appLower, $docLower, strlen($docLower)) === 0) {
+            $relative = substr($appRoot, strlen($documentRoot));
+            define('BASE_URL', normalize_base_url($relative));
+        } else {
+            $scriptName = isset($_SERVER['SCRIPT_NAME']) ? str_replace('\\', '/', $_SERVER['SCRIPT_NAME']) : '';
+            $scriptFilename = isset($_SERVER['SCRIPT_FILENAME']) ? str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']) : '';
+
+            $baseCandidate = '';
+            if ($scriptName !== '' && $scriptFilename !== '') {
+                $scriptDirUrl = str_replace('\\', '/', dirname($scriptName));
+                $scriptDirFs = str_replace('\\', '/', dirname($scriptFilename));
+                $appLowerWithSep = rtrim(strtolower($appRoot), '/') . '/';
+                $scriptFsLower = strtolower($scriptDirFs) . '/';
+
+                if ($appRoot && strncmp($scriptFsLower, $appLowerWithSep, strlen($appLowerWithSep)) === 0) {
+                    $relativeDir = trim(str_replace($appRoot, '', $scriptDirFs), '/');
+                    if ($relativeDir !== '') {
+                        $suffix = '/' . $relativeDir;
+                        if ($suffix !== '/' && strlen($scriptDirUrl) >= strlen($suffix) && substr($scriptDirUrl, -strlen($suffix)) === $suffix) {
+                            $baseCandidate = substr($scriptDirUrl, 0, -strlen($suffix));
+                        } else {
+                            $baseCandidate = $scriptDirUrl;
+                        }
+                    } else {
+                        $baseCandidate = $scriptDirUrl;
+                    }
+                } else {
+                    $baseCandidate = $scriptDirUrl;
+                }
+            }
+
+            if ($baseCandidate === '.' || $baseCandidate === './') {
+                $baseCandidate = '';
+            }
+
+            if ($baseCandidate === '' || $baseCandidate === null) {
+                $baseCandidate = '/' . trim(basename($appRoot));
+            }
+
+            define('BASE_URL', normalize_base_url($baseCandidate));
+        }
     }
 }
 

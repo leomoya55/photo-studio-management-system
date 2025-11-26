@@ -100,13 +100,13 @@ function getCloudinaryImageUrl($publicId, $width = 400, $height = 300, $crop = '
     }
 }
 
-function uploadToCloudinary($filePath, $publicId, $folder = '') {
+function uploadToCloudinary($filePath, $publicId, $folder = '', $resourceType = 'image') {
     try {
         $uploadApi = new UploadApi();
         $options = [
             'public_id' => $publicId,
             'overwrite' => true,
-            'resource_type' => 'image'
+            'resource_type' => in_array($resourceType, ['image', 'raw', 'auto', 'video'], true) ? $resourceType : 'image'
         ];
         if (!empty($folder)) {
             $options['folder'] = $folder;

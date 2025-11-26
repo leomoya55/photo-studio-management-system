@@ -4,56 +4,211 @@ require_once __DIR__ . '/../config/paths.php';
 require_once __DIR__ . '/../config/db_connect.php';
 require_once __DIR__ . '/../includes/user_notifications.php';
 
-// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ' . VIEWS_URL . '/login.php');
     exit();
 }
 
-// Redirect admin to admin dashboard
-if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
-    header('Location: ' . VIEWS_URL . '/admin.php');
+if (!empty($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+    header('Location: ' . ADMIN_URL . '/admin.php');
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
-$first_name = $_SESSION['first_name'] ?? '';
-$last_name = $_SESSION['last_name'] ?? '';
-// Clean, safe queries block
-$user_profile = [];
-if ($stmt = $conn->prepare("SELECT * FROM users WHERE id = ?")) {
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $user_profile = $stmt->get_result()->fetch_assoc();
+$userId = (int)$_SESSION['user_id'];
+$firstName = $_SESSION['first_name'] ?? '';
+$lastName = $_SESSION['last_name'] ?? '';
+
+if (!function_exists('safeText')) {
+    function safeText($value): string
+    {
+        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+$userProfile = [];
+if ($stmt = $conn->prepare('SELECT * FROM users WHERE id = ? LIMIT 1')) {
+    $stmt->bind_param('i', $userId);
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        if ($result) {
+            $userProfile = $result->fetch_assoc() ?: [];
+        }
+    }
     $stmt->close();
 }
 
-$enrollments = null; $enrollments_count = 0;
-if ($stmt = $conn->prepare("\n    SELECT e.*, \n           COUNT(f.id) as feedback_count,\n           AVG(f.performance_rating) as avg_rating,\n           MAX(f.class_date) as last_feedback_date\n    FROM enrollments e \n    LEFT JOIN instructor_feedback f ON e.id = f.enrollment_id \n    WHERE e.user_id = ? \n    GROUP BY e.id \n    ORDER BY e.enrollment_date DESC\n")) {
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $enrollments = $stmt->get_result();
-    $enrollments_count = $enrollments ? $enrollments->num_rows : 0;
+$sessionBookings = [];
+if ($stmt = $conn->prepare(
+    'SELECT e.*, 
+            COUNT(f.id) AS feedback_count,
+            AVG(f.performance_rating) AS avg_rating,
+            MAX(f.class_date) AS last_feedback_date
+     FROM enrollments e
+     LEFT JOIN instructor_feedback f ON e.id = f.enrollment_id
+     WHERE e.user_id = ?
+     GROUP BY e.id
+     ORDER BY e.enrollment_date DESC'
+)) {
+    $stmt->bind_param('i', $userId);
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $sessionBookings[] = $row;
+            }
+        }
+    }
     $stmt->close();
 }
 
-$recent_feedback = null; $feedback_count = 0;
-if ($stmt = $conn->prepare("\n    SELECT f.*, e.class_name, e.class_schedule\n    FROM instructor_feedback f\n    JOIN enrollments e ON f.enrollment_id = e.id\n    WHERE f.user_id = ?\n    ORDER BY f.class_date DESC\n    LIMIT 5\n")) {
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $recent_feedback = $stmt->get_result();
-    $feedback_count = $recent_feedback ? $recent_feedback->num_rows : 0;
+$recentFeedback = [];
+if ($stmt = $conn->prepare(
+    'SELECT f.class_date,
+            f.performance_rating,
+            f.strengths,
+            f.areas_for_improvement,
+            f.general_notes,
+            f.homework_assigned,
+            e.class_name
+     FROM instructor_feedback f
+     LEFT JOIN enrollments e ON f.enrollment_id = e.id
+     WHERE f.user_id = ?
+     ORDER BY f.class_date DESC, f.created_at DESC
+     LIMIT 5'
+)) {
+    $stmt->bind_param('i', $userId);
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $recentFeedback[] = $row;
+            }
+        }
+    }
     $stmt->close();
 }
 
-$progress_summary = null; $progress_count = 0;
-if ($stmt = $conn->prepare("\n    SELECT class_type, skill_level, total_classes_attended, average_rating, goals, achievements\n    FROM user_progress \n    WHERE user_id = ?\n    ORDER BY updated_at DESC\n")) {
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $progress_summary = $stmt->get_result();
-    $progress_count = $progress_summary ? $progress_summary->num_rows : 0;
+$sessionPhotos = [];
+if ($stmt = $conn->prepare(
+    'SELECT session_label, session_date, image_url, created_at
+     FROM user_session_photos
+     WHERE user_id = ?
+     ORDER BY session_date DESC, created_at DESC
+     LIMIT 6'
+)) {
+    $stmt->bind_param('i', $userId);
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $sessionPhotos[] = $row;
+            }
+        }
+    }
     $stmt->close();
 }
+
+$notifications = getUserNotifications($userId, $conn);
+$replaceMap = [
+    'clases' => 'sesiones',
+    'Clases' => 'Sesiones',
+    'clase' => 'sesión',
+    'Clase' => 'Sesión',
+    'academia' => 'estudio',
+    'Academia' => 'Estudio'
+];
+
+foreach ($notifications as &$note) {
+    foreach (['title', 'message', 'details', 'action'] as $field) {
+        if (!empty($note[$field])) {
+            $note[$field] = str_replace(array_keys($replaceMap), array_values($replaceMap), $note[$field]);
+        }
+    }
+}
+unset($note);
+$notificationCount = count($notifications);
+
+$totalSessions = count($sessionBookings);
+$confirmedSessions = 0;
+$pendingSessions = 0;
+$deliveredSessions = 0;
+$ratingSum = 0.0;
+$ratingCount = 0;
+$latestReservation = null;
+
+foreach ($sessionBookings as $booking) {
+    $status = $booking['status'] ?? 'pending';
+    if (in_array($status, ['active'], true)) {
+        $confirmedSessions++;
+    }
+    if (in_array($status, ['pending', 'inactive'], true)) {
+        $pendingSessions++;
+    }
+    if ($status === 'completed') {
+        $deliveredSessions++;
+    }
+
+    if (isset($booking['avg_rating']) && $booking['avg_rating'] !== null) {
+        $ratingSum += (float)$booking['avg_rating'];
+        $ratingCount++;
+    }
+
+    if (!empty($booking['enrollment_date'])) {
+        $timestamp = strtotime($booking['enrollment_date']);
+        if ($timestamp) {
+            if ($latestReservation === null || $timestamp > $latestReservation) {
+                $latestReservation = $timestamp;
+            }
+        }
+    }
+}
+
+$overallRating = $ratingCount > 0 ? round($ratingSum / $ratingCount, 1) : null;
+$galleryCount = count($sessionPhotos);
+
+$statusLabels = [
+    'pending' => 'Pendiente de confirmación',
+    'inactive' => 'Pendiente de pago',
+    'active' => 'Confirmada',
+    'completed' => 'Entregada',
+    'cancelled' => 'Cancelada',
+    'rejected' => 'Rechazada'
+];
+
+$statusStyles = [
+    'pending' => 'warning',
+    'inactive' => 'warning',
+    'active' => 'info',
+    'completed' => 'success',
+    'cancelled' => 'secondary',
+    'rejected' => 'danger'
+];
+
+function formatDate(?string $date): string
+{
+    if (!$date) {
+        return 'Sin definir';
+    }
+    $timestamp = strtotime($date);
+    if (!$timestamp) {
+        return safeText($date);
+    }
+    return date('d/m/Y', $timestamp);
+}
+
+function isImageAsset(?string $url): bool
+{
+    if (!$url) {
+        return false;
+    }
+    $path = parse_url($url, PHP_URL_PATH);
+    if (!$path) {
+        return false;
+    }
+    return (bool) preg_match('/\.(jpe?g|png|gif|webp)$/i', $path) || str_contains($url, '/image/upload/');
+}
+
+$memberSince = $userProfile['created_at'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -61,808 +216,684 @@ if ($stmt = $conn->prepare("\n    SELECT class_type, skill_level, total_classes_
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Cuenta - Legend Dance Academy</title>
+    <title>Mi Perfil - Vale V Photography</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     <style>
-        .dashboard-header {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);
-            color: white;
-            padding: 2rem 0 4rem 0;
+        body {
+            background: #f8f6f4;
+            font-family: 'Poppins', sans-serif;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.6px;
+        }
+        .dashboard-hero {
+            background: linear-gradient(135deg, #111827 0%, #312e81 100%);
+            color: #fff;
+            border-radius: 24px;
+            padding: 2.75rem;
             position: relative;
+            overflow: visible;
+            z-index: 1;
         }
-        .welcome-card {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            margin-top: -2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        .dashboard-hero::after {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -10%;
+            width: 360px;
+            height: 360px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            filter: blur(0.5px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .dashboard-hero .row {
             position: relative;
-            z-index: 10;
+            z-index: 1;
         }
-        .header-content {
-            margin-bottom: 1.5rem;
+        .dashboard-hero h1 {
+            color: rgba(255, 255, 255, 0.85);
         }
-        .header-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        .header-subtitle {
-            font-size: 1rem;
-            opacity: 0.9;
-            margin-bottom: 0;
-        }
-        .info-card {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
-            height: 100%;
+        .hero-badge {
+            background: rgba(255,255,255,0.18);
+            padding: 0.35rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
         }
         .stat-card {
-            background: white;
-            border-radius: 15px;
+            background: #fff;
+            border-radius: 18px;
+            padding: 1.4rem;
+            box-shadow: 0 12px 30px rgba(17, 24, 39, 0.08);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            border: 1px solid rgba(17, 24, 39, 0.05);
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 1.3rem;
+        }
+        .section-title {
+            font-weight: 600;
+            color: #141b2b;
+            margin-bottom: 1.5rem;
+        }
+        .session-card {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid rgba(20, 27, 43, 0.08);
+            box-shadow: 0 14px 28px rgba(20,27,43,0.08);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
             padding: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        .enrollment-card {
-            border: none;
-            border-radius: 15px;
-            margin-bottom: 1rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .feedback-card {
-            border-left: 4px solid #ff6600;
-            margin-bottom: 1rem;
+            gap: 0.75rem;
         }
         .status-badge {
-            border-radius: 20px;
-            padding: 0.3rem 0.8rem;
-            font-size: 0.8rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
             font-weight: 600;
         }
-        .status-active { background: #d4edda; color: #155724; }
-        .status-inactive { background: #fff3cd; color: #856404; }
-        .status-pending { background: #cce5ff; color: #004085; }
-        .status-rejected { background: #f8d7da; color: #721c24; }
-        .status-completed { background: #d1ecf1; color: #0c5460; }
-        .status-cancelled { background: #f8d7da; color: #721c24; }
-        .rating-stars {
-            color: #ffc107;
+        .photo-card {
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 12px 28px rgba(17, 24, 39, 0.18);
         }
-        .profile-info-item {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f1f3f4;
+        .photo-card img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
         }
-        .profile-info-item:last-child {
-            border-bottom: none;
-        }
-        .edit-profile-btn {
+        .photo-card .overlay {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(17,24,39,0) 0%, rgba(17,24,39,0.65) 100%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1.1rem;
+            gap: 0.4rem;
         }
-        .emergency-contact {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-top: 1rem;
+        .photo-card.file-card {
+            background: linear-gradient(135deg, #000000 0%, #2f2f2f 100%);
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1.75rem 1.5rem;
+            gap: 0.75rem;
         }
-        .health-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
+        .photo-card.file-card .file-card-icon {
+            font-size: 2.75rem;
+            color: rgba(255,255,255,0.85);
+        }
+        .photo-card.file-card h6 {
+            color: #ffffff;
+        }
+        .photo-card.file-card small {
+            color: rgba(255,255,255,0.7);
+        }
+        .photo-card.file-card .file-card-actions a {
+            font-weight: 600;
+        }
+        .feedback-card {
+            border-radius: 16px;
+            border: 1px solid rgba(17, 24, 39, 0.06);
+            box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
+        }
+        .quick-actions a {
+            border-radius: 16px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
+            border: 1px solid rgba(17, 24, 39, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .quick-actions a:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(17, 24, 39, 0.12);
+        }
+        .tips-list li {
+            margin-bottom: 0.6rem;
+        }
+        .navbar .dropdown-menu {
+            z-index: 1100;
+        }
+        .navbar {
+            position: relative;
+            z-index: 2000;
+        }
+        @media (max-width: 767px) {
+            .dashboard-hero {
+                padding: 2rem;
+            }
         }
     </style>
 </head>
 <body>
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        .enrollment-card {
-            border: none;
-            border-radius: 15px;
-            margin-bottom: 1rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .feedback-card {
-            border-left: 4px solid #ff6600;
-            margin-bottom: 1rem;
-        }
-        .status-badge {
-            border-radius: 20px;
-            padding: 0.3rem 0.8rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        .status-active { background: #d4edda; color: #155724; }
-        .status-inactive { background: #fff3cd; color: #856404; }
-        .status-pending { background: #cce5ff; color: #004085; }
-        .status-rejected { background: #f8d7da; color: #721c24; }
-        .status-completed { background: #d1ecf1; color: #0c5460; }
-        .status-cancelled { background: #f8d7da; color: #721c24; }
-        .rating-stars {
-            color: #ffc107;
-        }
-        .profile-info-item {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f1f3f4;
-        }
-        .profile-info-item:last-child {
-            border-bottom: none;
-        }
-        .edit-profile-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-        }
-        .emergency-contact {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-        .health-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-    </style>
-</head>
-<body>
-    <!-- Header -->
-    <div class="dashboard-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <div class="header-content">
-                        <h1 class="header-title">
-                            <i class="fas fa-star me-2"></i>Legend Dance Academy
-                        </h1>
-                        <p class="header-subtitle">Panel de Control del Estudiante</p>
-                    </div>
-                </div>
-                <div class="col-md-4 text-md-end">
-                    <a href="#notifications" class="btn btn-light btn-lg me-2" title="Notificaciones">
-                        <i class="fas fa-bell me-2"></i>
-                        <span>Notificaciones</span>
-                        <span id="notifCount" class="badge bg-danger ms-2" style="display:none;">0</span>
-                    </a>
-                    <a href="<?php echo VIEWS_URL; ?>/index.php" class="btn btn-outline-light btn-lg me-2">
-                        <i class="fas fa-home me-2"></i>Inicio
-                    </a>
-                    <a href="<?php echo VIEWS_URL; ?>/logout.php" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                    </a>
-                </div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+        <div class="container py-2">
+            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php">
+                <i class="fas fa-camera-retro me-2 text-primary"></i>Vale V Photography
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardNav" aria-controls="dashboardNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="dashboardNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+                    <li class="nav-item text-muted small d-flex align-items-center gap-2">
+                        <span>Hola, <?php echo safeText(trim($firstName . ' ' . $lastName)); ?></span>
+                        <span id="notifCountInline" class="badge bg-danger rounded-pill<?php echo $notificationCount ? '' : ' d-none'; ?>" data-server-count="<?php echo $notificationCount; ?>" title="Alertas nuevas"><?php echo $notificationCount ?: ''; ?></span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Reservar nueva sesión</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle position-relative" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell me-1"></i>Notificaciones
+                            <span id="notifCount" class="badge bg-danger rounded-pill ms-1<?php echo $notificationCount ? '' : ' d-none'; ?>" data-server-count="<?php echo $notificationCount; ?>"><?php echo $notificationCount ?: ''; ?></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notifDropdown" style="min-width: 320px;">
+                            <div class="dropdown-header fw-semibold">Actualizaciones recientes</div>
+                            <div id="notifList" class="list-group list-group-flush" data-has-items="<?php echo $notificationCount ? '1' : '0'; ?>">
+                                <?php if ($notificationCount === 0): ?>
+                                    <div class="list-group-item text-center text-muted small py-3">Sin notificaciones nuevas</div>
+                                <?php else: ?>
+                                    <?php foreach ($notifications as $note): ?>
+                                        <?php
+                                            $level = $note['level'] ?? 'info';
+                                            $icon = 'fa-circle-info';
+                                            $tone = 'text-primary';
+                                            if ($level === 'warning') {
+                                                $icon = 'fa-triangle-exclamation';
+                                                $tone = 'text-warning';
+                                            } elseif ($level === 'success') {
+                                                $icon = 'fa-check-circle';
+                                                $tone = 'text-success';
+                                            }
+                                        ?>
+                                        <div class="list-group-item">
+                                            <div class="d-flex align-items-start gap-2">
+                                                <i class="fas <?php echo $icon; ?> <?php echo $tone; ?> mt-1"></i>
+                                                <div>
+                                                    <div class="fw-semibold small"><?php echo safeText($note['title'] ?? 'Actualización'); ?></div>
+                                                    <div class="small text-muted mb-1"><?php echo $note['message'] ?? ''; ?></div>
+                                                    <?php if (!empty($note['details'])): ?>
+                                                        <div class="small text-muted"><?php echo safeText($note['details']); ?></div>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($note['action'])): ?>
+                                                        <div class="small fw-semibold"><?php echo safeText($note['action']); ?></div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+                            <div class="dropdown-footer text-center small py-2 bg-light">
+                                <a class="text-decoration-none" href="<?php echo VIEWS_URL; ?>/contact.php">¿Necesitas ayuda? Escríbenos</a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-dark btn-sm" href="<?php echo VIEWS_URL; ?>/logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i>Salir
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <div class="container">
-        <!-- Welcome Card -->
-        <div class="welcome-card">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="bg-primary rounded-circle p-3 me-3">
-                            <i class="fas fa-user fa-2x text-white"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-primary mb-1">¡Hola, <?php echo htmlspecialchars($first_name . ' ' . $last_name); ?>!</h2>
-                            <p class="text-muted mb-0">Bienvenido a tu panel de control. Gestiona tu perfil, clases y progreso.</p>
-                        </div>
+    <div class="container py-5">
+        <section class="dashboard-hero mb-5">
+            <div class="row">
+                <div class="col-xl-8 col-lg-9">
+                    <span class="hero-badge">
+                        <i class="far fa-sun"></i> Tu experiencia fotográfica
+                    </span>
+                    <h1 class="mt-3 mb-2">Hola <?php echo safeText($firstName); ?>, tus recuerdos están en buenas manos.</h1>
+                    <p class="lead mb-4">
+                        Revisa tus sesiones confirmadas, descarga tus galerías y encuentra inspiración para tu próximo proyecto con Vanessa.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <?php if ($memberSince): ?>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-dark rounded-pill">
+                                    <i class="far fa-calendar-check me-1"></i>Cliente desde <?php echo formatDate($memberSince); ?>
+                                </span>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($totalSessions > 0): ?>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-dark rounded-pill">
+                                    <i class="fas fa-camera me-1"></i><?php echo $totalSessions; ?> sesión<?php echo $totalSessions === 1 ? '' : 'es'; ?> registrad<?php echo $totalSessions === 1 ? 'a' : 'as'; ?>
+                                </span>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                </div>
-                <div class="col-md-4 text-md-end">
-                    <a href="<?php echo VIEWS_URL; ?>/clases.php" class="btn btn-primary btn-lg">
-                        <i class="fas fa-plus me-2"></i>Explorar Clases
-                    </a>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <a id="notifications"></a>
-        <?php
-        // Get and display user notifications
-        $notifications = getUserNotifications($user_id, $conn);
-        if (!empty($notifications)) {
-            echo displayNotifications($notifications);
-        }
-        ?>
-
-        <div class="row mt-4">
-            <!-- Personal Information Card -->
-            <div class="col-lg-4 mb-4">
-                <div class="info-card position-relative">
-                    <button class="btn btn-sm btn-outline-primary edit-profile-btn" onclick="editPersonalInfo()">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <h5 class="text-primary mb-3">
-                        <i class="fas fa-user me-2"></i>Información Personal
-                    </h5>
-                    
-                    <div class="profile-info-item">
-                        <small class="text-muted">Peso:</small><br>
-                        <strong><?php echo $user_profile['weight'] ? $user_profile['weight'] . ' kg' : 'No especificado'; ?></strong>
-                    </div>
-                    
-                    <div class="profile-info-item">
-                        <small class="text-muted">Altura:</small><br>
-                        <strong><?php echo $user_profile['height'] ? $user_profile['height'] . ' cm' : 'No especificado'; ?></strong>
-                    </div>
-                    
-                    <div class="profile-info-item">
-                        <small class="text-muted">Email:</small><br>
-                        <strong><?php echo htmlspecialchars($user_profile['email']); ?></strong>
-                    </div>
-                    
-                    <div class="profile-info-item">
-                        <small class="text-muted">Miembro desde:</small><br>
-                        <strong><?php echo date('d/m/Y', strtotime($user_profile['created_at'])); ?></strong>
-                    </div>
-
-                    <?php if ($user_profile['medical_conditions']): ?>
-                    <div class="health-info">
-                        <h6 class="text-warning mb-2">
-                            <i class="fas fa-heartbeat me-1"></i>Condiciones Médicas
-                        </h6>
-                        <p class="mb-2 small"><?php echo nl2br(htmlspecialchars($user_profile['medical_conditions'])); ?></p>
-                        <button class="btn btn-outline-warning btn-sm w-100" onclick="editMedicalInfo()">
-                            <i class="fas fa-edit me-1"></i>Editar Info. Médica
-                        </button>
-                    </div>
-                    <?php else: ?>
-                    <div class="health-info text-center">
-                        <i class="fas fa-heartbeat fa-2x text-muted mb-2"></i>
-                        <p class="text-muted mb-2">No hay información médica registrada</p>
-                        <button class="btn btn-outline-warning btn-sm" onclick="editMedicalInfo()">
-                            <i class="fas fa-plus me-1"></i>Agregar Info. Médica
-                        </button>
-                    </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <!-- Emergency Contact Card -->
-            <div class="col-lg-4 mb-4">
-                <div class="info-card">
-                    <h5 class="text-danger mb-3">
-                        <i class="fas fa-phone-alt me-2"></i>Contacto de Emergencia
-                    </h5>
-                    
-                    <?php if ($user_profile['emergency_contact_name']): ?>
-                        <div class="emergency-contact">
-                            <div class="profile-info-item">
-                                <small class="text-muted">Nombre:</small><br>
-                                <strong><?php echo htmlspecialchars($user_profile['emergency_contact_name']); ?></strong>
-                            </div>
-                            
-                            <div class="profile-info-item">
-                                <small class="text-muted">Teléfono:</small><br>
-                                <strong><?php echo htmlspecialchars($user_profile['emergency_contact_phone']); ?></strong>
-                            </div>
-                            
-                            <div class="profile-info-item">
-                                <small class="text-muted">Relación:</small><br>
-                                <strong><?php echo htmlspecialchars($user_profile['emergency_contact_relationship']); ?></strong>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <div class="text-center py-3">
-                            <i class="fas fa-exclamation-triangle fa-2x text-muted mb-2"></i>
-                            <p class="text-muted">No hay contacto de emergencia registrado</p>
-                            <button class="btn btn-outline-danger btn-sm" onclick="editEmergencyContact()">
-                                Agregar Contacto
-                            </button>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <!-- Quick Stats Card -->
-            <div class="col-lg-4 mb-4">
-                <div class="info-card">
-                    <h5 class="text-success mb-3">
-                        <i class="fas fa-chart-line me-2"></i>Estadísticas
-                    </h5>
-                    
-                    <div class="stat-card mb-2">
-                        <i class="fas fa-calendar-check fa-2x text-primary mb-2"></i>
-                        <h4 class="text-primary"><?php echo (int)($enrollments_count ?? ($enrollments ? $enrollments->num_rows : 0)); ?></h4>
-                        <p class="text-muted mb-0">Clases Inscritas</p>
-                    </div>
-                    
-                    <div class="stat-card mb-2">
-                        <i class="fas fa-star fa-2x text-warning mb-2"></i>
-                        <h4 class="text-warning"><?php echo (int)($feedback_count ?? ($recent_feedback ? $recent_feedback->num_rows : 0)); ?></h4>
-                        <p class="text-muted mb-0">Evaluaciones Recibidas</p>
-                    </div>
-                    
+        <section class="mb-5">
+            <div class="row g-4">
+                <div class="col-md-6 col-xl-3">
                     <div class="stat-card">
-                        <i class="fas fa-trophy fa-2x text-success mb-2"></i>
-                            <h4 class="text-primary"><?php echo (int)($enrollments_count ?? ($enrollments ? $enrollments->num_rows : 0)); ?></h4>
-                        <p class="text-muted mb-0">Programas en Progreso</p>
+                        <div class="stat-icon bg-primary-subtle text-primary"><i class="fas fa-camera"></i></div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Sesiones totales</span>
+                            <h3 class="mt-1 mb-0"><?php echo $totalSessions; ?></h3>
+                            <small class="text-muted">Incluye confirmadas y entregadas</small>
+                        </div>
                     </div>
-                    
-                    
-                    
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-warning-subtle text-warning"><i class="fas fa-hourglass-half"></i></div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Pendientes</span>
+                            <h3 class="mt-1 mb-0"><?php echo $pendingSessions; ?></h3>
+                            <small class="text-muted">En espera de confirmación o pago</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-success-subtle text-success"><i class="fas fa-gift"></i></div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Sesiones entregadas</span>
+                            <h3 class="mt-1 mb-0"><?php echo $deliveredSessions; ?></h3>
+                            <small class="text-muted">Listas para descargar</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-info-subtle text-info"><i class="fas fa-star"></i></div>
+                        <div>
+                            <span class="text-muted small text-uppercase">Valoración promedio</span>
+                            <h3 class="mt-1 mb-0"><?php echo $overallRating !== null ? $overallRating : '—'; ?><?php echo $overallRating !== null ? '/10' : ''; ?></h3>
+                            <small class="text-muted">Basado en tus notas fotográficas</small>
+                        </div>
+                    </div>
                 </div>
             </div>
-                            <h4 class="text-warning"><?php echo (int)($feedback_count ?? ($recent_feedback ? $recent_feedback->num_rows : 0)); ?></h4>
+        </section>
 
-        <!-- Enrollments and Feedback -->
-                    
-                    
-                    
-        <div class="row">
-            <!-- My Enrollments -->
-                            <h4 class="text-success"><?php echo (int)($progress_count ?? ($progress_summary ? $progress_summary->num_rows : 0)); ?></h4>
-                <h3 class="mb-4">
-                    <i class="fas fa-list me-2 text-primary"></i>Mis Inscripciones
-                </h3>
-                
-                <?php if ($enrollments && $enrollments->num_rows > 0): ?>
-                    <?php $enrollments->data_seek(0); // Reset pointer ?>
-                    <?php while ($enrollment = $enrollments->fetch_assoc()): ?>
-                        <div class="card enrollment-card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <h5 class="card-title mb-1"><?php echo htmlspecialchars($enrollment['class_name']); ?></h5>
-                                        <p class="text-muted mb-1">
-                                            <i class="fas fa-clock me-1"></i>
-                                            <?php echo htmlspecialchars($enrollment['class_schedule']); ?>
-                                        </p>
-                                        <div class="row mt-2">
-                                            <div class="col-sm-6">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-calendar-plus me-1"></i>
-                                                    Inscrito: <?php echo date('d/m/Y', strtotime($enrollment['enrollment_date'])); ?>
-                                                </small>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-check-circle me-1"></i>
-                                                    Asistencias: <?php echo $enrollment['total_classes_attended'] ?? 0; ?>
-                                                </small>
-                                            </div>
-                                        </div>
-                                        
-                                        <?php if ($enrollment['avg_rating']): ?>
-                                        <div class="mt-2">
-                                            <small class="text-muted">Calificación promedio:</small>
-                                            <div class="rating-stars">
-                                                <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                    <i class="fas fa-star<?php echo $i <= round($enrollment['avg_rating']) ? '' : '-o'; ?>"></i>
-                                                <?php endfor; ?>
-                                                <span class="ms-1"><?php echo number_format($enrollment['avg_rating'], 1); ?>/5</span>
-                                            </div>
-                                        </div>
-                                        <?php endif; ?>
-                                        
-                                        <?php if ($enrollment['progress_notes']): ?>
-                                        <div class="mt-2">
-                                            <small class="text-muted">Notas de progreso:</small>
-                                            <p class="small text-dark mb-0"><?php echo nl2br(htmlspecialchars($enrollment['progress_notes'])); ?></p>
-                                        </div>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <div class="col-md-4 text-md-end">
-                                        <span class="status-badge status-<?php echo $enrollment['status']; ?>">
-                                            <?php 
-                                            $statusText = [
-                                                'active' => 'Asistiendo a Clases',
-                                                'inactive' => 'No Está Asistiendo',
-                                                'pending' => 'Esperando Aprobación',
-                                                'rejected' => 'No Aprobado',
-                                                'completed' => 'Clase Completada',
-                                                'cancelled' => 'Cancelado'
-                                            ];
-                                            echo $statusText[$enrollment['status']] ?? ucfirst($enrollment['status']); 
-                                            ?>
+        <?php if (!empty($notifications)): ?>
+            <section class="mb-5">
+                <h2 class="section-title">Recordatorios del estudio</h2>
+                <?php foreach ($notifications as $note): ?>
+                    <?php
+                        $level = $note['level'] ?? 'info';
+                        $alertClass = $level === 'warning' ? 'alert-warning' : ($level === 'success' ? 'alert-success' : 'alert-info');
+                    ?>
+                    <div class="alert <?php echo $alertClass; ?> alert-dismissible fade show" role="alert">
+                        <div class="d-flex gap-3">
+                            <div class="fs-4 mt-1">
+                                <?php echo $level === 'warning' ? '⚠️' : ($level === 'success' ? '✨' : 'ℹ️'); ?>
+                            </div>
+                            <div>
+                                <h5 class="mb-1"><?php echo safeText($note['title']); ?></h5>
+                                <p class="mb-1"><?php echo $note['message']; ?></p>
+                                <?php if (!empty($note['details'])): ?>
+                                    <small class="text-muted d-block mb-1"><?php echo $note['details']; ?></small>
+                                <?php endif; ?>
+                                <?php if (!empty($note['action'])): ?>
+                                    <small class="fw-semibold text-dark d-block"><?php echo $note['action']; ?></small>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endforeach; ?>
+            </section>
+        <?php endif; ?>
+
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title mb-0">Tus sesiones fotográficas</h2>
+                <?php if ($totalSessions > 0): ?>
+                    <a class="btn btn-outline-primary btn-sm" href="<?php echo VIEWS_URL; ?>/clases.php">
+                        <i class="fas fa-plus me-1"></i> Agendar otra sesión
+                    </a>
+                <?php endif; ?>
+            </div>
+
+            <?php if ($totalSessions === 0): ?>
+                <div class="session-card text-center">
+                    <i class="fas fa-camera-retro fa-3x text-muted mb-3"></i>
+                    <h5 class="mb-2">Aún no has reservado sesiones</h5>
+                    <p class="text-muted mb-4">Cuando agendes tu primera sesión, aquí podrás dar seguimiento a cada detalle.</p>
+                    <a class="btn btn-dark" href="<?php echo VIEWS_URL; ?>/clases.php">
+                        <i class="fas fa-calendar-plus me-2"></i>Explorar sesiones disponibles
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="row g-4">
+                    <?php foreach ($sessionBookings as $booking): ?>
+                        <?php
+                            $status = $booking['status'] ?? 'pending';
+                            $statusLabel = $statusLabels[$status] ?? ucfirst($status);
+                            $statusStyle = $statusStyles[$status] ?? 'secondary';
+                            $sessionName = $booking['class_name'] ?: 'Sesión sin título';
+                            $schedule = $booking['selected_schedule'] ?: ($booking['class_schedule'] ?? 'Horario por definir');
+                        ?>
+                        <div class="col-md-6 col-xl-4">
+                            <div class="session-card h-100">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="mb-1"><?php echo safeText($sessionName); ?></h5>
+                                        <span class="badge bg-<?php echo $statusStyle; ?> bg-opacity-10 text-<?php echo $statusStyle; ?> status-badge">
+                                            <i class="fas fa-circle me-2" style="font-size: 0.5rem;"></i><?php echo safeText($statusLabel); ?>
                                         </span>
-                                        
-                                        <?php 
-                                        // Add status-specific action messages
-                                        if ($enrollment['status'] === 'inactive'): ?>
-                                        <div class="mt-2">
-                                            <small class="text-warning">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                Contacta con la academia para volver a las clases
-                                            </small>
-                                        </div>
-                                        <?php elseif ($enrollment['status'] === 'pending'): ?>
-                                        <div class="mt-2">
-                                            <small class="text-info">
-                                                <i class="fas fa-clock me-1"></i>
-                                                Tu solicitud está siendo revisada
-                                            </small>
-                                        </div>
-                                        <?php elseif ($enrollment['status'] === 'rejected'): ?>
-                                        <div class="mt-2">
-                                            <small class="text-danger">
-                                                <i class="fas fa-info-circle me-1"></i>
-                                                Contacta con la academia para más información
-                                            </small>
-                                        </div>
-                                        <?php elseif ($enrollment['status'] === 'completed'): ?>
-                                        <div class="mt-2">
-                                            <small class="text-success">
-                                                <i class="fas fa-check-circle me-1"></i>
-                                                ¡Felicidades! Has completado esta clase
-                                            </small>
-                                        </div>
-                                        <?php elseif ($enrollment['status'] === 'cancelled'): ?>
-                                        <div class="mt-2">
-                                            <small class="text-secondary">
-                                                <i class="fas fa-ban me-1"></i>
-                                                Esta inscripción fue cancelada
-                                            </small>
-                                        </div>
-                                        <?php elseif ($enrollment['status'] === 'active'): ?>
-                                        <div class="mt-2">
-                                            <small class="text-success">
-                                                <i class="fas fa-play me-1"></i>
-                                                ¡Estás asistiendo a esta clase!
-                                            </small>
-                                        </div>
-                                        <?php endif; ?>
-                                        
-                                        <?php if ($enrollment['feedback_count'] > 0): ?>
-                                        <div class="mt-2">
-                                            <small class="text-primary">
-                                                <i class="fas fa-comments me-1"></i>
-                                                <?php echo $enrollment['feedback_count']; ?> evaluación(es)
-                                            </small>
-                                        </div>
-                                        <?php endif; ?>
-                                        
-                                        <?php if ($enrollment['last_feedback_date']): ?>
-                                        <div class="mt-1">
-                                            <small class="text-muted">
-                                                Última evaluación: <?php echo date('d/m/Y', strtotime($enrollment['last_feedback_date'])); ?>
-                                            </small>
-                                        </div>
-                                        <?php endif; ?>
                                     </div>
+                                </div>
+                                <div class="text-muted small">
+                                    <p class="mb-2"><i class="far fa-calendar me-2"></i><?php echo safeText($schedule); ?></p>
+                                    <?php if (!empty($booking['enrollment_date'])): ?>
+                                        <p class="mb-2"><i class="far fa-clock me-2"></i>Reservada el <?php echo formatDate($booking['enrollment_date']); ?></p>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if (!empty($booking['progress_notes'])): ?>
+                                    <div class="border rounded-3 p-3 bg-light">
+                                        <small class="text-uppercase text-muted">Notas del estudio</small>
+                                        <p class="mb-0 mt-1"><?php echo nl2br(safeText($booking['progress_notes'])); ?></p>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="mt-auto pt-2 small text-muted">
+                                    <?php if (!empty($booking['avg_rating'])): ?>
+                                        <span class="d-block mb-1">
+                                            <i class="fas fa-star text-warning me-2"></i>Calificación promedio: <?php echo number_format((float)$booking['avg_rating'], 1); ?>/10
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if (!empty($booking['feedback_count'])): ?>
+                                        <span class="d-block">
+                                            <i class="fas fa-comments text-primary me-2"></i><?php echo (int)$booking['feedback_count']; ?> nota<?php echo (int)$booking['feedback_count'] === 1 ? '' : 's'; ?> del fotógrafo
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <div class="card enrollment-card">
-                        <div class="card-body text-center py-5">
-                            <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No tienes clases inscritas aún</h5>
-                            <p class="text-muted mb-3">¡Explora nuestras clases y encuentra la perfecta para ti!</p>
-                            <a href="<?php echo VIEWS_URL; ?>/clases.php" class="btn btn-primary">
-                                <i class="fas fa-search me-1"></i>Explorar Clases
-                            </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
+
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title mb-0">Tus recuerdos listos</h2>
+                <?php if ($galleryCount > 0): ?>
+                    <span class="text-muted small">Última actualización: <?php echo formatDate($sessionPhotos[0]['session_date'] ?? $sessionPhotos[0]['created_at'] ?? null); ?></span>
+                <?php endif; ?>
+            </div>
+
+            <?php if ($galleryCount === 0): ?>
+                <div class="alert alert-light border text-muted" role="alert">
+                    <i class="fas fa-image me-2"></i>Cuando tus galerías estén listas, podrás descargarlas desde aquí mismo.
+                </div>
+            <?php else: ?>
+                <div class="row g-4">
+                    <?php foreach ($sessionPhotos as $photo): ?>
+                        <?php
+                            $galleryUrl = $photo['image_url'] ?? '';
+                            $isImage = isImageAsset($galleryUrl);
+                            $sessionLabel = $photo['session_label'] ?? '';
+                            $dateValue = $photo['session_date'] ?? $photo['created_at'] ?? null;
+                            $displayDate = $dateValue ? formatDate($dateValue) : null;
+                        ?>
+                        <div class="col-md-6 col-xl-4">
+                            <div class="photo-card<?php echo $isImage ? '' : ' file-card'; ?>">
+                                <?php if ($isImage): ?>
+                                    <img src="<?php echo safeText($galleryUrl); ?>" alt="Galería fotográfica" loading="lazy">
+                                    <div class="overlay">
+                                        <?php if (!empty($sessionLabel)): ?>
+                                            <h6 class="mb-0"><?php echo safeText($sessionLabel); ?></h6>
+                                        <?php endif; ?>
+                                        <?php if (!empty($displayDate)): ?>
+                                            <small class="text-white-50"><?php echo safeText($displayDate); ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <i class="fas fa-folder-open file-card-icon"></i>
+                                    <?php if (!empty($sessionLabel)): ?>
+                                        <h6 class="mb-1"><?php echo safeText($sessionLabel); ?></h6>
+                                    <?php endif; ?>
+                                    <?php if (!empty($displayDate)): ?>
+                                        <small class="d-block mb-2"><?php echo safeText($displayDate); ?></small>
+                                    <?php endif; ?>
+                                    <div class="file-card-actions">
+                                        <a class="btn btn-light btn-sm" href="<?php echo safeText($galleryUrl); ?>" download>
+                                            <i class="fas fa-download me-1"></i>Descargar
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
+
+        <section class="row g-4 mb-5">
+            <div class="col-lg-7">
+                <h2 class="section-title">Notas del fotógrafo</h2>
+                <?php if (empty($recentFeedback)): ?>
+                    <div class="alert alert-light border text-muted" role="alert">
+                        <i class="far fa-sticky-note me-2"></i>Cuando recibas comentarios del equipo, aparecerán aquí para que prepares tu próxima sesión.
+                    </div>
+                <?php else: ?>
+                    <div class="d-flex flex-column gap-3">
+                        <?php foreach ($recentFeedback as $feedback): ?>
+                            <div class="card feedback-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1 text-primary">
+                                                <?php echo safeText($feedback['class_name'] ?? 'Sesión fotográfica'); ?>
+                                            </h6>
+                                            <?php if (!empty($feedback['class_date'])): ?>
+                                                <small class="text-muted">Realizada el <?php echo formatDate($feedback['class_date']); ?></small>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if (!empty($feedback['performance_rating'])): ?>
+                                            <span class="badge bg-dark-subtle text-dark"><i class="fas fa-star text-warning me-1"></i><?php echo (int)$feedback['performance_rating']; ?>/10</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if (!empty($feedback['strengths'])): ?>
+                                        <p class="mb-1"><strong>Lo que brilló:</strong> <?php echo safeText($feedback['strengths']); ?></p>
+                                    <?php endif; ?>
+                                    <?php if (!empty($feedback['areas_for_improvement'])): ?>
+                                        <p class="mb-1"><strong>Para la próxima:</strong> <?php echo safeText($feedback['areas_for_improvement']); ?></p>
+                                    <?php endif; ?>
+                                    <?php if (!empty($feedback['general_notes'])): ?>
+                                        <p class="mb-1 text-muted"><?php echo safeText($feedback['general_notes']); ?></p>
+                                    <?php endif; ?>
+                                    <?php if (!empty($feedback['homework_assigned'])): ?>
+                                        <p class="mb-0"><strong>Preparación sugerida:</strong> <?php echo safeText($feedback['homework_assigned']); ?></p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
             </div>
 
-            <!-- Recent Instructor Feedback -->
-            <div class="col-lg-4">
-                <h3 class="mb-4">
-                    <i class="fas fa-comments me-2 text-primary"></i>Evaluaciones Recientes
-                </h3>
-                
-                <?php if ($recent_feedback && $recent_feedback->num_rows > 0): ?>
-                    <?php while ($feedback = $recent_feedback->fetch_assoc()): ?>
-                        <div class="card feedback-card">
-                            <div class="card-body">
-                                <h6 class="card-title text-primary mb-1"><?php echo htmlspecialchars($feedback['class_name']); ?></h6>
-                                <small class="text-muted"><?php echo date('d/m/Y', strtotime($feedback['class_date'])); ?></small>
-                                
-                                <?php if ($feedback['performance_rating']): ?>
-                                <div class="mt-2">
-                                    <small class="text-muted">Calificación:</small>
-                                    <div class="rating-stars">
-                                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                                            <i class="fas fa-star<?php echo $i <= $feedback['performance_rating'] ? '' : '-o'; ?>"></i>
-                                        <?php endfor; ?>
-                                    </div>
-                                </div>
-                                <?php endif; ?>
-                                
-                                <?php if ($feedback['strengths']): ?>
-                                <div class="mt-2">
-                                    <small class="text-success"><strong>Fortalezas:</strong></small>
-                                    <p class="small mb-1"><?php echo htmlspecialchars($feedback['strengths']); ?></p>
-                                </div>
-                                <?php endif; ?>
-                                
-                                <?php if ($feedback['areas_for_improvement']): ?>
-                                <div class="mt-2">
-                                    <small class="text-warning"><strong>A mejorar:</strong></small>
-                                    <p class="small mb-1"><?php echo htmlspecialchars($feedback['areas_for_improvement']); ?></p>
-                                </div>
-                                <?php endif; ?>
-                                
-                                <?php if ($feedback['homework_assigned']): ?>
-                                <div class="mt-2">
-                                    <small class="text-info"><strong>Tarea asignada:</strong></small>
-                                    <p class="small mb-0"><?php echo htmlspecialchars($feedback['homework_assigned']); ?></p>
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <div class="card">
-                        <div class="card-body text-center py-4">
-                            <i class="fas fa-comment-slash fa-2x text-muted mb-2"></i>
-                            <p class="text-muted mb-0">No hay evaluaciones recientes</p>
-                        </div>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="row mt-4 mb-5">
-            <div class="col-12">
-                <h3 class="mb-4">
-                    <i class="fas fa-bolt me-2 text-primary"></i>Acciones Rápidas
-                </h3>
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <a href="../views/horarios.php" class="btn btn-outline-primary w-100 py-3">
-                            <i class="fas fa-calendar-alt d-block mb-2"></i>
-                            Ver Horarios
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="../views/clases.php" class="btn btn-outline-primary w-100 py-3">
-                            <i class="fas fa-plus d-block mb-2"></i>
-                            Inscribir Clase
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="../views/ubicacion.php" class="btn btn-outline-primary w-100 py-3">
-                            <i class="fas fa-map-marker-alt d-block mb-2"></i>
-                            Ubicación
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="../views/redes-sociales.php" class="btn btn-outline-primary w-100 py-3">
-                            <i class="fas fa-share-alt d-block mb-2"></i>
-                            Redes Sociales
+            <div class="col-lg-5">
+                <h2 class="section-title">Inspiración del estudio</h2>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <ul class="list-unstyled tips-list mb-4">
+                            <li><i class="fas fa-lightbulb text-warning me-2"></i>Trae dos cambios de ropa que contrasten entre sí.</li>
+                            <li><i class="fas fa-leaf text-success me-2"></i>Descansa bien la noche anterior para lucir fresco/a.</li>
+                            <li><i class="fas fa-music text-primary me-2"></i>Comparte una playlist que represente el mood que buscas.</li>
+                            <li><i class="fas fa-map-marker-alt text-danger me-2"></i>Verifica la ubicación y estacionamiento del estudio con anticipación.</li>
+                        </ul>
+                        <a class="btn btn-dark w-100" href="<?php echo VIEWS_URL; ?>/contact.php">
+                            <i class="fas fa-envelope-open-text me-2"></i>Coordinar detalles con Valeria 
                         </a>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Personal Info Modal (Height & Weight) -->
-    <div class="modal fade" id="personalInfoModal" tabindex="-1" aria-labelledby="personalInfoModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="personalInfoModalLabel">
-                        <i class="fas fa-user me-2"></i>Información Personal
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <section class="mb-4">
+            <h2 class="section-title">Acciones rápidas</h2>
+            <div class="row g-3 quick-actions">
+                <div class="col-md-3">
+                    <a href="<?php echo VIEWS_URL; ?>/clases.php" class="text-decoration-none text-dark bg-white">
+                        <i class="fas fa-calendar-plus fa-lg"></i>
+                        <span class="fw-semibold">Agendar sesión</span>
+                        <small class="text-muted text-center">Explora retratos, branding y lifestyle</small>
+                    </a>
                 </div>
-                <form id="personalInfoForm" method="POST">
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="weight" class="form-label">
-                                        <i class="fas fa-weight me-1"></i>Peso (kg)
-                                    </label>
-                                    <input type="number" step="0.1" class="form-control" id="weight" name="weight" 
-                                           value="<?php echo $user_profile['weight']; ?>" placeholder="65.5">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="height" class="form-label">
-                                        <i class="fas fa-ruler-vertical me-1"></i>Altura (cm)
-                                    </label>
-                                    <input type="number" step="0.1" class="form-control" id="height" name="height" 
-                                           value="<?php echo $user_profile['height']; ?>" placeholder="170.0">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-1"></i>Guardar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Emergency Contact Modal -->
-    <div class="modal fade" id="emergencyContactModal" tabindex="-1" aria-labelledby="emergencyContactModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="emergencyContactModalLabel">
-                        <i class="fas fa-phone-alt me-2"></i>Contacto de Emergencia
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="col-md-3">
+                    <a href="<?php echo VIEWS_URL; ?>/update_profile.php" class="text-decoration-none text-dark bg-white">
+                        <i class="fas fa-user-edit fa-lg"></i>
+                        <span class="fw-semibold">Actualizar perfil</span>
+                        <small class="text-muted text-center">Contacto, redes y preferencias</small>
+                    </a>
                 </div>
-                <form id="emergencyContactForm" method="POST">
-                    <div class="modal-body">
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Importante:</strong> Esta información será utilizada solo en caso de emergencia.
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="emergency_contact_name" class="form-label">
-                                <i class="fas fa-user me-1"></i>Nombre Completo
-                            </label>
-                            <input type="text" class="form-control" id="emergency_contact_name" name="emergency_contact_name" 
-                                   value="<?php echo htmlspecialchars($user_profile['emergency_contact_name']); ?>" 
-                                   placeholder="María González Pérez" required>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="mb-3">
-                                    <label for="emergency_contact_phone" class="form-label">
-                                        <i class="fas fa-phone me-1"></i>Teléfono
-                                    </label>
-                                    <input type="tel" class="form-control" id="emergency_contact_phone" name="emergency_contact_phone" 
-                                           value="<?php echo htmlspecialchars($user_profile['emergency_contact_phone']); ?>" 
-                                           placeholder="+506 8888-9999" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="emergency_contact_relationship" class="form-label">
-                                        <i class="fas fa-heart me-1"></i>Relación
-                                    </label>
-                                    <select class="form-control" id="emergency_contact_relationship" name="emergency_contact_relationship" required>
-                                        <option value="">Seleccionar...</option>
-                                        <option value="Madre" <?php echo $user_profile['emergency_contact_relationship'] == 'Madre' ? 'selected' : ''; ?>>Madre</option>
-                                        <option value="Padre" <?php echo $user_profile['emergency_contact_relationship'] == 'Padre' ? 'selected' : ''; ?>>Padre</option>
-                                        <option value="Esposo/a" <?php echo $user_profile['emergency_contact_relationship'] == 'Esposo/a' ? 'selected' : ''; ?>>Esposo/a</option>
-                                        <option value="Hermano/a" <?php echo $user_profile['emergency_contact_relationship'] == 'Hermano/a' ? 'selected' : ''; ?>>Hermano/a</option>
-                                        <option value="Hijo/a" <?php echo $user_profile['emergency_contact_relationship'] == 'Hijo/a' ? 'selected' : ''; ?>>Hijo/a</option>
-                                        <option value="Amigo/a" <?php echo $user_profile['emergency_contact_relationship'] == 'Amigo/a' ? 'selected' : ''; ?>>Amigo/a</option>
-                                        <option value="Otro" <?php echo $user_profile['emergency_contact_relationship'] == 'Otro' ? 'selected' : ''; ?>>Otro</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-save me-1"></i>Guardar Contacto
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Medical Info Modal -->
-    <div class="modal fade" id="medicalInfoModal" tabindex="-1" aria-labelledby="medicalInfoModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title" id="medicalInfoModalLabel">
-                        <i class="fas fa-heartbeat me-2"></i>Información Médica
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="col-md-3">
+                    <a href="<?php echo VIEWS_URL; ?>/contact.php?canal=cliente" class="text-decoration-none text-dark bg-white">
+                        <i class="fas fa-comments fa-lg"></i>
+                        <span class="fw-semibold">Mensaje a Valeria</span>
+                        <small class="text-muted text-center">Coordina ideas y solicitudes desde aquí</small>
+                    </a>
                 </div>
-                <form id="medicalInfoForm" method="POST">
-                    <div class="modal-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Esta información ayuda a nuestros instructores a adaptar las clases según tus necesidades.
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="medical_conditions" class="form-label">
-                                <i class="fas fa-notes-medical me-1"></i>Condiciones Médicas, Alergias o Limitaciones
-                            </label>
-                            <textarea class="form-control" id="medical_conditions" name="medical_conditions" 
-                                      rows="4" placeholder="Describe cualquier condición médica, alergia o limitación física que debamos conocer para adaptar las clases..."><?php echo htmlspecialchars($user_profile['medical_conditions']); ?></textarea>
-                            <small class="text-muted">Ejemplo: Asma, lesión en rodilla, alergia al latex, etc.</small>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-warning">
-                            <i class="fas fa-save me-1"></i>Guardar Información
-                        </button>
-                    </div>
-                </form>
+                <div class="col-md-3">
+                    <a href="<?php echo VIEWS_URL; ?>/ubicacion.php" class="text-decoration-none text-dark bg-white">
+                        <i class="fas fa-map-marked-alt fa-lg"></i>
+                        <span class="fw-semibold">Cómo llegar</span>
+                        <small class="text-muted text-center">Dirección, horarios y estacionamiento</small>
+                    </a>
+                </div>
             </div>
-        </div>
+        </section>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Fetch alert count and show badge
         (function(){
-            fetch('<?php echo BASE_URL; ?>/api/get_user_alerts.php')
-              .then(r=>r.json())
-              .then(data=>{
-                  const cnt = (data && Array.isArray(data.alerts)) ? data.alerts.length : 0;
-                  const el = document.getElementById('notifCount');
-                  if (el && cnt > 0) { el.textContent = cnt; el.style.display = 'inline-block'; }
-              })
-              .catch(()=>{});
-        })();
+            var badge = document.getElementById('notifCount');
+            var inlineBadge = document.getElementById('notifCountInline');
+            var list = document.getElementById('notifList');
+            var dropdownToggle = document.getElementById('notifDropdown');
+            var userOpenedDropdown = false;
 
-        // Modal functions for different profile sections
-        function editPersonalInfo() {
-            const modal = new bootstrap.Modal(document.getElementById('personalInfoModal'));
-            modal.show();
-        }
-        
-        function editEmergencyContact() {
-            const modal = new bootstrap.Modal(document.getElementById('emergencyContactModal'));
-            modal.show();
-        }
-        
-        function editMedicalInfo() {
-            const modal = new bootstrap.Modal(document.getElementById('medicalInfoModal'));
-            modal.show();
-        }
-        
-        // Form submission handlers
-        function setupFormHandler(formId, successMessage) {
-            document.getElementById(formId).addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                
-                fetch('../views/update_profile.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Close modal and refresh page
-                        const modalElement = this.closest('.modal');
-                        bootstrap.Modal.getInstance(modalElement).hide();
-                        
-                        // Show success message
-                        alert(successMessage);
-                        location.reload();
+            var setBadgeCount = function(count, force){
+                var displayCount = (!force && userOpenedDropdown) ? 0 : count;
+                [badge, inlineBadge].forEach(function(el){
+                    if (!el) { return; }
+                    el.setAttribute('data-server-count', count);
+                    if (displayCount > 0) {
+                        el.textContent = displayCount;
+                        el.classList.remove('d-none');
                     } else {
-                        alert('Error: ' + (data.message || 'Error desconocido'));
+                        el.textContent = '';
+                        el.classList.add('d-none');
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al actualizar. Por favor, intenta de nuevo.');
                 });
-            });
-        }
-        
-        // Setup all form handlers
-        setupFormHandler('personalInfoForm', 'Información personal actualizada exitosamente');
-        setupFormHandler('emergencyContactForm', 'Contacto de emergencia actualizado exitosamente');
-        setupFormHandler('medicalInfoForm', 'Información médica actualizada exitosamente');
+            };
+
+            var buildDetail = function(alert){
+                if (!alert || !alert.details) {
+                    return '';
+                }
+                if (typeof alert.details === 'string') {
+                    return `<div class="small text-muted">${alert.details}</div>`;
+                }
+                if (Array.isArray(alert.details) && alert.details.length) {
+                    var first = alert.details[0];
+                    if (first.class_name && first.schedule) {
+                        return `<div class="small text-muted">${first.class_name} · ${first.schedule}</div>`;
+                    }
+                    if (first.order_number) {
+                        return `<div class="small text-muted">Orden #${first.order_number}</div>`;
+                    }
+                }
+                return '';
+            };
+
+            var showEmpty = function(){
+                if (list) {
+                    list.innerHTML = '<div class="list-group-item text-center text-muted small py-3">Sin notificaciones nuevas</div>';
+                    list.dataset.hasItems = '0';
+                }
+                setBadgeCount(0, true);
+            };
+
+            var markAsRead = function(){
+                userOpenedDropdown = true;
+                setBadgeCount(0, true);
+            };
+
+            if (dropdownToggle) {
+                dropdownToggle.addEventListener('show.bs.dropdown', markAsRead);
+            }
+
+            fetch('<?php echo BASE_URL; ?>/api/get_user_alerts.php')
+                .then(function(response){ return response.json(); })
+                .then(function(payload){
+                    var alerts = payload && Array.isArray(payload.alerts) ? payload.alerts : [];
+                    if (!alerts.length) {
+                        showEmpty();
+                        return;
+                    }
+                    if (list) {
+                        var html = alerts.map(function(alert){
+                            var icon = 'fa-circle-info';
+                            var tone = 'text-primary';
+                            switch (alert.type) {
+                                case 'payment_required':
+                                case 'enrollment_rejected':
+                                    icon = 'fa-triangle-exclamation';
+                                    tone = 'text-warning';
+                                    break;
+                                case 'enrollment_approved':
+                                case 'order_update':
+                                    icon = 'fa-check-circle';
+                                    tone = 'text-success';
+                                    break;
+                            }
+                            var detail = buildDetail(alert);
+                            return `<div class="list-group-item"><div class="d-flex align-items-start gap-2"><i class="fas ${icon} ${tone} mt-1"></i><div><div class="fw-semibold small">${alert.title || 'Actualización'}</div><div class="small text-muted mb-1">${alert.message || ''}</div>${detail}</div></div></div>`;
+                        }).join('');
+                        list.innerHTML = html;
+                        list.dataset.hasItems = '1';
+                    }
+                    setBadgeCount(alerts.length);
+                })
+                .catch(function(){
+                    if (!list || list.dataset.hasItems === '1') {
+                        return;
+                    }
+                    showEmpty();
+                });
+        })();
     </script>
 </body>
 </html>

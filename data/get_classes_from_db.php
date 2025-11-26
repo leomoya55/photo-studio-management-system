@@ -42,6 +42,22 @@ try {
     
     // Convert data to match the expected JSON format
     foreach ($classes as &$class) {
+        // Normalize image path for front-end helpers
+        if (!empty($class['image'])) {
+            $image = is_string($class['image']) ? trim($class['image']) : '';
+            if ($image !== '') {
+                $class['image'] = str_replace('\\', '/', $image);
+            } else {
+                $class['image'] = '';
+            }
+        } else {
+            $class['image'] = '';
+        }
+
+        // Clean up primary title/description strings
+        $class['name'] = isset($class['name']) ? trim((string)$class['name']) : '';
+        $class['description'] = isset($class['description']) ? trim((string)$class['description']) : '';
+
         // Convert benefits from JSON string to array
         if ($class['benefits']) {
             $class['benefits'] = json_decode($class['benefits'], true);
@@ -49,11 +65,28 @@ try {
             $class['benefits'] = [];
         }
         
+        // Normalize category casing and trim whitespace
+        if (isset($class['category'])) {
+            $class['category'] = trim((string)$class['category']);
+        } else {
+            $class['category'] = '';
+        }
+
+        // Ensure instructor, duration and schedule strings are trimmed for display consistency
+        foreach (['instructor', 'duration', 'schedule'] as $key) {
+            if (isset($class[$key])) {
+                $class[$key] = trim((string)$class[$key]);
+            } else {
+                $class[$key] = '';
+            }
+        }
+
         // Convert boolean and numeric values
         $class['featured'] = (bool) $class['featured'];
         $class['price'] = (int) $class['price'];
         
-        // Add ageGroup for backward compatibility
+        // Add ageGroup for backward compatibility and trim values
+        $class['age_group'] = isset($class['age_group']) ? trim((string)$class['age_group']) : '';
         $class['ageGroup'] = $class['age_group'];
     }
     

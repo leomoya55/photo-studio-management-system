@@ -1,5 +1,5 @@
 # 🎯 Improved Enrollment Status System
-### Academia Legend - Complete Status Workflow Guide
+### Valeria Vega Studio - Complete Status Workflow Guide
 
 ---
 
@@ -219,4 +219,4 @@ MODIFY COLUMN status ENUM(
 
 ---
 
-*Academia Legend - Professional Enrollment Management System* 🎓
+*Valeria Vega Studio - Professional Enrollment Management System* 🎓

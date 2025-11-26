@@ -1,0 +1,239 @@
+DOCUMENTO DE REQUERIMIENTOS TECNICOS
+VALERIA VEGA STUDIO - SISTEMA DE GESTION WEB
+
+Proyecto: Plataforma Integral para Valeria Vega Studio
+Estudiante: Leonardo Josue Moya Monge
+Profesora: Hillary Heller Sanchez Noguera
+Fecha: 12 de Noviembre, 2025
+Version: 2.0
+
+1. INFORMACION GENERAL DEL PROYECTO
+
+1.1 Descripcion
+Sistema web completo que centraliza la experiencia de Valeria Vega Studio. Incluye landing publica con clases, horarios y ubicacion; un front de e-commerce para productos; inscripcion y matricula con autenticacion de usuarios; y un panel administrativo con gestion de clases, sesiones, redes sociales y catalogos. Integrado con base de datos MySQL y almacenamiento de imagenes en Cloudinary.
+
+Repositorio GitHub: https://github.com/leomoya55/valeriavegastudio
+Tablero de trabajo: pendiente de actualizar al nuevo branding
+
+1.2 Tecnologias Utilizadas
+- Frontend: PHP 8.1, HTML5, CSS3, JavaScript ES6, motor de plantillas basado en includes
+- Framework CSS: Bootstrap 5.3.2 (con personalizacion naranja/negro)
+- Iconos y tipografia: Font Awesome 6.4.0, Google Fonts (Poppins, Dancing Script)
+- Backend: PHP 8.1 + sesiones nativas + APIs internas en admin/
+- Base de datos: MySQL (JawsDB en AWS) mediante mysqli con consultas preparadas
+- Media: Cloudinary (SDK oficial via composer) para subida y borrado de imagenes
+- Envio de correo: PHPMailer 6.x (vendor)
+- Logs y utilidades: Monolog, GuzzleHTTP, Dotenv (gestion de configuraciones)
+- Herramientas: Composer, XAMPP (Apache + PHP), Git
+
+2. REQUERIMIENTOS FUNCIONALES
+
+RF001 - Navegacion principal responsive
+Descripcion: El sitio debe ofrecer navegacion consistente entre todas las vistas publicas y mantener el modo admin_view cuando corresponde.
+Implementacion: `views/index.php`, `views/includes/navigation.php` (navbar Bootstrap con enlaces a secciones claves y preservacion de parametros via `config/paths.php`).
+
+RF002 - Catalogo de clases dinamico
+Descripcion: Mostrar clases con filtros por categoria/nivel e imagenes administrables.
+Implementacion: `views/clases.php` consume `admin/get_classes.php` que consulta MySQL (`data/get_classes_from_db.php`). La administracion usa `admin/classes_management.php` y `admin/upload_class_image.php` con Cloudinary.
+
+RF003 - Gestion de horarios y sesiones
+Descripcion: Exponer horarios por dia y permitir al staff actualizar sesiones en panel admin.
+Implementacion: `views/horarios.php` lee `data/classes.json` y datos DB; en admin, `admin/sessions_api.php` y `admin/save_classes.php` manejan altas/bajas via AJAX.
+
+RF004 - Sistema de inscripcion y matriculas
+Descripcion: Usuarios autenticados completan formulario de inscripcion y generan registro en DB.
+Implementacion: `views/enroll.php`, `views/process_enrollment.php`, `admin/setup_enrollment_db.php`, y correo de confirmacion via `includes/email_helper.php` y PHPMailer.
+
+RF005 - Autenticacion y gestion de usuarios
+Descripcion: Registro, inicio de sesion, recuperacion basica y control de roles (admin / estudiante).
+Implementacion: `controllers/AuthController.php`, `views/login.php`, `views/register.php`, `config/session_manager.php`. Sesiones PHP con expiracion controlada.
+
+RF006 - Ecommerce y carrito
+Descripcion: Venta de productos fisicos con carrito, checkout y confirmacion de pedido.
+Implementacion: `views/catalogo.php`, `views/cart.php`, `views/process_order.php`, API `admin/products_api.php` y pagina `views/order_confirmation.php`.
+
+RF007 - Gestion de redes sociales con Cloudinary
+Descripcion: Admin puede publicar posts (Facebook, Instagram), subir imagen a Cloudinary y mostrarlos en landing.
+Implementacion: `admin/admin_social.php`, API `admin/social_api.php`, helper `config/cloudinary_admin.php`, y render en `views/redes-sociales.php`.
+
+RF008 - Panel administrativo integral
+Descripcion: Dashboard centralizado para estadisticas, manejo de clases, productos, feedback y sesiones.
+Implementacion: `admin/admin.php`, `admin/admin_stats.php`, `admin/admin_products.php`, `admin/feedback_api.php`, `admin/progress_api.php`.
+
+RF009 - Sistema de notificaciones y correo
+Descripcion: Envio de correos de confirmacion, newsletter y alertas internas.
+Implementacion: `includes/user_notifications.php`, `includes/email_helper.php`, `data/newsletter_log.txt`.
+
+RF010 - Limpieza y diagnostico de medios
+Descripcion: Herramientas internas para monitorear y limpiar imagenes huerfanas en Cloudinary.
+Implementacion: `admin/cloudinary_diagnostics.php`, `admin/cleanup_images.php`, `config/image_helpers.php`.
+
+3. REQUERIMIENTOS NO FUNCIONALES
+
+RNF001 - Rendimiento
+Meta: Carga inicial < 3 s en conexion 10 Mbps; endpoints admin < 500 ms.
+Implementacion: Cache-Control via Service Worker `sw.js`, compresion de imagenes (Cloudinary `quality=auto`), consultas paginadas en APIs (`LIMIT`, `OFFSET`).
+
+RNF002 - Seguridad
+Meta: Proteger datos sensibles y prevenir inyeccion.
+Implementacion: Prepared statements en todas las consultas (`config/db_connect.php`), sanitizacion de entrada (`sanitizeInput` helpers), manejo de sesiones con expiracion (`config/session_manager.php`), validacion de archivos en `CloudinaryAdmin::validateImageFile`.
+
+RNF003 - Disponibilidad y resiliencia
+Meta: Mantener funcionamiento estable ante errores externos.
+Implementacion: Manejo de excepciones en APIs (`try/catch` en admin/*.php), logs mediante Monolog, fallback a JSON si DB no responde (clases.json), reintentos manuales en UI.
+
+RNF004 - Compatibilidad y responsive
+Meta: Experiencia uniforme en dispositivos moviles, tablets y desktop.
+Implementacion: Bootstrap grid, media queries en `assets/css/style.css`, pruebas manuales en Chrome/Firefox/Edge/Safari.
+
+RNF005 - Mantenibilidad
+Meta: Codigo organizado y comentado para facilitar iteraciones.
+Implementacion: Arquitectura modular (config/controllers/includes/models), autoload Composer, guias en `/ARCHITECTURE.md`, uso de namespaces vendor.
+
+RNF006 - Accesibilidad y SEO
+Meta: Cumplir WCAG AA y SEO basico.
+Implementacion: Etiquetas alt, roles ARIA, contraste naranja/negro revisado, meta tags descriptivos en `views/index.php` y `views/redes-sociales.php`.
+
+4. ARQUITECTURA TECNICA
+
+4.1 Estructura actual del repositorio
+ProyectoVanessa/
+|- app.php
+|- index.php (bootstrap de rutas publicas)
+|- config/
+|  |- db_connect.php
+|  |- paths.php
+|  |- cloudinary_admin.php
+|  |- session_manager.php
+|  \- config.php
+|- controllers/
+|  \- AuthController.php
+|- admin/
+|  |- admin.php (dashboard)
+|  |- admin_social.php
+|  |- admin_products.php
+|  |- admin_stats.php
+|  |- classes_management.php
+|  |- products_api.php, social_api.php, sessions_api.php
+|  \- utils varios (cleanup, diagnostics)
+|- views/
+|  |- index.php, catalogo.php, clases.php, horarios.php, redes-sociales.php
+|  |- login.php, register.php, dashboard.php, enroll.php, cart.php, checkout.php
+|  \- includes/ (header, footer, modales)
+|- assets/
+|  |- css/style.css
+|  |- js/main.js, cart_handler.js
+|  \- images/ (classes/, products/, social/)
+|- data/
+|  |- classes.json, instructors.json, products.json, social_posts.json
+|  \- get_classes_from_db.php
+|- includes/
+|  |- email_helper.php
+|  |- ImageUploader.php
+|  \- user_notifications.php
+|- vendor/ (composer autoload, Cloudinary SDK, PHPMailer, etc.)
+\- sw.js, Procfile, README.md, guias administrativas
+
+4.2 Patrones y principios
+- MVC adaptado: Vistas en `views/`, controladores en `controllers/`, modelos SQL en `admin/*_api.php` y `data/`
+- API interna REST-like para operaciones admin (JSON + HTTP verbs)
+- Reutilizacion de componentes PHP via includes (navbar, alertas, modales)
+- Integracion con servicios externos (Cloudinary, correo) encapsulada en helpers
+
+4.3 Gestion de estado y sesiones
+- Sesiones PHP con timeout de 30 min (`session_manager.php`)
+- Estado de carrito persistido en `$_SESSION['cart']`
+- Filtros y preferencia admin_view preservados via query strings
+
+5. ROLES Y RESPONSABILIDADES
+
+Rol unico (Leonardo Moya) cubriendo:
+- Arquitectura y configuracion de entorno (Apache, Composer, procfile Heroku)
+- Desarrollo frontend responsive (Bootstrap personalizado, animaciones, PWA)
+- Desarrollo backend en PHP (APIs, autenticacion, consultas SQL)
+- Integracion Cloudinary y limpieza de assets
+- Automatizacion de correos y logs
+
+Evidencias
+- Commits documentados en Git (feature branches y merges)
+- Documentacion tecnica en `/ARCHITECTURE.md`, `/IMPROVED_STATUS_SYSTEM.md`
+- Capturas y guias operativas en `/ADMIN_*_GUIDE.md`
+
+6. PRUEBAS Y EVIDENCIAS
+
+6.1 Pruebas funcionales (manuales)
+- CRUD de clases y productos desde panel admin
+- Flujo de inscripcion: registro -> login -> enroll -> confirmacion correo
+- Publicacion de post social con subida a Cloudinary y visualizacion en landing
+- Eliminacion permanente con borrado de imagen (admin_social.php)
+
+6.2 Pruebas tecnicas
+- Lint PHP: `php -l` ejecutado sobre archivos criticos (`admin/*.php`, `views/*.php`)
+- Verificacion de subida de archivos (tamanio, formato) en `CloudinaryAdmin::validateImageFile`
+- Pruebas de endpoints con Thunder Client/Postman (social_api, products_api)
+
+6.3 Pruebas responsive y UX
+- Breakpoints 576px, 768px, 992px y 1200px revisados manualmente
+- Navegacion mobile (menus offcanvas, formularios verticales)
+- Contraste verificado con herramientas browser (AA)
+
+7. CONSIDERACIONES TECNICAS
+
+7.1 Optimizaciones implementadas
+- Cache busting en assets (`?v=`) y JSON (timestamp en fetch)
+- Lazy loading de imagenes via atributos HTML y Cloudinary transformations
+- Reutilizacion de consultas mediante APIs con limites y filtros server-side
+- Limpieza de imagenes no referenciadas para contener el storage
+
+7.2 Seguridad y cumplimiento
+- Proteccion CSRF via confirm() en acciones destructivas y tokens de sesion
+- Sanitizacion sistematica (`sanitizeInput`, `htmlspecialchars`) antes de renderizar datos
+- Contrasenas almacenadas con hash (password_hash) y verificacion (password_verify)
+- Archivos sensibles fuera de la raiz publica (`config/`, `.env` manejado via Dotenv)
+
+7.3 SEO y analitica
+- Meta tags descriptivos y Open Graph en landing
+- Sitemap simplificado via enlaces directos en footer
+- Integracion opcional con Google Analytics (documentado en README)
+
+8. CRONOGRAMA Y AVANCES
+
+Fase | Descripcion                       | Estado    | Evidencia
+-----+-----------------------------------+-----------+----------------------------------------------
+1    | Migracion a PHP y rutas dinamicas | Cerrado   | index.php, rutas en views/*.php
+2    | Conexion MySQL y seeds iniciales  | Cerrado   | config/db_connect.php, setup scripts
+3    | Panel admin fases I-II            | Cerrado   | admin/*.php
+4    | Integracion Cloudinary            | Cerrado   | config/cloudinary_admin.php
+5    | Ecommerce y carrito               | Cerrado   | views/catalogo.php, cart_handler.js
+6    | Inscripciones y correos           | Cerrado   | process_enrollment.php, email_helper.php
+7    | Social media live feed            | Cerrado   | admin_social.php, redes-sociales.php
+8    | Optimizaciones finales / QA       | En curso  | pruebas responsive, limpieza assets
+
+9. METRICAS DE CALIDAD (objetivos actuales)
+
+9.1 Rendimiento
+- FCP (First Contentful Paint): < 1.8 s en desktop, < 2.5 s en mobile
+- LCP (Largest Contentful Paint): < 3.0 s
+- CLS (Cumulative Layout Shift): < 0.1 gracias a espacios reservados de imagen
+- Respuesta APIs admin: promedio 250 ms en localhost
+
+9.2 Calidad de codigo y procesos
+- Lint PHP sin errores (`php -l`)
+- Reutilizacion de componentes PHP (header/footer) para evitar duplicidad
+- Control de versiones con commits diarios y convenciones semanticas
+- Documentacion tecnica actualizada (README, guias admin)
+
+10. FIRMAS DE APROBACION
+
+Desarrollador Principal:
+Firma: Leonardo Josue Moya Monge          Fecha: 12/11/2025
+
+Profesora Hillary Heller Sanchez Noguera:
+Firma: _________________________________  Fecha: _____________
+
+Supervisor de Proyecto / Coordinacion:
+Firma: _________________________________  Fecha: _____________
+
+Documento generado el: 12 de Noviembre, 2025
+Version vigente: 2.0
+Proxima revision sugerida: 10 de Diciembre, 2025

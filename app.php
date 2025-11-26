@@ -1,6 +1,6 @@
 <?php
 /**
- * Legend Academy - Application Bootstrap
+ * Vale V Photography - Application Bootstrap
  * Main entry point that initializes the application
  */
 

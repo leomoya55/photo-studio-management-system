@@ -78,7 +78,10 @@ try {
         
         switch ($action) {
             case 'add':
-                $enrollment_id = (int)($input['enrollment_id'] ?? 0);
+                $enrollment_id = isset($input['enrollment_id']) ? (int)$input['enrollment_id'] : 0;
+                if ($enrollment_id <= 0) {
+                    $enrollment_id = null;
+                }
                 $user_id = (int)($input['user_id'] ?? 0);
                 $amount = floatval($input['amount'] ?? 0);
                 // Normalize/sanitize payment method
@@ -102,7 +105,7 @@ try {
                 
                 // Get class name from enrollment if enrollment_id is provided
                 $class_name = '';
-                if ($enrollment_id > 0) {
+                if (!is_null($enrollment_id) && $enrollment_id > 0) {
                     $class_sql = "SELECT class_name FROM enrollments WHERE id = ?";
                     $class_stmt = $conn->prepare($class_sql);
                     $class_stmt->bind_param("i", $enrollment_id);
@@ -113,11 +116,29 @@ try {
                     $class_name = 'Pago General';
                 }
                 
-                $sql = "INSERT INTO payment_records (enrollment_id, user_id, class_name, amount, payment_method, payment_status, payment_date, reference_number, notes, recorded_by, created_at, updated_at) 
+                if (is_null($enrollment_id)) {
+                    try {
+                        $nullableCheck = $conn->query("SELECT IS_NULLABLE FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'payment_records' AND column_name = 'enrollment_id' LIMIT 1");
+                        if ($nullableCheck) {
+                            $columnMeta = $nullableCheck->fetch_assoc();
+                            if (isset($columnMeta['IS_NULLABLE']) && strtoupper($columnMeta['IS_NULLABLE']) === 'NO') {
+                                $conn->query("ALTER TABLE payment_records MODIFY enrollment_id INT NULL");
+                            }
+                            $nullableCheck->free();
+                        }
+                    } catch (Throwable $schemaAdjustError) {
+                        // If the schema update fails we continue; insertion will raise a readable error.
+                    }
+                    $sql = "INSERT INTO payment_records (enrollment_id, user_id, class_name, amount, payment_method, payment_status, payment_date, reference_number, notes, recorded_by, created_at, updated_at) 
+                        VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("isdsssssi", $user_id, $class_name, $amount, $payment_method, $payment_status, $payment_date, $reference_number, $notes, $recorded_by);
+                } else {
+                    $sql = "INSERT INTO payment_records (enrollment_id, user_id, class_name, amount, payment_method, payment_status, payment_date, reference_number, notes, recorded_by, created_at, updated_at) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
-                
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("iisdsssssi", $enrollment_id, $user_id, $class_name, $amount, $payment_method, $payment_status, $payment_date, $reference_number, $notes, $recorded_by);
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("iisdsssssi", $enrollment_id, $user_id, $class_name, $amount, $payment_method, $payment_status, $payment_date, $reference_number, $notes, $recorded_by);
+                }
                 
                 if (!$stmt->execute()) {
                     throw new Exception('Error al registrar pago: ' . $stmt->error);

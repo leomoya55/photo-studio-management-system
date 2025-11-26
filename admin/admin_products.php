@@ -229,7 +229,7 @@ $products_result = $conn->query($products_query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Productos - Legend Admin</title>
+    <title>Gestión de Productos - Vale V Photography Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -247,36 +247,36 @@ $products_result = $conn->query($products_query);
         }
         
         .product-featured {
-            border-left: 4px solid #ff6600;
+            border-left: 4px solid #111111;
         }
-        
+
         .card-header {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
             color: white !important;
             border: none;
         }
-        
+
         .btn-primary {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);
+            background: linear-gradient(135deg, #000000 0%, #222222 100%);
             border: none;
         }
-        
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #e55500 0%, #e56f00 100%);
+            background: linear-gradient(135deg, #111111 0%, #333333 100%);
             border: none;
         }
-        
+
         .text-primary {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
-        
+
         .form-control:focus, .form-select:focus {
-            border-color: #ff6600;
-            box-shadow: 0 0 0 0.2rem rgba(255, 102, 0, 0.25);
+            border-color: #111111;
+            box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.3);
         }
-        
+
         .badge-featured {
-            background-color: #ff6600 !important;
+            background-color: #111111 !important;
         }
     </style>
 </head>
@@ -314,7 +314,7 @@ $products_result = $conn->query($products_query);
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="name" class="form-label">Nombre del Producto</label>
-                                    <input type="text" class="form-control" name="name" required placeholder="Ej: Camiseta Legend Original">
+                                    <input type="text" class="form-control" name="name" required placeholder="Ej: Camiseta Vale V Photography">
                                 </div>
                                 <div class="col-md-3 mb-3">
                                     <label for="price" class="form-label">Precio (₡)</label>

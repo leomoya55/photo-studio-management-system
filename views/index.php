@@ -3,32 +3,31 @@ session_start();
 require_once(__DIR__ . '/../config/paths.php');
 require_once(__DIR__ . '/../config/image_helpers.php');
 
-// Set up user session variables
+// Determine session state for navbar rendering
 $isLoggedIn = isset($_SESSION['user_id']);
 $userName = '';
 $userRole = '';
 
 if ($isLoggedIn) {
-    $userName = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
+    $userName = trim(($_SESSION['first_name'] ?? '') . ' ' . ($_SESSION['last_name'] ?? ''));
     $userRole = $_SESSION['role'] ?? 'customer';
 }
 
-// Check if this is admin view mode (admin viewing website without enrollment options)
-$isAdminView = isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && $isLoggedIn && $userRole === 'admin';
+// Preserve admin preview mode when applicable
 $adminViewParam = (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '?admin_view=1' : '';
 
-// If admin_view parameter is set but user is not admin, redirect to login
 if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn || $userRole !== 'admin')) {
-    header('Location: login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    header('Location: ' . VIEWS_URL . '/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
     exit;
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legend - Academia de Danza</title>
+    <title>Vale V Photography - Estudio Creativo</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -39,113 +38,132 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
     
     <!-- Custom CSS - MUST be after Bootstrap to override -->
     <style>
-        /* Orange and Black Color Overrides */
+        /* Vale V Photography monochrome accents */
         :root {
-            --bs-primary: #ff6600;
-            --bs-primary-rgb: 255, 102, 0;
-            --bs-btn-hover-bg: #e55a00;
-            --bs-btn-active-bg: #e55a00;
+            --bs-primary: #000000;
+            --bs-primary-rgb: 0, 0, 0;
+            --bs-btn-hover-bg: #111111;
+            --bs-btn-active-bg: #111111;
         }
         
-        /* Force our orange color */
+        /* Force our primary color */
         .btn-primary {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            background-image: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            background-image: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
         }
         
         .btn-primary:hover,
         .btn-primary:focus,
         .btn-primary:active {
-            background-color: #e55a00 !important;
-            border-color: #e55a00 !important;
-            background-image: linear-gradient(135deg, #e55a00 0%, #ff6600 100%) !important;
+            background-color: #111111 !important;
+            border-color: #111111 !important;
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%) !important;
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
         
         .btn-outline-primary {
-            color: #ff6600 !important;
-            border-color: #ff6600 !important;
+            color: #111111 !important;
+            border-color: #111111 !important;
         }
         
         .btn-outline-primary:hover,
         .btn-outline-primary:focus,
         .btn-outline-primary:active {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            color: white !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            color: #ffffff !important;
         }
         
         .text-primary {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         .brand-text {
             font-family: 'Dancing Script', cursive !important;
-            color: #ff6600 !important;
+            color: var(--brand-color) !important;
             font-weight: 700;
         }
         
         .hero-title {
-            color: #000000 !important;
+            color: #3d2b28 !important;
             font-weight: 700;
         }
         
+        .hero-highlight {
+            color: var(--brand-color, #000000) !important;
+            text-shadow: none;
+        }
+        
         .hero-subtitle {
-            color: #ff6600 !important;
+            color: var(--brand-color, #000000) !important;
             font-weight: 600;
+            text-shadow: none;
         }
         
         .section-title {
-            color: #000000 !important;
+            color: #3d2b28 !important;
             font-weight: 700;
         }
         
         .navbar-nav .nav-link:hover {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         .logo-contrast-bg {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            padding: 2rem;
+            background: linear-gradient(135deg, #fff7f1 0%, #ffe8d6 100%);
+            padding: 1.25rem;
             border-radius: 20px;
-            border: 3px solid #ff6600;
-            box-shadow: 0 15px 35px rgba(255, 102, 0, 0.15);
+            border: 3px solid rgba(0, 0, 0, 0.15);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 360px;
+        }
+
+        .logo-contrast-bg img {
+            width: 100%;
+            max-width: 460px;
+            height: 100%;
+            object-fit: contain;
         }
         
         .hero-section {
-            background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+            background: linear-gradient(135deg, #fff9f2 0%, #ffeede 100%);
         }
         
         body {
-            background-color: #fafafa;
+            background-color: #fff9f2;
         }
         
         /* Social links in footer */
         .social-links a {
-            background-color: #ff6600 !important;
-            color: white !important;
+            background-color: transparent !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            color: #ffffff !important;
         }
         
         .social-links a:hover {
-            background-color: #e55a00 !important;
-            color: white !important;
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.85) !important;
+            color: #ffffff !important;
         }
         
         /* User welcome styling */
         .user-welcome {
-            color: #ff6600 !important;
+            color: #111111 !important;
             font-weight: 600;
             padding: 8px 16px;
             border-radius: 20px;
-            background: rgba(255, 102, 0, 0.1);
-            border: 1px solid #ff6600;
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.2);
         }
         
         .dropdown-menu {
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 30px rgba(61,43,40,0.18);
             border: none;
         }
     </style>
@@ -154,28 +172,24 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
 </head>
 <body>
-    
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php#inicio">
-                <span class="brand-text">Legend</span>
+            <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>#inicio">
+                <span class="brand-text">Vale V Photography</span>
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>#inicio">Inicio</a>
+                        <a class="nav-link active" href="<?php echo VIEWS_URL; ?>/index.php<?php echo $adminViewParam; ?>#inicio">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Clases</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/horarios.php<?php echo $adminViewParam; ?>">Horarios</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>">Sesiones</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php<?php echo $adminViewParam; ?>">Catálogo</a>
@@ -187,7 +201,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/ubicacion.php<?php echo $adminViewParam; ?>">Ubicación</a>
                     </li>
                 </ul>
-                
+
                 <!-- User Navigation -->
                 <ul class="navbar-nav">
                     <?php if ($isLoggedIn): ?>
@@ -206,11 +220,11 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                             </ul>
                         </li>
                     <?php else: ?>
-                        <li class="nav-item">
-                            <a class="nav-link btn-outline-primary px-3 me-2" href="<?php echo VIEWS_URL; ?>/register.php">Registrarse</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-outline-primary" href="<?php echo VIEWS_URL; ?>/register.php" role="button">Registrarse</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link btn-primary text-white px-3" href="<?php echo VIEWS_URL; ?>/login.php">Iniciar Sesión</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-primary" href="<?php echo VIEWS_URL; ?>/login.php" role="button">Iniciar Sesión</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -223,7 +237,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
     <div class="alert alert-info border-0 rounded-0 text-center mb-0" style="background: linear-gradient(90deg, #17a2b8, #20c997); color: white;">
         <div class="container">
             <i class="fas fa-eye me-2"></i>
-            <strong>Vista de Administrador</strong> - Vanessa, estás viendo el sitio web sin opciones de inscripción
+            <strong>Vista de Administrador</strong> - Valeria, estás viendo el sitio web sin opciones de inscripción
             <a href="<?php echo ADMIN_URL; ?>/admin.php" class="btn btn-light btn-sm ms-3">
                 <i class="fas fa-arrow-left me-1"></i>Volver al Panel Admin
             </a>
@@ -237,18 +251,18 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
             <div class="container">
                 <div class="row align-items-center min-vh-100">
                     <div class="col-lg-6">
-                        <h1 class="hero-title">Bienvenidos a <span class="text-primary">Legend</span></h1>
-                        <p class="hero-subtitle">Donde cada movimiento cuenta una historia</p>
-                        <p class="hero-description">Descubre tu pasión por la danza en nuestra academia. Ofrecemos clases para todos los niveles y edades en un ambiente profesional y acogedor.</p>
+                        <h1 class="hero-title">Bienvenidos a <span class="hero-highlight">Vale V Photography</span></h1>
+                        <p class="hero-subtitle">Donde cada imagen cuenta una historia</p>
+                        <p class="hero-description">Creamos experiencias fotográficas personalizadas para retratos, marcas y eventos, cuidando cada detalle para reflejar tu esencia.</p>
                         <div class="hero-buttons">
-                            <a href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>" class="btn btn-primary btn-lg me-3">Ver Clases</a>
-                            <a href="<?php echo VIEWS_URL; ?>/register.php" class="btn btn-outline-primary btn-lg">Únete Ahora</a>
+                            <a href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>" class="btn btn-primary btn-lg me-3">Ver Sesiones</a>
+                            <a href="<?php echo VIEWS_URL; ?>/portafolio.php" class="btn btn-outline-primary btn-lg">Ver Portafolio</a>
                         </div>
                     </div>
                     <div class="col-lg-6">
                         <div class="hero-image logo-contrast-bg">
-                            <img src="<?php echo getImageUrl('inicio/LegendCR_vjqteo', 0, 0); ?>" alt="Academia Legend" class="img-fluid rounded shadow"
-                                 onerror="this.onerror=null; this.src='<?php echo getImageUrl('LegendCR_vjqteo', 0, 0); ?>';">
+                               <img src="<?php echo getImageUrl('inicio/Logo_Photo_zwmkyh', 900, 0); ?>" alt="Vale V Photography" class="img-fluid rounded shadow" fetchpriority="high"
+                                   onerror="this.onerror=null; this.src='<?php echo getImageUrl('Logo_Photo_zwmkyh', 900, 0); ?>';">
                         </div>
                     </div>
                 </div>
@@ -262,37 +276,29 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
             <div class="row align-items-center">
                 <div class="col-lg-6 mb-4 pe-lg-4">
                     <div class="director-image me-3">
-                    <img src="<?php echo getProfileImageUrl('inicio/vanessainicio_hzvwrl', 500, 600); ?>" alt="Vanessa Mora - Directora y Fundadora de Legend Dance Academy" class="img-fluid rounded-4 shadow-lg"
-                        onerror="this.onerror=null; this.src='<?php echo getProfileImageUrl('vanessainicio_hzvwrl', 500, 600); ?>';">
+                    <img src="<?php echo getProfileImageUrl('inicio/PHOTO-2025-11-23-21-14-55_nfhhxp', 500, 600); ?>" alt="Valeria Vega - Directora y Fundadora de Vale V Photography" class="img-fluid rounded-4 shadow-lg"
+                        onerror="this.onerror=null; this.src='<?php echo getProfileImageUrl('PHOTO-2025-11-23-21-14-55_nfhhxp', 500, 600); ?>';">
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="director-info">
                         <span class="badge bg-primary mb-3">Directora y Fundadora</span>
-                        <h2 class="mb-3">Vanessa Mora</h2>
+                        <h2 class="mb-3">Valeria Vega</h2>
                         <p class="lead mb-4">
-                            Profesora de Filosofía y Administración Pública de la Universidad de Costa Rica y la UTAC.
+                            Fundadora y directora creativa de Vale V Photography.
                         </p>
                         <p class="mb-4">
-                            Bailarina profesional con más de 10 años de experiencia. Representante como bailarina y coreógrafa del país en países como USA, México y Honduras en campeonatos de Hip Hop, danza urbana y latina. Actualmente directora de la Academia Legend en Zapote y gestora cultural del Ministerio de Cultura y el Teatro Nacional. Con experiencia de 7 años como juez de eventos como el FEA.
+                            Fotógrafa profesional con más de 10 años de experiencia documentando historias para artistas, emprendedores y familias. Lidera el estudio Vale V Photography en Zapote, integrando dirección artística, producción y edición de alto nivel para crear imágenes con propósito.
                         </p>
-                        <div class="director-stats row">
-                            <div class="col-4 text-center">
-                                <h4 class="text-primary mb-1">10+</h4>
-                                <small class="text-muted">Años de Experiencia</small>
-                            </div>
-                            <div class="col-4 text-center">
-                                <h4 class="text-primary mb-1">100+</h4>
-                                <small class="text-muted">Estudiantes</small>
-                            </div>
-                            <div class="col-4 text-center">
-                                <h4 class="text-primary mb-1">14</h4>
-                                <small class="text-muted">Disciplinas</small>
+                        <div class="director-stats row justify-content-center">
+                            <div class="col-12 col-md-6 text-center">
+                                <h4 class="mb-1 text-dark">10+</h4>
+                                <small class="text-dark">Años de Experiencia</small>
                             </div>
                         </div>
                         <div class="mt-4">
-                            <p class="text-muted mb-2"><em>"El baile es más que movimiento, es expresión del alma"</em></p>
-                            <strong>- Vanessa Mora</strong>
+                            <p class="text-muted mb-2"><em>"La fotografía captura la esencia de cada historia"</em></p>
+                            <strong>- Valeria Vega</strong>
                         </div>
                     </div>
                 </div>
@@ -300,29 +306,29 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
         </div>
     </section>
 
-    <!-- Clases Section -->
+    <!-- Sesiones Section -->
     <section id="clases" class="py-5 bg-light">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="section-title">Clases Destacadas</h2>
-                <p class="section-subtitle">Descubre algunas de nuestras clases más populares</p>
+                <h2 class="section-title">Sesiones Destacadas</h2>
+                <p class="section-subtitle">Descubre algunas de nuestras sesiones más solicitadas</p>
             </div>
             <div class="row" id="featuredClassesGrid">
                 <!-- Featured classes will be loaded here -->
                 <div class="col-12 text-center">
                     <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando clases destacadas...</span>
+                        <span class="visually-hidden">Cargando sesiones destacadas...</span>
                     </div>
-                    <p class="mt-3">Cargando clases destacadas...</p>
+                    <p class="mt-3">Cargando sesiones destacadas...</p>
                 </div>
             </div>
             
             <div class="row mt-5">
                 <div class="col-12 text-center">
                     <a href="<?php echo VIEWS_URL; ?>/clases.php<?php echo $adminViewParam; ?>" class="btn btn-primary btn-lg">
-                        <i class="fas fa-th-large me-2"></i>Ver Todas las Clases
+                        <i class="fas fa-th-large me-2"></i>Ver Todas las Sesiones
                     </a>
-                    <p class="mt-3 text-muted">Explora nuestra amplia variedad: Ballet, Hip Hop, Contemporáneo, Pilates, Salsa, Flamenco y mucho más.</p>
+                    <p class="mt-3 text-muted">Explora nuestras sesiones personalizadas: branding, lifestyle, retratos artísticos, eventos y mucho más.</p>
                 </div>
             </div>
         </div>
@@ -332,38 +338,18 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
     <section id="nosotros" class="py-5">
         <div class="container">
             <div class="text-center mb-5">
-                <h2 class="section-title">Acerca de Legend</h2>
-                <p class="section-subtitle">Más que una academia, una familia</p>
+                <h2 class="section-title">Acerca de Vale V Photography</h2>
+                <p class="section-subtitle">Más que un estudio, una experiencia</p>
                 <p class="mb-4">
-                    Legend es un proyecto artístico de Costa Rica que busca dar una formación integral a bailarines. Llevamos más de cuatro años de proveer herramientas formativas técnicas, teóricas y prácticas a bailarines y artistas desde tempranas edades hasta adultos mayores con metodologías modernas y efectivas.
+                    Vale V Photography es un estudio creativo en Costa Rica dedicado a capturar historias auténticas. Desde sesiones editoriales hasta proyectos corporativos, combinamos dirección artística, producción y acompañamiento integral para generar imágenes memorables.
                 </p>
             </div>
-            <div class="row">
-                <div class="col-lg-6 mb-4">
-                    <h3>Nuestra Misión</h3>
-                    <p>
-                        Promover el desarrollo integral humano de nuestro estudiantado, mediante herramientas pedagógicas efectivas y personal altamente calificado.
-                    </p>
-                    <h3>Nuestra Visión</h3>
-                    <p>
-                        Ser referentes en Costa Rica y el mundo de la creación de espacios creativos, seguros e innovadores para el desarrollo de habilidades, competencias y talentos de la expresión artística, deportiva de nuestro estudiantado.
-                    </p>
-                </div>
-                <div class="col-lg-6 mb-4">
-                    <h3>Nuestra Ética y Valores</h3>
-                    <p>
-                        Seguimos preceptos acorde a una ética de valores, desligada de todo tipo de discriminación, violencia, bullying, creando espacios seguros y confiables para el estudiantado.
-                    </p>
-                    <h3>Métodos o Herramientas Empleadas</h3>
-                    <ul>
-                        <li>Método neuroeducativo</li>
-                        <li>Blended Learning</li>
-                        <li>Herramientas Montessori</li>
-                        <li>Pedagogía Waldorf</li>
-                        <li>Pedagogía Reggio Emilia</li>
-                        <li>Técnica Graham</li>
-                        <li>Filosofía para niñ@s</li>
-                    </ul>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="bg-white shadow-sm rounded-4 p-4 text-center">
+                        <h3 class="mb-3">Romanos 15:13 (NTV)</h3>
+                        <p class="fs-4 mb-0">"El Dios de esperanza los llene de alegria y paz"</p>
+                    </div>
                 </div>
             </div>
 
@@ -375,17 +361,17 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5 class="brand-text">Legend</h5>
-                    <p>Academia de danza donde cada movimiento cuenta una historia.</p>
+                    <h5 class="brand-text">Vale V Photography</h5>
+                    <p>Estudio fotográfico donde cada imagen cuenta una historia.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="social-links">
-                        <a href="https://www.facebook.com/profile.php?id=100068508182444" class="text-white me-3" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://www.instagram.com/legendvm.cr/" class="text-white me-3" target="_blank"><i class="fab fa-instagram"></i></a>
-                        <a href="https://www.tiktok.com/@studiolegend.cr" class="text-white me-3" target="_blank"><i class="fab fa-tiktok"></i></a>
-                        <a href="https://wa.me/50684118339" class="text-white"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/share/1Czy4E7doQ/?mibextid=wwXIfr" class="text-white me-3" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/valevphotography?igsh=MXZobjc0NWtod2gyMA%3D%3D&utm_source=qr" class="text-white me-3" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.tiktok.com/@valevstudio" class="text-white me-3" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <a href="https://wa.me/50686764740" class="text-white"><i class="fab fa-whatsapp"></i></a>
                     </div>
-                    <p class="mt-2">&copy; 2025 Legend. Todos los derechos reservados.</p>
+                    <p class="mt-2">&copy; 2025 Vale V Photography. Todos los derechos reservados.</p>
                 </div>
             </div>
         </div>
@@ -406,21 +392,60 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
         const adminViewParam = <?php echo (isset($_GET['admin_view']) && $_GET['admin_view'] == '1') ? '"?admin_view=1"' : '""'; ?>;
         
         // Cloudinary helper function for featured classes
-        function getCloudinaryImageUrl(publicId, width = 400, height = 300) {
-            if (!publicId) {
+        function getCloudinaryImageUrl(imageValue, width = 400, height = 300) {
+            if (!imageValue) {
                 return `https://via.placeholder.com/${width}x${height}?text=No+Image`;
             }
+
             const cloudName = 'deov2g1ji';
             const transformations = `w_${width},h_${height},c_fill,f_auto,q_auto,dpr_auto`;
-            
-            // Images are in root with unique IDs
-            return `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/${publicId}`;
+            const placeholder = `https://via.placeholder.com/${width}x${height}?text=No+Image`;
+
+            const isFullUrl = typeof imageValue === 'string' && /^https?:\/\//i.test(imageValue.trim());
+            if (isFullUrl) {
+                const trimmed = imageValue.trim();
+                const marker = '/image/upload/';
+                if (!trimmed.includes(marker)) {
+                    return trimmed;
+                }
+
+                const parts = trimmed.split(marker);
+                if (parts.length < 2) {
+                    return trimmed;
+                }
+
+                const prefix = parts[0];
+                const suffixRaw = parts.slice(1).join(marker);
+                const suffix = suffixRaw.replace(/^\/+/, '');
+                if (suffix.startsWith('v')) {
+                    return `${prefix}${marker}${transformations}/${suffix}`;
+                }
+
+                const segments = suffix.split('/').filter(Boolean);
+                if (!segments.length) {
+                    return trimmed;
+                }
+
+                segments[0] = transformations;
+                return `${prefix}${marker}${segments.join('/')}`;
+            }
+
+            try {
+                const encodedId = String(imageValue)
+                    .split('/')
+                    .map(segment => encodeURIComponent(segment))
+                    .join('/');
+                return `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/${encodedId}`;
+            } catch (_e) {
+                return placeholder;
+            }
         }
         
         // Load featured classes on page load
         // Global variables
         let featuredClasses = [];
         let allClasses = [];
+        const featuredClassesEndpoint = <?php echo json_encode(url_join(BASE_URL, 'data/get_classes_from_db.php')); ?>;
 
         document.addEventListener('DOMContentLoaded', function() {
             loadFeaturedClasses();
@@ -430,13 +455,40 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
         async function loadFeaturedClasses() {
             try {
                 const cacheBuster = new Date().getTime();
-                const response = await fetch(`../data/classes.json?v=${cacheBuster}`);
-                allClasses = await response.json();
-                featuredClasses = allClasses.filter(classItem => classItem.featured);
-                
+                const apiUrl = `${featuredClassesEndpoint}?v=${cacheBuster}`;
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const payload = await response.json();
+                if (Array.isArray(payload)) {
+                    allClasses = payload;
+                } else if (payload && payload.error) {
+                    throw new Error(payload.message || 'No se pudieron cargar las sesiones');
+                } else {
+                    allClasses = [];
+                }
+                featuredClasses = allClasses.filter(classItem => {
+                    if (!classItem) {
+                        return false;
+                    }
+                    const flag = classItem.featured;
+                    return Boolean(flag) || Number(flag) === 1;
+                }).map((item, index) => ({
+                    ...item,
+                    id: item && item.id ? item.id : (item && item.slug ? item.slug : `session-${index}`)
+                }));
+
+                if (featuredClasses.length === 0 && Array.isArray(allClasses) && allClasses.length > 0) {
+                    featuredClasses = allClasses.slice(0, 6).map((item, index) => ({
+                        ...item,
+                        id: item && item.id ? item.id : (item && item.slug ? item.slug : `session-${index}`)
+                    }));
+                }
+
                 renderFeaturedClasses(featuredClasses);
             } catch (error) {
-                console.error('Error loading featured classes:', error);
+                console.error('Error loading featured sessions:', error);
                 showFeaturedClassesError();
             }
         }
@@ -444,54 +496,94 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
         // Render featured classes
         function renderFeaturedClasses(classes) {
             const grid = document.getElementById('featuredClassesGrid');
-            
-            if (classes.length === 0) {
+            if (!grid) {
+                return;
+            }
+
+            if (!Array.isArray(classes) || classes.length === 0) {
                 grid.innerHTML = `
                     <div class="col-12 text-center">
-                        <p class="text-muted">No hay clases destacadas disponibles en este momento.</p>
+                        <p class="text-muted">No hay sesiones destacadas disponibles en este momento.</p>
                     </div>
                 `;
                 return;
             }
-            
-            grid.innerHTML = classes.slice(0, 6).map(classItem => `
+
+            grid.innerHTML = classes.slice(0, 6).map((classItem, index) => {
+                const name = classItem?.name || 'Sesión fotográfica';
+                const description = classItem?.description || 'Agenda tu experiencia personalizada con Vale V Photography.';
+                const levelValue = (classItem?.level || '').toString().trim();
+                const categoryValueRaw = (classItem?.category || '').toString().trim();
+                const formatLabel = (label) => {
+                    if (!label) {
+                        return '';
+                    }
+                    const replacements = new Map([
+                        ['bebes', 'Bebés'],
+                        ['bebés', 'Bebés'],
+                        ['bebe', 'Bebé'],
+                        ['bebé', 'Bebé'],
+                        ['navideno', 'Navideño'],
+                        ['navideño', 'Navideño'],
+                        ['navidenos', 'Navideños'],
+                        ['navideños', 'Navideños'],
+                        ['navidena', 'Navideña'],
+                        ['navideña', 'Navideña'],
+                        ['navidenas', 'Navideñas'],
+                        ['navideñas', 'Navideñas']
+                    ]);
+                    return label
+                        .split(/\s+/)
+                        .map(word => {
+                            const lower = word.toLowerCase();
+                            if (replacements.has(lower)) {
+                                return replacements.get(lower);
+                            }
+                            return lower.charAt(0).toUpperCase() + lower.slice(1);
+                        })
+                        .join(' ');
+                };
+                const categoryValue = formatLabel(categoryValueRaw);
+                const showLevel = levelValue && levelValue.toLowerCase() !== 'principiante';
+                const badgeLabel = formatLabel(showLevel ? levelValue : categoryValue);
+                const badgeMarkup = badgeLabel ? `<span class="badge bg-secondary">${badgeLabel}</span>` : '';
+                const priceValue = Number(classItem?.price ?? 0);
+                const priceLabel = priceValue > 0 ? `₡${priceValue.toLocaleString('es-CR')}` : 'Cotización personalizada';
+                const duration = classItem?.duration ? `<i class="fas fa-clock me-1"></i>${classItem.duration}` : '';
+                const capacity = classItem?.capacity ? `<i class="fas fa-users me-1"></i>${classItem.capacity} personas` : '';
+                const schedule = classItem?.schedule ? `<i class="fas fa-calendar me-1"></i>${classItem.schedule}` : '';
+                const instructor = classItem?.instructor ? `<i class="fas fa-user me-1"></i>${classItem.instructor}` : '';
+                const infoLines = [
+                    duration && capacity ? `${duration} • ${capacity}` : (duration || capacity),
+                    schedule,
+                    instructor
+                ].filter(Boolean).map(line => `<small class="d-block text-muted">${line}</small>`).join('');
+                const classId = String(classItem?.id ?? `session-${index}`);
+                const imageMarkup = classItem?.image
+                    ? `<img src="${getCloudinaryImageUrl(classItem.image, 400, 250)}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${name}">`
+                    : `<div class="placeholder-class" style="height: 200px; background: linear-gradient(135deg, #000000 0%, #333333 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">${name}</div>`;
+
+                return `
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card h-100 shadow-sm card-hover">
-                        ${classItem.image ? 
-                            `<img src="${getCloudinaryImageUrl(classItem.image, 400, 250)}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="${classItem.name}">` : 
-                            `<div class="placeholder-class" style="height: 200px; background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">${classItem.name}</div>`
-                        }
+                        ${imageMarkup}
                         <div class="card-body d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">${classItem.name}</h5>
-                                <span class="badge bg-secondary">${classItem.level}</span>
+                                <h5 class="card-title mb-0">${name}</h5>
+                                ${badgeMarkup}
                             </div>
-                            
-                            <p class="card-text text-muted flex-grow-1">${classItem.description}</p>
-                            
+                            <p class="card-text text-muted flex-grow-1">${description}</p>
                             <div class="class-info mb-3">
-                                <small class="d-block text-muted">
-                                    <i class="fas fa-clock me-1"></i>${classItem.duration} • 
-                                    <i class="fas fa-users me-1"></i>${classItem.capacity} personas
-                                </small>
-                                <small class="d-block text-muted">
-                                    <i class="fas fa-calendar me-1"></i>${classItem.schedule}
-                                </small>
-                                <small class="d-block text-muted">
-                                    <i class="fas fa-user me-1"></i>${classItem.instructor}
-                                </small>
+                                ${infoLines || '<small class="d-block text-muted">Agenda personalizada</small>'}
                             </div>
-                            
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="h5 mb-0 text-primary">
-                                    ₡${classItem.price.toLocaleString()}<small class="text-muted">/mes</small>
-                                </span>
-                                <button class="btn btn-outline-primary btn-sm" onclick="showClassDetails('${classItem.id}')">Ver Detalles</button>
+                                <span class="h5 mb-0 text-primary">${priceLabel}</span>
+                                <button class="btn btn-outline-primary btn-sm" onclick="showClassDetails('${classId.replace(/'/g, "\\'")}')">Ver Detalles</button>
                             </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         // Show error state for featured classes
@@ -500,7 +592,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
             grid.innerHTML = `
                 <div class="col-12 text-center">
                     <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
-                    <p class="text-muted">Error al cargar las clases destacadas.</p>
+                    <p class="text-muted">Error al cargar las sesiones destacadas.</p>
                     <button class="btn btn-primary" onclick="loadFeaturedClasses()">Reintentar</button>
                 </div>
             `;
@@ -511,7 +603,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
             // Find the class from the featuredClasses array
             const classItem = featuredClasses.find(c => c.id === classId);
             if (!classItem) {
-                alert('Error: Clase no encontrada');
+                alert('Error: Sesión no encontrada');
                 return;
             }
             
@@ -520,9 +612,19 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
 
         // Show class details modal
         function showClassDetailsModal(classItem) {
-            // Parse schedules - split by comma and trim
-            const schedules = classItem.schedule.split(',').map(s => s.trim()).filter(s => s.length > 0);
-            
+            const scheduleSource = classItem?.schedule ?? '';
+            const schedules = Array.isArray(scheduleSource)
+                ? scheduleSource
+                : String(scheduleSource).split(',').map(s => s.trim()).filter(Boolean);
+            const priceValue = Number(classItem?.price ?? 0);
+            const priceLabel = priceValue > 0 ? `₡${priceValue.toLocaleString('es-CR')}` : 'Cotización personalizada';
+            const levelLabel = classItem?.level || classItem?.category || 'Personalizada';
+            const durationLabel = classItem?.duration || 'Sesión adaptable';
+            const instructorLabel = classItem?.instructor || 'Equipo Vale V Photography';
+            const capacityLabel = classItem?.capacity ? `${classItem.capacity} personas` : 'Cupos limitados';
+            const ageGroupLabel = classItem?.ageGroup || classItem?.age_group || 'Todas las edades';
+            const benefitsList = Array.isArray(classItem?.benefits) ? classItem.benefits.filter(Boolean) : [];
+
             const modal = document.createElement('div');
             modal.className = 'modal fade';
             modal.id = 'classDetailsModal';
@@ -531,29 +633,29 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                     <div class="modal-content">
                         <div class="modal-header bg-primary text-white">
                             <h5 class="modal-title">
-                                <i class="fas fa-info-circle me-2"></i>Detalles de la Clase
+                                <i class="fas fa-info-circle me-2"></i>Detalles de la Sesión
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="text-center mb-4">
-                                <img src="${classItem.image ? getCloudinaryImageUrl(classItem.image, 400, 300) : getCloudinaryImageUrl('default-class', 400, 300)}" 
-                                     alt="${classItem.name}" class="img-fluid rounded mb-3" style="max-height: 200px;">
-                                <h4>${classItem.name}</h4>
-                                <p class="text-muted">${classItem.description}</p>
+                                <img src="${classItem?.image ? getCloudinaryImageUrl(classItem.image, 400, 300) : getCloudinaryImageUrl('default-class', 400, 300)}" 
+                                     alt="${classItem?.name || 'Sesión fotográfica'}" class="img-fluid rounded mb-3" style="max-height: 200px;">
+                                <h4>${classItem?.name || 'Sesión fotográfica'}</h4>
+                                <p class="text-muted">${classItem?.description || 'Creamos experiencias fotográficas hechas a tu medida.'}</p>
                             </div>
                             
                             <div class="row mb-3">
                                 <div class="col-md-6 mb-2">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-signal text-primary me-2"></i>
-                                        <strong>Nivel:</strong> <span class="ms-2 badge bg-secondary">${classItem.level}</span>
+                                        <strong>Estilo:</strong> <span class="ms-2 badge bg-secondary">${levelLabel}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-clock text-primary me-2"></i>
-                                        <strong>Duración:</strong> <span class="ms-2">${classItem.duration}</span>
+                                        <strong>Duración estimada:</strong> <span class="ms-2">${durationLabel}</span>
                                     </div>
                                 </div>
                             </div>
@@ -562,13 +664,13 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                                 <div class="col-md-6 mb-2">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-tag text-primary me-2"></i>
-                                        <strong>Precio:</strong> <span class="ms-2 text-success fw-bold">₡${classItem.price.toLocaleString()}/mes</span>
+                                        <strong>Inversión:</strong> <span class="ms-2 text-success fw-bold">${priceLabel}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-user text-primary me-2"></i>
-                                        <strong>Instructor:</strong> <span class="ms-2">${classItem.instructor}</span>
+                                        <strong>Fotógrafa:</strong> <span class="ms-2">${instructorLabel}</span>
                                     </div>
                                 </div>
                             </div>
@@ -577,13 +679,13 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                                 <div class="col-md-6 mb-2">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-users text-primary me-2"></i>
-                                        <strong>Capacidad:</strong> <span class="ms-2">${classItem.capacity} personas</span>
+                                        <strong>Cupos sugeridos:</strong> <span class="ms-2">${capacityLabel}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-child text-primary me-2"></i>
-                                        <strong>Edad:</strong> <span class="ms-2">${classItem.ageGroup || 'Todos'}</span>
+                                        <strong>Ideal para:</strong> <span class="ms-2">${ageGroupLabel}</span>
                                     </div>
                                 </div>
                             </div>
@@ -591,25 +693,25 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                             <div class="mb-4">
                                 <div class="d-flex align-items-center mb-2">
                                     <i class="fas fa-calendar text-primary me-2"></i>
-                                    <strong>Horarios disponibles:</strong>
+                                    <strong>Agenda sugerida:</strong>
                                 </div>
                                 <div class="schedule-display">
-                                    ${schedules.map(schedule => `
+                                    ${schedules.length ? schedules.map(schedule => `
                                         <span class="badge bg-primary me-2 mb-2 p-2">
                                             <i class="fas fa-clock me-1"></i>${schedule}
                                         </span>
-                                    `).join('')}
+                                    `).join('') : '<span class="badge bg-secondary p-2">Coordinamos la agenda contigo</span>'}
                                 </div>
                             </div>
                             
-                            ${classItem.benefits && classItem.benefits.length > 0 ? `
+                            ${benefitsList.length ? `
                                 <div class="mb-4">
                                     <div class="d-flex align-items-center mb-3">
                                         <i class="fas fa-star text-primary me-2"></i>
-                                        <strong>Beneficios de esta clase:</strong>
+                                        <strong>Beneficios de esta sesión:</strong>
                                     </div>
                                     <div class="row">
-                                        ${classItem.benefits.map(benefit => `
+                                        ${benefitsList.map(benefit => `
                                             <div class="col-md-6 mb-2">
                                                 <div class="d-flex align-items-center">
                                                     <i class="fas fa-check-circle text-success me-2"></i>
@@ -623,8 +725,8 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                             
                             <div class="alert alert-info">
                                 <i class="fas fa-info-circle me-2"></i>
-                                <strong>¿Quieres inscribirte?</strong><br>
-                                Visita nuestra página de clases para ver todos los horarios disponibles y completar tu inscripción.
+                                <strong>¿Quieres reservar?</strong><br>
+                                Visita nuestra página de sesiones para coordinar tu experiencia y asegurar la fecha ideal.
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -632,7 +734,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                                 <i class="fas fa-times me-1"></i>Cerrar
                             </button>
                             <a href="clases.php${adminViewParam}" class="btn btn-primary">
-                                <i class="fas fa-th-large me-1"></i>Ver Todas las Clases
+                                <i class="fas fa-th-large me-1"></i>Ver Todas las Sesiones
                             </a>
                         </div>
                     </div>
@@ -646,13 +748,6 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
             modal.addEventListener('hidden.bs.modal', () => {
                 document.body.removeChild(modal);
             });
-        }
-
-        // Helper function to generate Cloudinary image URLs (matching clases.php)
-        function getCloudinaryImageUrl(publicId, width = 400, height = 300) {
-            const cloudName = 'deov2g1ji';
-            const transformations = `w_${width},h_${height},c_fill,f_auto,q_auto`;
-            return `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/${publicId}`;
         }
 
     </script>

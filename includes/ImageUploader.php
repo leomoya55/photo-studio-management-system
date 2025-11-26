@@ -1,6 +1,6 @@
 <?php
 /**
- * File Upload Helper for Legend Academy Admin Panel
+ * File Upload Helper for Vale V Photography Admin Panel
  * Handles secure image uploads for products and social media
  */
 

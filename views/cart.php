@@ -25,7 +25,7 @@ if ($isLoggedIn) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Carrito - Legend Dance Academy</title>
+    <title>Mi Carrito - Vale V Photography</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -39,88 +39,98 @@ if ($isLoggedIn) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     
-    <!-- Orange and Black Color Overrides -->
+    <!-- Vale V Photography monochrome accents -->
     <style>
-        /* Orange and Black Color Overrides */
+        /* Monochrome palette */
         :root {
-            --bs-primary: #ff6600;
-            --bs-primary-rgb: 255, 102, 0;
-            --bs-btn-hover-bg: #e55a00;
-            --bs-btn-active-bg: #e55a00;
+            --bs-primary: #000000;
+            --bs-primary-rgb: 0, 0, 0;
+            --bs-btn-hover-bg: #111111;
+            --bs-btn-active-bg: #111111;
         }
         
-        /* Force our orange color */
+        /* Force our primary color */
         .btn-primary {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            background-image: linear-gradient(135deg, #ff6600 0%, #ff8533 100%) !important;
-            color: white !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            background-image: linear-gradient(135deg, #000000 0%, #333333 100%) !important;
+            color: #ffffff !important;
         }
         
         .btn-primary:hover,
         .btn-primary:focus,
         .btn-primary:active {
-            background-color: #e55a00 !important;
-            border-color: #e55a00 !important;
-            background-image: linear-gradient(135deg, #e55a00 0%, #ff6600 100%) !important;
+            background-color: #111111 !important;
+            border-color: #111111 !important;
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%) !important;
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
-            color: white !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            color: #ffffff !important;
         }
         
         .btn-outline-primary {
-            border-color: #ff6600 !important;
-            color: #ff6600 !important;
+            border-color: #111111 !important;
+            color: #111111 !important;
         }
         
         .btn-outline-primary:hover,
         .btn-outline-primary:focus,
         .btn-outline-primary:active {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            color: white !important;
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            color: #ffffff !important;
         }
         
         .text-primary {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         .brand-text {
             font-family: 'Dancing Script', cursive !important;
-            color: #ff6600 !important;
+            color: var(--brand-color) !important;
             font-weight: 700;
         }
         
         .navbar-nav .nav-link:hover {
-            color: #ff6600 !important;
+            color: #111111 !important;
         }
         
         /* User welcome styling */
         .user-welcome {
-            color: #ff6600 !important;
+            color: #111111 !important;
             font-weight: 600;
             padding: 8px 16px;
             border-radius: 20px;
-            background: rgba(255, 102, 0, 0.1);
-            border: 1px solid #ff6600;
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.2);
         }
         
         .dropdown-menu {
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 30px rgba(61,43,40,0.18);
             border: none;
         }
         
         .dropdown-item:hover {
-            background-color: #ff6600;
-            color: white;
+            background-color: rgba(0, 0, 0, 0.08);
+            color: #111111;
         }
         
         .hero-cart {
-            background: linear-gradient(135deg, #ff6600 0%, #ff8533 100%);
-            color: white;
+            background: linear-gradient(135deg, #fff3e1 0%, #f6caa5 100%);
+            color: #3d2b28;
             padding: 100px 0 80px;
             margin-top: 76px;
+        }
+
+        .hero-cart .text-on-dark {
+            color: #3d2b28 !important;
+            text-shadow: none;
+        }
+
+        .hero-cart .text-on-dark-soft {
+            color: #6f4b3a !important;
+            text-shadow: none;
         }
         
         .cart-item {
@@ -166,8 +176,8 @@ if ($isLoggedIn) {
         }
         
         .quantity-controls button:hover {
-            background: #ff6600;
-            color: white;
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
+            color: #ffffff;
         }
         
         .quantity-controls input {
@@ -242,7 +252,7 @@ if ($isLoggedIn) {
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
         <div class="container">
             <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php">
-                <span class="brand-text">Legend</span>
+                <span class="brand-text">Vale V Photography</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -255,7 +265,7 @@ if ($isLoggedIn) {
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Sesiones</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="<?php echo VIEWS_URL; ?>/catalogo.php">Catálogo</a>
@@ -284,8 +294,8 @@ if ($isLoggedIn) {
                             </ul>
                         </li>
                     <?php else: ?>
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-primary text-white px-3 rounded-pill" href="login.php">Iniciar Sesión</a>
+                        <li class="nav-item nav-cta">
+                            <a class="nav-link btn btn-primary" href="login.php">Iniciar Sesión</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -298,10 +308,10 @@ if ($isLoggedIn) {
         <div class="container">
             <div class="row justify-content-center text-center">
                 <div class="col-lg-8">
-                    <h1 class="display-4 fw-bold mb-4">
+                    <h1 class="display-4 fw-bold mb-4 text-on-dark">
                         <i class="fas fa-shopping-cart me-3"></i>Mi Carrito
                     </h1>
-                    <p class="lead">Revisa tus productos seleccionados y procede al checkout</p>
+                    <p class="lead text-on-dark-soft">Revisa tus productos seleccionados y procede al checkout</p>
                 </div>
             </div>
         </div>
@@ -369,17 +379,17 @@ if ($isLoggedIn) {
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5 class="brand-text">Legend</h5>
-                    <p>Academia de danza donde cada movimiento cuenta una historia.</p>
+                    <h5 class="brand-text">Vale V Photography</h5>
+                    <p>Estudio fotográfico donde cada imagen cuenta una historia.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="social-links">
-                        <a href="https://www.facebook.com/profile.php?id=100068508182444" class="text-white me-3" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://www.instagram.com/legendvm.cr/" class="text-white me-3" target="_blank"><i class="fab fa-instagram"></i></a>
-                        <a href="https://www.tiktok.com/@studiolegend.cr" class="text-white me-3" target="_blank"><i class="fab fa-tiktok"></i></a>
-                        <a href="https://wa.me/50684118339" class="text-white" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/share/1Czy4E7doQ/?mibextid=wwXIfr" class="text-white me-3" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/valevphotography?igsh=MXZobjc0NWtod2gyMA%3D%3D&utm_source=qr" class="text-white me-3" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.tiktok.com/@valevstudio" class="text-white me-3" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <a href="https://wa.me/50686764740" class="text-white" target="_blank"><i class="fab fa-whatsapp"></i></a>
                     </div>
-                    <p class="mt-2">&copy; 2025 Legend. Todos los derechos reservados.</p>
+                    <p class="mt-2">&copy; 2025 Vale V Photography. Todos los derechos reservados.</p>
                 </div>
             </div>
         </div>
@@ -397,11 +407,14 @@ if ($isLoggedIn) {
         // Normalize image URLs: handle http(s), root-relative, backslashes (Windows), or local relative stored paths
         function normalizeImageUrl(url){
             if(!url) return 'https://via.placeholder.com/80?text=IMG';
-            // Convert backslashes to forward slashes
-            url = url.replace(/\\/g, '/');
-            if(/^https?:\/\//i.test(url)) return url; // absolute URL
-            if(url.startsWith('/')) return url; // root-relative
-            return '../' + url.replace(/^\/+/, ''); // from views/ to web root
+            url = String(url);
+            // Normalize path separators and leading markers before deciding how to resolve
+            url = url.replace(/\\/g, '/').trim();
+            if(/^https?:\/\//i.test(url) || url.startsWith('//')) return url; // absolute URL (with or without protocol)
+            if(url.startsWith('/')) return url; // root-relative already valid
+            if(url.startsWith('../')) return url; // already relative to views/
+            if(url.startsWith('./')) return '../' + url.replace(/^\.\//, '');
+            return '../' + url.replace(/^\/+/, ''); // default: move from views/ to web root
         }
         document.addEventListener('DOMContentLoaded', function() {
             loadCartItems();

@@ -76,8 +76,9 @@ try {
                 break;
                 
             case 'orders':
-                // Fetch orders with items
+                // Fetch orders with item details and computed subtotal for safer totals
                 $sql = "SELECT o.*, 
+                               COALESCE(SUM(oi.product_price * oi.quantity), 0) AS items_subtotal,
                                GROUP_CONCAT(CONCAT(oi.product_name, ' (', oi.quantity, ')') SEPARATOR ', ') as items
                         FROM orders o 
                         LEFT JOIN order_items oi ON o.id = oi.order_id 
@@ -89,6 +90,7 @@ try {
                 while ($row = $result->fetch_assoc()) {
                     $row['total_amount'] = floatval($row['total_amount']);
                     $row['delivery_cost'] = floatval($row['delivery_cost']);
+                    $row['items_subtotal'] = floatval($row['items_subtotal']);
                     $orders[] = $row;
                 }
                 
@@ -267,7 +269,7 @@ try {
                         // Notify customer via email (best-effort) and log
                         try {
                             // Fetch order with customer info and items for richer email
-                            $cust = null; $itemsHtml = '';
+                            $cust = null; $itemsHtml = ''; $itemsTotal = 0;
                             if ($s1 = $conn->prepare('SELECT o.order_number, o.status, o.total_amount, o.delivery_cost, o.payment_method, o.payment_status, o.created_at, u.first_name, u.last_name, u.email FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = ?')) {
                                 $s1->bind_param('i', $orderId);
                                 $s1->execute();
@@ -288,6 +290,7 @@ try {
                                             .'<td style="padding:8px 4px;border-bottom:1px solid #eee;text-align:right">₡'.number_format($row['product_price'],0,',','.').'</td>'
                                             .'<td style="padding:8px 4px;border-bottom:1px solid #eee;text-align:right">₡'.number_format($sub,0,',','.').'</td>'
                                             .'</tr>';
+                                        $itemsTotal += $sub;
                                     }
                                     $s2->close();
                                 }
@@ -297,7 +300,11 @@ try {
                                 $to = $cust['email'];
                                 $name = trim(($cust['first_name'] ?? '') . ' ' . ($cust['last_name'] ?? ''));
                                 $orderNo = $cust['order_number'] ?? (string)$orderId;
-                                $total = (float)($cust['total_amount'] ?? 0) + (float)($cust['delivery_cost'] ?? 0);
+                                $baseTotal = (float)($cust['total_amount'] ?? 0);
+                                $deliveryCost = (float)($cust['delivery_cost'] ?? 0);
+                                $computedTotal = $itemsTotal > 0
+                                    ? max($baseTotal, $itemsTotal + $deliveryCost)
+                                    : ($baseTotal > 0 ? $baseTotal : $deliveryCost);
                                 $statusLabel = ($newStatus==='approved'?'Aprobada':($newStatus==='completed'?'Completada':($newStatus==='canceled'?'Cancelada':ucfirst($newStatus))));
                                 $subject = "Actualización de tu orden #{$orderNo} - {$statusLabel}";
                                 $msgIntro = '';
@@ -310,16 +317,16 @@ try {
                                 } else {
                                     $msgIntro = "Tu orden <strong>#{$orderNo}</strong> se actualizó al estado <strong>{$statusLabel}</strong>.";
                                 }
-                                $itemsTable = $itemsHtml ? ('<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr><th style="text-align:left;padding:8px;background:#fafafa">Producto</th><th style="text-align:center;padding:8px;background:#fafafa">Cant</th><th style="text-align:right;padding:8px;background:#fafafa">Precio</th><th style="text-align:right;padding:8px;background:#fafafa">Subtotal</th></tr></thead><tbody>' . $itemsHtml . '<tr style="background:#f3f4f7;font-weight:bold"><td colspan="3" style="padding:10px;text-align:right">TOTAL</td><td style="padding:10px;text-align:right">₡'.number_format($total,0,',','.').'</td></tr></tbody></table>') : '';
-                                $bodyHtml = '<p>Hola '.htmlspecialchars($name).',</p><p>'.$msgIntro.'</p>' . $itemsTable . '<p style="margin-top:18px">Gracias por apoyar a Legend Dance Academy.</p>';
+                                $itemsTable = $itemsHtml ? ('<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr><th style="text-align:left;padding:8px;background:#fafafa">Producto</th><th style="text-align:center;padding:8px;background:#fafafa">Cant</th><th style="text-align:right;padding:8px;background:#fafafa">Precio</th><th style="text-align:right;padding:8px;background:#fafafa">Subtotal</th></tr></thead><tbody>' . $itemsHtml . '<tr style="background:#f3f4f7;font-weight:bold"><td colspan="3" style="padding:10px;text-align:right">TOTAL</td><td style="padding:10px;text-align:right">₡'.number_format($computedTotal,0,',','.').'</td></tr></tbody></table>') : '';
+                                $bodyHtml = '<p>Hola '.htmlspecialchars($name).',</p><p>'.$msgIntro.'</p>' . $itemsTable . '<p style="margin-top:18px">Gracias por apoyar a Vale V Photography.</p>';
                                 $accent = ($newStatus==='approved') ? '#0d6efd' : (($newStatus==='completed') ? '#198754' : (($newStatus==='canceled') ? '#6c757d' : '#ff6600'));
                                 $sentCustomer = send_branded_email($to, $subject, 'Actualización de tu pedido', $bodyHtml, $statusLabel, $accent);
                                 $lineC = sprintf("%s - Email %s to: %s (%s) - Subject: '%s' - Type: order-%s-customer - Sender: %s\n", date('Y-m-d H:i:s'), $sentCustomer?'SENT':'NOT_SENT', $to, $name, $subject, $newStatus, 'Admin');
                                 @file_put_contents(__DIR__ . '/student_emails_log.txt', $lineC, FILE_APPEND);
                                 // Admin notification
-                                $adminEmail = 'vanessa@legenddanceacademy.com';
+                                $adminEmail = 'admin@valevphotography.com';
                                 $adminBody = '<p><strong>Cambio de estado de orden</strong></p>'
-                                    .'<p><strong>Orden:</strong> '.htmlspecialchars($orderNo).' <br><strong>Estado nuevo:</strong> '.htmlspecialchars($statusLabel).' <br><strong>Cliente:</strong> '.htmlspecialchars($name).' <br><strong>Total:</strong> ₡'.number_format($total,0,',','.').'</p>'
+                                    .'<p><strong>Orden:</strong> '.htmlspecialchars($orderNo).' <br><strong>Estado nuevo:</strong> '.htmlspecialchars($statusLabel).' <br><strong>Cliente:</strong> '.htmlspecialchars($name).' <br><strong>Total:</strong> ₡'.number_format($computedTotal,0,',','.').'</p>'
                                     .$itemsTable
                                     .'<p style="margin-top:14px;font-size:12px;color:#666">Este correo confirma el cambio de estado realizado en el panel.</p>';
                                 $adminAccent = ($newStatus==='approved') ? '#0d6efd' : (($newStatus==='completed') ? '#198754' : (($newStatus==='canceled') ? '#6c757d' : '#ff6600'));

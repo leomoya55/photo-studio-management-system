@@ -56,9 +56,9 @@ try {
     }
 
     // Email targets
-    $admin_email = 'vanessa@legenddanceacademy.com';
-    $from_email = 'noreply@legenddanceacademy.com';
-    $from_name = 'Legend Dance Academy';
+    $admin_email = 'admin@valevphotography.com';
+    $from_email = 'noreply@valevphotography.com';
+    $from_name = 'Vale V Photography';
 
     $safeSubject = 'Soporte';
     if ($order_number !== '') { $safeSubject .= ' Pedido #' . $order_number; }

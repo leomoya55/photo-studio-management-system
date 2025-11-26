@@ -1,41 +1,36 @@
 [
     {
-        "id": "vanessa-mora",
-        "name": "Vanessa Mora",
-        "specialty": "Directora y Fundadora - Especialista en todos los estilos de danza",
-        "bio": "Con más de 15 años de experiencia profesional, Vanessa es la directora y fundadora de Academia Legend. Especializada en múltiples disciplinas de danza, desde ballet clásico hasta ritmos urbanos y latinos. Su pasión por la enseñanza y su dedicación han convertido a Legend en un referente de la danza en Costa Rica.",
+        "id": "valeria-vega",
+        "name": "Valeria Vega",
+        "specialty": "Directora Creativa - Fotografía y Dirección Artística",
+        "bio": "Valeria Vega es fotógrafa profesional y directora creativa con más de 10 años de experiencia capturando historias para marcas, artistas y familias. Lidera Vale V Photography en Zapote, donde fusiona dirección artística, producción y edición para crear proyectos visuales a medida.",
         "image": "",
-        "experience": "15+ años",
+        "experience": "10+ años",
         "certifications": [
-            "Formación en Ballet Clásico",
-            "Especialización en Danza Contemporánea",
-            "Certificación en Ritmos Latinos",
-            "Formación en Hip Hop y Danza Urbana",
-            "Técnicas de Jazz y Teatro Musical",
-            "Instructor Certificado en Pilates y Yoga"
+            "Fotografía Profesional y Dirección de Arte",
+            "Certificación en Iluminación de Estudio",
+            "Producción y Dirección Creativa",
+            "Edición Avanzada en Lightroom y Photoshop"
         ],
         "achievements": [
-            "Fundadora de Academia Legend",
-            "Más de 200 estudiantes formados",
-            "Especialista en 9 disciplinas de danza",
-            "Reconocimiento como mejor academia de danza de la región"
+            "Fundadora de Vale V Photography",
+            "Más de 500 sesiones personalizadas documentadas",
+            "Directora creativa para proyectos editoriales y marcas emergentes",
+            "Mentora de artistas y emprendedores visuales"
         ],
         "specialties": [
-            "Ballet Clásico (todos los niveles)",
-            "Danza Contemporánea",
-            "Hip Hop y Danza Urbana",
-            "Salsa, Bachata y Ritmos Latinos",
-            "Jazz y Teatro Musical",
-            "Flamenco",
-            "Pilates y Yoga",
-            "Danza Infantil",
-            "Entrenamiento Pre-profesional"
+            "Retratos editoriales",
+            "Branding y fotografía comercial",
+            "Sesiones familiares y lifestyle",
+            "Eventos y cobertura documental",
+            "Producción y dirección creativa",
+            "Edición profesional y retoque digital"
         ],
         "social": {
-            "instagram": "https://instagram.com/vanessadora_legend",
-            "facebook": "https://facebook.com/vanessamoralegend",
-            "youtube": "https://youtube.com/academialegend",
-            "whatsapp": "+506 8411-8339"
+            "instagram": "https://www.instagram.com/valevphotography?igsh=MXZobjc0NWtod2gyMA%3D%3D&utm_source=qr",
+            "facebook": "https://www.facebook.com/share/1Czy4E7doQ/?mibextid=wwXIfr",
+            "youtube": "https://youtube.com/@valevphotography",
+            "whatsapp": "+506 8676-4740"
         }
     }
 ]

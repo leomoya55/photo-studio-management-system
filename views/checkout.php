@@ -60,7 +60,7 @@ if (empty($cartData['items'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - Legend Dance Academy</title>
+    <title>Checkout - Vale V Photography</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -75,80 +75,86 @@ if (empty($cartData['items'])) {
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     
     <style>
-        /* Orange and Black Color Overrides */
+        /* Vale V Photography monochrome accents */
         :root {
-            --bs-primary: #ff6600;
-            --bs-primary-rgb: 255, 102, 0;
-            --bs-btn-hover-bg: #e55a00;
-            --bs-btn-active-bg: #e55a00;
+            --bs-primary: #000000;
+            --bs-primary-rgb: 0, 0, 0;
+            --bs-btn-hover-bg: #111111;
+            --bs-btn-active-bg: #111111;
         }
         
         .brand-text {
             font-family: 'Dancing Script', cursive;
             font-weight: 700;
             font-size: 2.2rem;
-            color: #ff6b35 !important;
+            color: var(--brand-color) !important;
             text-decoration: none;
         }
         .brand-text:hover {
-            color: #e55a2b !important;
+            color: var(--brand-color) !important;
             text-decoration: none;
         }
         .user-welcome {
-            color: #333 !important;
+            color: #111111 !important;
             font-weight: 500;
         }
         .user-welcome:hover {
-            color: #ff6b35 !important;
+            color: #000000 !important;
         }
         .nav-link {
-            color: #333 !important;
+            color: #111111 !important;
             font-weight: 500;
             transition: color 0.3s ease;
         }
         .nav-link:hover {
-            color: #ff6b35 !important;
+            color: #000000 !important;
         }
         .btn-primary {
-            background-color: #ff6b35;
-            border-color: #ff6b35;
+            background-color: #000000;
+            border-color: #000000;
             font-weight: 600;
             padding: 0.5rem 1.5rem;
             border-radius: 25px;
             transition: all 0.3s ease;
+            background-image: linear-gradient(135deg, #000000 0%, #333333 100%);
         }
         .btn-primary:hover {
-            background-color: #e55a2b;
-            border-color: #e55a2b;
+            background-color: #111111;
+            border-color: #111111;
             transform: translateY(-2px);
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%);
         }
         .btn-secondary {
-            background-color: #6c757d;
-            border-color: #6c757d;
+            background-color: #222222;
+            border-color: #222222;
             font-weight: 600;
             padding: 0.5rem 1.5rem;
             border-radius: 25px;
             transition: all 0.3s ease;
+            background-image: linear-gradient(135deg, #222222 0%, #555555 100%);
         }
         .btn-secondary:hover {
-            background-color: #5a6268;
-            border-color: #545b62;
+            background-color: #111111;
+            border-color: #111111;
             transform: translateY(-2px);
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%);
         }
         .btn-warning {
-            background-color: #ffc107;
-            border-color: #ffc107;
-            color: #000;
+            background-color: #000000;
+            border-color: #000000;
+            color: #ffffff;
             font-weight: 600;
             padding: 0.5rem 1.5rem;
             border-radius: 25px;
             transition: all 0.3s ease;
+            background-image: linear-gradient(135deg, #000000 0%, #333333 100%);
         }
         .btn-warning:hover {
-            background-color: #e0a800;
-            border-color: #d39e00;
-            color: #000;
+            background-color: #111111;
+            border-color: #111111;
+            color: #ffffff;
             transform: translateY(-2px);
+            background-image: linear-gradient(135deg, #111111 0%, #444444 100%);
         }
         .navbar {
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -160,14 +166,14 @@ if (empty($cartData['items'])) {
             border-radius: 8px;
         }
         .dropdown-item {
-            color: #333;
+            color: #111111;
             font-weight: 500;
             padding: 0.5rem 1rem;
             transition: all 0.3s ease;
         }
         .dropdown-item:hover {
-            background-color: #f8f9fa;
-            color: #ff6b35;
+            background-color: rgba(0, 0, 0, 0.08);
+            color: #111111;
         }
         .dropdown-divider {
             margin: 0.5rem 0;
@@ -178,12 +184,12 @@ if (empty($cartData['items'])) {
             border-radius: 15px;
             padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(61,43,40,0.1);
         }
         
         .step-number {
-            background: #ff6600;
-            color: white;
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
+            color: #ffffff;
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -230,18 +236,18 @@ if (empty($cartData['items'])) {
         }
         
         .delivery-option:hover {
-            border-color: #ff6600;
-            background-color: rgba(255, 102, 0, 0.05);
+            border-color: #000000;
+            background-color: rgba(0, 0, 0, 0.05);
         }
         
         .delivery-option input[type="radio"]:checked ~ .form-check-label {
-            color: #ff6600;
+            color: #000000;
             font-weight: 600;
         }
         
         .delivery-option input[type="radio"]:checked {
-            background-color: #ff6600;
-            border-color: #ff6600;
+            background-color: #000000;
+            border-color: #000000;
         }
         
         .payment-option {
@@ -255,12 +261,12 @@ if (empty($cartData['items'])) {
         
         .payment-option:hover,
         .payment-option.selected {
-            border-color: #ff6600;
-            background-color: rgba(255, 102, 0, 0.05);
+            border-color: #000000;
+            background-color: rgba(0, 0, 0, 0.05);
         }
         
         .payment-option.selected {
-            background-color: rgba(255, 102, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.08);
         }
         
         .sinpe-info {
@@ -283,7 +289,7 @@ if (empty($cartData['items'])) {
     <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
         <div class="container">
             <a class="navbar-brand" href="<?php echo VIEWS_URL; ?>/index.php">
-                <span class="brand-text">Legend</span>
+                <span class="brand-text">Vale V Photography</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -296,7 +302,7 @@ if (empty($cartData['items'])) {
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/index.php">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Clases</a>
+                        <a class="nav-link" href="<?php echo VIEWS_URL; ?>/clases.php">Sesiones</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo VIEWS_URL; ?>/catalogo.php">Catálogo</a>
@@ -341,18 +347,22 @@ if (empty($cartData['items'])) {
                             <?php foreach ($cartData['items'] as $item): ?>
                             <?php 
                                 // Normalize image path for Windows/backslashes and relative paths
-                                $img = $item['product_image'] ?? '';
-                                if (!empty($img)) {
-                                    // Convert backslashes to forward slashes
-                                    $img = str_replace('\\', '/', $img);
+                                $img = isset($item['product_image']) ? (string)$item['product_image'] : '';
+                                if ($img !== '') {
+                                    $img = str_replace('\\', '/', trim($img));
                                 }
-                                $isHttp = preg_match('/^https?:\/\//i', $img);
-                                $isRoot = (strlen($img) > 0 && $img[0] === '/');
-                                if (!$isHttp && !$isRoot && !empty($img)) {
-                                    $img = '../' . ltrim($img, '/');
-                                }
-                                if (empty($img)) {
+                                if ($img === '') {
                                     $img = 'https://via.placeholder.com/50?text=IMG';
+                                } elseif (!preg_match('#^(https?:)?//#i', $img)) {
+                                    if (strpos($img, '../') === 0) {
+                                        // already relative to views/
+                                    } elseif (strpos($img, './') === 0) {
+                                        $img = '../' . ltrim(substr($img, 2), '/');
+                                    } elseif ($img[0] === '/') {
+                                        // root-relative path
+                                    } else {
+                                        $img = '../' . ltrim($img, '/');
+                                    }
                                 }
                             ?>
                             <div class="order-item">
@@ -423,7 +433,7 @@ if (empty($cartData['items'])) {
                                             <label class="form-check-label d-flex justify-content-between align-items-center w-100" for="pickup">
                                                 <div>
                                                     <strong>Recoger en Academia</strong>
-                                                    <p class="mb-0 text-muted small">Retira tu pedido directamente en Legend Dance Academy</p>
+                                                    <p class="mb-0 text-muted small">Retira tu pedido directamente en Vale V Photography</p>
                                                 </div>
                                                 <span class="badge bg-success">GRATIS</span>
                                             </label>
@@ -451,7 +461,7 @@ if (empty($cartData['items'])) {
                                 <textarea class="form-control" id="address" name="address" rows="3" placeholder="Dirección completa para la entrega (solo áreas cercanas a la academia)" autocomplete="street-address"></textarea>
                                 <small class="text-muted">
                                     <i class="fas fa-info-circle me-1"></i>
-                                    La entrega está disponible solo para áreas cercanas a Legend Dance Academy
+                                    La entrega está disponible solo para áreas cercanas a Vale V Photography
                                 </small>
                             </div>
                             
@@ -485,9 +495,9 @@ if (empty($cartData['items'])) {
                                 <div class="row">
                                     <div class="col-md-6">
                                         <h6><i class="fas fa-mobile-alt me-2"></i>Datos para la transferencia:</h6>
-                                        <p class="mb-2"><strong>Número:</strong> +506 8411-8339</p>
-                                        <p class="mb-2"><strong>Nombre:</strong> Vanessa Mora</p>
-                                        <p class="mb-3"><strong>Concepto:</strong> Pedido Legend Dance Academy</p>
+                                        <p class="mb-2"><strong>Número:</strong> +506 8676-4740</p>
+                                        <p class="mb-2"><strong>Nombre:</strong> Valeria Vega</p>
+                                        <p class="mb-3"><strong>Concepto:</strong> Pedido Vale V Photography</p>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="alert alert-info">
@@ -564,22 +574,22 @@ if (empty($cartData['items'])) {
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <h5 class="text-primary mb-3">Legend Dance Academy</h5>
+                    <h5 class="brand-text mb-3">Vale V Photography</h5>
                     <p>Transformando vidas a través de la danza desde 2008</p>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5 class="text-primary mb-3">Enlaces Rápidos</h5>
+                    <h5 class="text-white mb-3">Enlaces Rápidos</h5>
                     <ul class="list-unstyled">
                         <li><a href="<?php echo VIEWS_URL; ?>/index.php" class="text-white-50">Inicio</a></li>
-                        <li><a href="<?php echo VIEWS_URL; ?>/clases.php" class="text-white-50">Clases</a></li>
+                        <li><a href="<?php echo VIEWS_URL; ?>/clases.php" class="text-white-50">Sesiones</a></li>
                         <li><a href="<?php echo VIEWS_URL; ?>/catalogo.php" class="text-white-50">Catálogo</a></li>
                         <li><a href="<?php echo VIEWS_URL; ?>/contact.php" class="text-white-50">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5 class="text-primary mb-3">Contacto</h5>
-                    <p><i class="fas fa-phone me-2"></i> +506 8411-8339</p>
-                    <p><i class="fas fa-envelope me-2"></i> info@legenddanceacademy.com</p>
+                    <h5 class="text-white mb-3">Contacto</h5>
+                    <p><i class="fas fa-phone me-2"></i> +506 8676-4740</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@valevphotography.com</p>
                 </div>
             </div>
         </div>
