@@ -324,7 +324,7 @@ try {
                                 $lineC = sprintf("%s - Email %s to: %s (%s) - Subject: '%s' - Type: order-%s-customer - Sender: %s\n", date('Y-m-d H:i:s'), $sentCustomer?'SENT':'NOT_SENT', $to, $name, $subject, $newStatus, 'Admin');
                                 @file_put_contents(__DIR__ . '/student_emails_log.txt', $lineC, FILE_APPEND);
                                 // Admin notification
-                                $adminEmail = 'admin@valevphotography.com';
+                                $adminEmail = studio_email_default('admin_email', 'admin@valevphotography.com');
                                 $adminBody = '<p><strong>Cambio de estado de orden</strong></p>'
                                     .'<p><strong>Orden:</strong> '.htmlspecialchars($orderNo).' <br><strong>Estado nuevo:</strong> '.htmlspecialchars($statusLabel).' <br><strong>Cliente:</strong> '.htmlspecialchars($name).' <br><strong>Total:</strong> ₡'.number_format($computedTotal,0,',','.').'</p>'
                                     .$itemsTable

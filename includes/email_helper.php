@@ -26,19 +26,57 @@ function studio_env($key, $default = '') {
     return $default;
 }
 
+function studio_email_defaults() {
+    static $defaults = null;
+    if ($defaults !== null) {
+        return $defaults;
+    }
+
+    $defaults = [];
+    $configPath = __DIR__ . '/../config/config.php';
+    if (file_exists($configPath)) {
+        $config = require $configPath;
+        if (is_array($config) && isset($config['email']) && is_array($config['email'])) {
+            $defaults = $config['email'];
+        }
+    }
+
+    return $defaults;
+}
+
+function studio_email_default($key, $fallback = '') {
+    $defaults = studio_email_defaults();
+    if (isset($defaults[$key]) && $defaults[$key] !== '') {
+        return $defaults[$key];
+    }
+    return $fallback;
+}
+
 function studio_smtp_config() {
     $host = studio_env('SMTP_HOST');
     $user = studio_env('SMTP_USER');
     $pass = studio_env('SMTP_PASS');
+    $defaults = studio_email_defaults();
+    if (!$host && isset($defaults['smtp_host'])) {
+        $host = $defaults['smtp_host'];
+    }
+    if (!$user && isset($defaults['smtp_username'])) {
+        $user = $defaults['smtp_username'];
+    }
+    if (!$pass && isset($defaults['smtp_password'])) {
+        $pass = $defaults['smtp_password'];
+    }
     if (!$host || !$user || !$pass) {
         return null;
     }
+    $port = (int)(studio_env('SMTP_PORT') ?: ($defaults['smtp_port'] ?? 587));
+    $secure = strtolower(studio_env('SMTP_SECURE') ?: ($defaults['smtp_encryption'] ?? 'tls'));
     return [
         'host' => $host,
         'user' => $user,
         'pass' => $pass,
-        'port' => (int)(studio_env('SMTP_PORT') ?: 587),
-        'secure' => strtolower(studio_env('SMTP_SECURE') ?: 'tls')
+        'port' => $port > 0 ? $port : 587,
+        'secure' => in_array($secure, ['tls','ssl'], true) ? $secure : 'tls'
     ];
 }
 
@@ -69,6 +107,10 @@ function send_via_phpmailer($to, $subject, $html, $attachments, $fromName, $from
         $mailer->Port = $smtp['port'] > 0 ? $smtp['port'] : 587;
         $mailer->CharSet = 'UTF-8';
         $mailer->setFrom($fromEmail, $fromName);
+        $replyTo = studio_email_default('reply_to', $fromEmail);
+        if (filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
+            $mailer->addReplyTo($replyTo, $fromName);
+        }
         $mailer->addAddress($to);
         $mailer->isHTML(true);
         $mailer->Subject = $subject;
@@ -100,8 +142,12 @@ function send_best_effort_email_with_attachments($to, $subject, $html, $attachme
 
     $envFromEmail = studio_env('SENDER_EMAIL');
     if ($envFromEmail) { $fromEmail = $envFromEmail; }
+    else { $fromEmail = studio_email_default('from_email', $fromEmail); }
     $envFromName = studio_env('SENDER_NAME');
     if ($envFromName) { $fromName = $envFromName; }
+    else { $fromName = studio_email_default('from_name', $fromName); }
+
+    $replyTo = studio_email_default('reply_to', $fromEmail);
 
     // TestMail (capture sandbox) integration: if TESTMAIL_NAMESPACE is set, redirect outbound
     $testmailNs = getenv('TESTMAIL_NAMESPACE') ?: '';
@@ -164,6 +210,9 @@ function send_best_effort_email_with_attachments($to, $subject, $html, $attachme
         'MIME-Version: 1.0',
         'From: ' . sprintf('%s <%s>', $fromName, $fromEmail)
     ];
+    if (filter_var($replyTo, FILTER_VALIDATE_EMAIL) && strcasecmp($replyTo, $fromEmail) !== 0) {
+        $headersBase[] = 'Reply-To: ' . sprintf('%s <%s>', $fromName, $replyTo);
+    }
     if (!empty($testmailNs)) {
         $headersBase[] = 'X-TestMail-Namespace: ' . $testmailNs;
     }
@@ -251,6 +300,12 @@ function build_branded_email($headline, $bodyHtml, $accent = '#000000', $statusL
 }
 
 function send_branded_email($to, $subject, $headline, $bodyHtml, $statusLabel = '', $accent = '#000000', $attachments = [], $fromName = 'Vale V Photography', $fromEmail = 'noreply@valevphotography.com') {
+    if (!$fromName || $fromName === 'Vale V Photography') {
+        $fromName = studio_email_default('from_name', $fromName ?: 'Vale V Photography');
+    }
+    if (!$fromEmail || $fromEmail === 'noreply@valevphotography.com') {
+        $fromEmail = studio_email_default('from_email', $fromEmail ?: 'noreply@valevphotography.com');
+    }
     $html = build_branded_email($headline, $bodyHtml, $accent, $statusLabel);
     return send_best_effort_email_with_attachments($to, $subject, $html, $attachments, $fromName, $fromEmail);
 }

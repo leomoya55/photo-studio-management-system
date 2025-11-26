@@ -408,9 +408,9 @@ function clearUserCart($user_id) {
 
 function sendOrderNotifications($order_number, $customer_name, $customer_email, $cart_items, $total_amount, $payment_method, $shipping_address, $notes, $customer_phone, $sinpe_proof_data = null) {
     try {
-        $admin_email = 'admin@valevphotography.com';
-        $from_email = 'noreply@valevphotography.com';
-        $from_name = 'Vale V Photography';
+        $admin_email = studio_email_default('admin_email', 'admin@valevphotography.com');
+        $from_email = studio_email_default('from_email', 'noreply@valevphotography.com');
+        $from_name = studio_email_default('from_name', 'Vale V Photography');
 
         // Items table fragment
         $rows = '';

@@ -159,6 +159,9 @@ try {
             'accent' => '#111827'
         ];
 
+        $fromEmail = studio_email_default('from_email', 'info@valevphotography.com');
+        $fromName = studio_email_default('from_name', 'Vale V Photography');
+
         switch ($new_status) {
             case 'approved':
                 $emailMeta['subject'] = '¡Tu sesión está confirmada! - Vale V Photography';
@@ -206,8 +209,8 @@ try {
                 $emailMeta['statusLabel'],
                 $emailMeta['accent'],
                 [],
-                'Vale V Photography',
-                'info@valevphotography.com'
+                $fromName,
+                $fromEmail
             );
 
             try {

@@ -4,6 +4,18 @@
  * Central configuration for the website
  */
 
+if (!function_exists('config_env')) {
+    function config_env($key, $default = '') {
+        $candidates = [getenv($key), $_ENV[$key] ?? null, $_SERVER[$key] ?? null];
+        foreach ($candidates as $value) {
+            if ($value !== false && $value !== null && $value !== '') {
+                return $value;
+            }
+        }
+        return $default;
+    }
+}
+
 return [
     // Studio Information
     'academy' => [
@@ -36,14 +48,15 @@ return [
     
     // Email Configuration
     'email' => [
-        'smtp_host' => 'smtp.gmail.com',
-        'smtp_port' => 587,
-        'smtp_encryption' => 'tls',
-        'smtp_username' => 'info@valevphotography.com',
-        'smtp_password' => 'your_app_password_here',
-        'from_email' => 'info@valevphotography.com',
-        'from_name' => 'Vale V Photography',
-        'admin_email' => 'admin@valevphotography.com'
+        'smtp_host' => config_env('SMTP_HOST', 'smtp.gmail.com'),
+        'smtp_port' => (int)config_env('SMTP_PORT', 587),
+        'smtp_encryption' => config_env('SMTP_SECURE', 'tls'),
+        'smtp_username' => config_env('SMTP_USER', 'vegamurillovaleria@gmail.com'),
+        'smtp_password' => config_env('SMTP_PASS', ''),
+        'from_email' => config_env('SENDER_EMAIL', 'info@valevphotography.com'),
+        'from_name' => config_env('SENDER_NAME', 'Vale V Photography'),
+        'admin_email' => config_env('ADMIN_EMAIL', 'info@valevphotography.com'),
+        'reply_to' => config_env('REPLY_TO_EMAIL', config_env('SENDER_EMAIL', 'info@valevphotography.com'))
     ],
     
     // Website Settings
