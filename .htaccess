@@ -4,18 +4,30 @@ RewriteEngine On
 RewriteCond %{HTTP_HOST} ^www\.valevphoto\.studio$ [NC]
 RewriteRule ^(.*)$ https://valevphoto.studio/$1 [L,R=301]
 
-# 2) Redirect specific HTML pages to PHP (if someone hits the old .html URLs)
-RewriteRule ^index\.html$ index.php [R=301,L]
-RewriteRule ^clases\.html$ clases.php [R=301,L]
-RewriteRule ^ubicacion\.html$ ubicacion.php [R=301,L]
-RewriteRule ^catalogo\.html$ catalogo.php [R=301,L]
-RewriteRule ^redes-sociales\.html$ redes-sociales.php [R=301,L]
+# 1.1) Redirect /index.php -> /
+RewriteCond %{THE_REQUEST} \s/+index\.php[ \?]
+RewriteRule ^index\.php$ https://%{HTTP_HOST}/ [R=301,L]
 
-# 3) Pretty URLs: /clases -> clases.php, /redes-sociales -> redes-sociales.php, etc.
+# 1.2) Redirect root-level page.php -> /page (exclude admin/api/vendor paths)
+RewriteCond %{REQUEST_URI} !^/admin/ [NC]
+RewriteCond %{REQUEST_URI} !^/api/ [NC]
+RewriteCond %{REQUEST_URI} !^/vendor/ [NC]
+RewriteCond %{THE_REQUEST} \s/([A-Za-z0-9_-]+)\.php[ \?]
+RewriteRule ^([A-Za-z0-9_-]+)\.php$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# 2) If someone requests /views/page.php directly, redirect to clean URL (/page)
+RewriteCond %{THE_REQUEST} \s/+views/([^\s?]+)\.php[ \?] [NC]
+RewriteRule ^views/.+\.php$ https://valevphoto.studio/%1 [R=301,L]
+
+# 3) Pretty URLs:
+#    /catalogo  -> views/catalogo.php
+#    /clases    -> views/clases.php
+#    /ubicacion -> views/ubicacion.php
+#    /redes-sociales -> views/redes-sociales.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME}.php -f
-RewriteRule ^(.+)$ $1.php [L]
+RewriteCond %{DOCUMENT_ROOT}/views/$1.php -f
+RewriteRule ^([^/]+)/?$ views/$1.php [L]
 
-# 4) Default index file
+# 4) Default index file (root)
 DirectoryIndex index.php index.html
