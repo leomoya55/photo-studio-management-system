@@ -310,6 +310,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
 </head>
 
 <body>
+    <link rel="icon" type="image/svg+xml" href="<?php echo ASSETS_URL; ?>/images/favicon.svg">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
@@ -454,7 +455,7 @@ if (isset($_GET['admin_view']) && $_GET['admin_view'] == '1' && (!$isLoggedIn ||
                         <a href="ubicacion.php" class="btn btn-outline-primary btn-lg">
                             <i class="fas fa-map-marker-alt me-2"></i>Visítanos
                         </a>
-                        <a href="redes-sociales.php" class="btn btn-outline-primary btn-lg">
+                        <a href="portafolio.php" class="btn btn-outline-primary btn-lg">
                             <i class="fas fa-images me-2"></i>Ver Portafolio
                         </a>
                     </div>

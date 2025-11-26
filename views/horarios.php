@@ -301,6 +301,7 @@ $sampleSchedules = [
 </head>
 
 <body>
+    <link rel="icon" type="image/svg+xml" href="<?php echo ASSETS_URL; ?>/images/favicon.svg">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">

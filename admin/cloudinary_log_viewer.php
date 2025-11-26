@@ -36,6 +36,7 @@ header('Content-Type: text/html; charset=UTF-8');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="../assets/images/favicon.svg">
   <title>Cloudinary Proof Upload Logs</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style> body { padding: 2rem; } pre { background:#0f172a; color:#e2e8f0; padding:1rem; border-radius:8px; max-height:60vh; overflow:auto;} code { color:#93c5fd; } </style>
