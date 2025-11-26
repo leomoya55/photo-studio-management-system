@@ -733,7 +733,7 @@ if ($conn) {
                     <h2 class="section-title">¿Tienes preguntas?</h2>
                     <p class="section-subtitle">Contáctanos directamente por WhatsApp para información sobre clases, horarios y promociones especiales.</p>
                     <div class="d-flex justify-content-center flex-wrap">
-                        <a href="https://wa.me/1234567890" class="btn btn-success btn-lg">
+                        <a href="https://wa.me/50686764740" class="btn btn-success btn-lg">
                             <i class="fab fa-whatsapp me-2"></i>Escribir por WhatsApp
                         </a>
                     </div>
