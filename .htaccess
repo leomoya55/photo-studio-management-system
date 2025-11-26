@@ -1,32 +1,31 @@
 RewriteEngine On
 
+# 0) Establish a clean base (Heroku Apache uses repo root as document root)
+RewriteBase /
+
 # 1) Redirect www.valevphoto.studio -> valevphoto.studio
 RewriteCond %{HTTP_HOST} ^www\.valevphoto\.studio$ [NC]
-RewriteRule ^(.*)$ https://valevphoto.studio/$1 [L,R=301]
+RewriteRule ^ https://valevphoto.studio%{REQUEST_URI} [L,R=301]
 
 # 1.1) Redirect /index.php -> /
 RewriteCond %{THE_REQUEST} \s/+index\.php[ \?]
 RewriteRule ^index\.php$ / [R=301,L]
 
-# 1.2) Redirect root-level page.php -> /page (exclude admin/api/vendor paths)
-RewriteCond %{REQUEST_URI} !^/admin/ [NC]
-RewriteCond %{REQUEST_URI} !^/api/ [NC]
-RewriteCond %{REQUEST_URI} !^/vendor/ [NC]
+# 1.2) Redirect root-level page.php -> /page (exclude system folders)
+RewriteCond %{REQUEST_URI} !^/(admin|api|assets|config|controllers|models|includes|vendor|data|ProyectoVanessa|uploads)/ [NC]
 RewriteCond %{THE_REQUEST} \s/([A-Za-z0-9_-]+)\.php[ \?]
 RewriteRule ^([A-Za-z0-9_-]+)\.php$ /$1 [R=301,L]
 
 # 2) If someone requests /views/page.php directly, redirect to clean URL (/page)
-RewriteCond %{THE_REQUEST} \s/+views/([^\s?]+)\.php[ \?] [NC]
-RewriteRule ^views/.+\.php$ /%1 [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+views/([A-Za-z0-9_-]+)\.php[ \?] [NC]
+RewriteRule ^views/([A-Za-z0-9_-]+)\.php$ /$1 [R=301,L]
 
-# 3) Pretty URLs:
-#    /catalogo  -> views/catalogo.php
-#    /clases    -> views/clases.php
-#    /ubicacion -> views/ubicacion.php
-#    /redes-sociales -> views/redes-sociales.php
+# 3) Pretty URLs -> internally serve views/*.php when file exists
+RewriteCond %{REQUEST_URI} !^/(admin|api|assets|config|controllers|models|includes|vendor|data|ProyectoVanessa|uploads)/ [NC]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^([^/]+)/?$ views/$1.php [L]
+RewriteCond %{DOCUMENT_ROOT}/views/$1.php -f
+RewriteRule ^([A-Za-z0-9_-]+)/?$ views/$1.php [L]
 
 # 4) Default index file (root)
 DirectoryIndex index.php index.html
